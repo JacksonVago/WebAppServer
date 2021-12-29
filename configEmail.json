@@ -1,0 +1,7 @@
+{
+  "configEmail": {
+    "servidorSMTP": "smtp.natividadesolucoes.com.br",
+    "porta": 587,
+    "usuario": "suporte@natividadesolucoes.com.br"
+  }
+} 
