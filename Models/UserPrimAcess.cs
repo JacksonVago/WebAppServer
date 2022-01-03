@@ -7,6 +7,7 @@ namespace WebAppServer.Models
     public class UserPrimAcess
 	{
 		public Int64 id {get;set;}
+		public Int64 id_empresa { get; set; }
 		public string str_email { get; set; }
 		public DateTime dtm_acesso { get; set; }
 		public Int64 int_cod_acesso  {get;set;}
