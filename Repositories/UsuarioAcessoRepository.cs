@@ -35,18 +35,19 @@ namespace WebAppServer.Repositories
 
             empresa.Add(new Empresa
             {
-                Id = 0,
+                id = 0,
                 int_cgccpf = 0,
                 str_nome = "",
                 str_fantasia = "",
                 str_email = str_mail,
                 int_telefone = 0,
+                int_local_atend = 0,
                 int_id_user_adm = 0,
                 dtm_inclusao = DateTime.Now,
                 int_situacao = 0,
                 int_sitpag = 0,
                 dtm_ultpag = null,
-                IdApp = 0
+                id_app = 0
             });
 
             using (SqlConnection conn = new SqlConnection(configDB.ConnectString))
@@ -114,6 +115,7 @@ namespace WebAppServer.Repositories
                     catch (Exception ex)
                     {
                         tran.Rollback();
+                        conn.Close();
                         throw ex;
                     }
                 }

@@ -31,7 +31,7 @@ namespace WebAppServer.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateJwtTokenAsync([FromBody] Usuariotoken user)
         {
-            Usuario user_ret = new Usuario();
+            UsuarioAcesso user_ret = new UsuarioAcesso();
             user_ret = await _repository.ValidaUsuario(user.username, user.password);
             if (user_ret != null)
             {

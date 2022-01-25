@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace WebAppServer.Models
 {
-    public class Empresa
+    public class EmpresaApp
     {
         public Int64 id { get; set; }
         public Int64? int_cgccpf { get; set; }
@@ -17,8 +18,8 @@ namespace WebAppServer.Models
         public DateTime dtm_inclusao { get; set; }
         public int int_situacao { get; set; }
         public int int_sitpag { get; set; }
-        public DateTime? dtm_ultpag{ get; set; }
-        public Int64 id_app { get; set; }
-        public Int64 id_user_man { get; set; }
+        public DateTime? dtm_ultpag { get; set; }
+        public Int64 id_server { get; set; }
+        public Int16 int_sinc { get; set; }
     }
 }

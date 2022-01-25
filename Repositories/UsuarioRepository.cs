@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using System.Data;
 using Microsoft.Data.SqlClient;
+using Newtonsoft.Json;
 
 namespace WebAppServer.Repositories
 {
@@ -20,9 +21,9 @@ namespace WebAppServer.Repositories
             configDB = new ConfigDB();
         }
 
-        public async Task<Usuario> ValidaUsuario(string usuario, string senha)
+        public async Task<UsuarioAcesso> ValidaUsuario(string usuario, string senha)
         {
-            Usuario user_ret = new Usuario();
+            UsuarioAcesso user_ret = new UsuarioAcesso();
             List<dynamic> luser_ret = new List<dynamic>();
             DataTable dtt_usuario = new DataTable();
             DataTable dtt_permissao = new DataTable();
@@ -102,7 +103,7 @@ namespace WebAppServer.Repositories
             return user_ret;
         }
 
-        public async Task<bool> GravarAcesso(Usuario usuario, string Token, string ip, string metodo, string parametros)
+        public async Task<bool> GravarAcesso(UsuarioAcesso usuario, string Token, string ip, string metodo, string parametros)
         {
             DataTable dtt_usuario_grv = new DataTable();
             DataRow row_usuario = null;
@@ -349,6 +350,76 @@ namespace WebAppServer.Repositories
 
             DtTabela.WriteXml(sw, System.Data.XmlWriteMode.WriteSchema);
             return sb;
+        }
+
+        public async Task<Int64> GravarUsuario(Int64 company, Int64 user, dynamic dados)
+        {
+            DataRepository repData = new DataRepository();
+            bool bol_ret = true;
+            Int64 id_usu = 0;
+
+            string str_ret = "";
+            string str_corpo = "";
+
+            UsuarioApp usuApp = new UsuarioApp();
+            List<Usuario> usu = new List<Usuario>();
+
+            string str_param = "";
+            /*if (dados.GetType() != typeof(string))
+            {
+                str_param = JsonConvert.SerializeObject(dados);
+            }
+            else
+            {
+                str_param = dados;
+            }*/
+
+            usuApp = dados;
+
+            usu.Add(new Usuario
+            {
+                id = usuApp.id_server,
+                id_empresa = company,
+                str_nome = usuApp.str_nome,
+                str_login = usuApp.str_login,
+                str_senha = usuApp.str_senha,
+                str_email = usuApp.str_email,
+                int_telefone = usuApp.int_telefone,
+                int_tipo = usuApp.int_tipo,
+                dtm_inclusao = usuApp.dtm_inclusao,
+                dtm_saida = usuApp.dtm_saida,
+                int_situacao = usuApp.int_situacao,
+                str_foto = usuApp.str_foto,
+                id_app = usuApp.id,
+                id_user_man = user
+            });
+
+            using (SqlConnection conn = new SqlConnection(configDB.ConnectString))
+            {
+                conn.Open();
+                using (SqlTransaction tran = conn.BeginTransaction())
+                {
+                    try
+                    {
+                        id_usu = Convert.ToInt64(repData.ManutencaoTabela<Usuario>("I", usu, "ntv_tbl_usuario", conn, tran).Split(";")[0]);
+                        if (id_usu > 0)
+                        {
+                            tran.Commit();
+                        }
+                        
+                    }
+                    catch (Exception ex)
+                    {
+                        tran.Rollback();
+                        conn.Close();
+                        throw ex;
+                    }
+                }
+                conn.Close();
+            }
+
+            return id_usu;
+
         }
 
     }

@@ -1,4 +1,9 @@
 ﻿//using Microsoft.IdentityModel.Tokens;
+using Microsoft.IdentityModel.Tokens;
+using System;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 using WebAppServer.Models;
 /*using System;
 using System.Collections.Generic;
@@ -12,12 +17,11 @@ namespace WebAppServer.Services
 {
     public class TokenService
     {
-        public static Token GeraToken(Usuario user)
+        public static Token GeraToken(UsuarioAcesso user)
         {
             var str_retorno = "ok";
-
-            /*
-            try
+            
+            /*try
             {
                 var chave = Encoding.ASCII.GetBytes(Tokenchavehash.chave);
                 var claims = new Claim[]
