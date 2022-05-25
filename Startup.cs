@@ -34,8 +34,12 @@ namespace WebAppServer
 
             services.AddScoped<UsuarioRepository>();
             services.AddScoped<UsuarioAcessoRepository>();
+            services.AddScoped<SalaRepository>();
+            services.AddScoped<PedidoRepository>();
+            services.AddScoped<HubRepository>();
             services.AddScoped<SyncRepository>();
             services.AddScoped<EmailRepository>();
+            services.AddScoped<NotificacoesRepository>();
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             /*services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
             {
@@ -74,15 +78,17 @@ namespace WebAppServer
 
             //app.UseAuthorization();
 
-            app.UseSignalR(routes =>
+
+            /*app.UseSignalR(routes =>
             {
                 routes.MapHub<AppHub>("/Hubs/AppHub");
-            });
+            });*/
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllerRoute(
                     name: "default",
                     pattern: "{controller=Home}/{action=Index}/{id?}");
+                endpoints.MapHub<AppHub>("AppHub");
             });
         }
     }

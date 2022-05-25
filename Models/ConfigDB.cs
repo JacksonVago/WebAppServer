@@ -21,6 +21,7 @@ namespace WebAppServer.Models
             var obj_config = JObject.Parse(JSON);
 
             _strConnect = obj_config["ConnectionStrings"]["DeafultConnectionStrings"].ToString() + "JjmlS2021@";
+            //_strConnect = obj_config["ConnectionStrings1"]["DeafultConnectionStrings"].ToString() + "natividade";
         }
 
         public string ConnectString {

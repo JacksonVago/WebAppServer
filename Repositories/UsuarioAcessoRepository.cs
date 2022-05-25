@@ -64,6 +64,8 @@ namespace WebAppServer.Repositories
                             {
                                 id = 0,
                                 id_empresa = id_emp,
+                                id_emp_serv = id_emp,
+                                id_user_app = 0,
                                 str_email = str_mail,
                                 dtm_acesso = DateTime.Now,
                                 int_cod_acesso = 0,
@@ -73,8 +75,9 @@ namespace WebAppServer.Repositories
 
                             id_prim = Convert.ToInt64(repData.ManutencaoTabela<UserPrimAcess>("I", primAcesses, "ntv_tbl_prim_acess", conn, tran).Split(";")[0]);
 
-                            str_ret = repData.ConsultaGenerica("[{ \"nome\":\"ID\", \"valor\":\"" + id_prim.ToString() + "\", \"tipo\":\"Int64\"}," +
+                            str_ret = repData.ConsultaGenerica("[{ \"nome\":\"id\", \"valor\":\"" + id_prim.ToString() + "\", \"tipo\":\"Int64\"}," +
                                                                "{ \"nome\":\"id_empresa\", \"valor\":\"0\", \"tipo\":\"Int64\"}," +
+                                                               "{ \"nome\":\"id_emp_serv\", \"valor\":\"0\", \"tipo\":\"Int64\"}," +
                                                                "{ \"nome\":\"Email\", \"valor\":\"\", \"tipo\":\"string\"}," +
                                                                "{ \"nome\":\"CodAcesso\", \"valor\":\"0\", \"tipo\":\"Int64\"}," +
                                                                "{ \"nome\":\"situacao\", \"valor\":\"0\", \"tipo\":\"Int16\"}]", "ntv_p_sel_tbl_prim_acess", conn, tran);
@@ -95,10 +98,10 @@ namespace WebAppServer.Repositories
                                 emails.Add(new envEmail
                                 {
                                     id = 0,
-                                    str_de = "jackson@natividadesolucoes.com.br",
+                                    str_de = "suporte@natividadesolucoes.com.br",
                                     str_para = str_mail,
                                     str_cc = "",
-                                    str_ass = "Adesão ao APP Pè na Areia",
+                                    str_ass = "Adesão ao APP na Areia",
                                     str_msg = str_corpo,
                                     str_html = "S",
                                     dtm_data_inc = DateTime.Now,
@@ -127,6 +130,54 @@ namespace WebAppServer.Repositories
 
         }
 
+        public async Task<IEnumerable<dynamic>> VerificaUsuario(string str_mail)
+        {
+            DataRepository repData = new DataRepository();
+            bool bol_ret = true;
+            Int64 id_emp = 0;
+            Int64 id_prim = 0;
+            string str_ret = "";
+            string str_corpo = "";
+            dynamic dyn_ret = null;
+
+            using (SqlConnection conn = new SqlConnection(configDB.ConnectString))
+            {
+                conn.Open();
+                try
+                {
+                    //Verifica se o é primeiro acesso
+                    str_ret = repData.ConsultaGenerica("[{ \"nome\":\"id\", \"valor\":\"0\", \"tipo\":\"Int64\"}," +
+                                                        "{ \"nome\":\"id_empresa\", \"valor\":\"0\", \"tipo\":\"Int64\"}," +
+                                                        "{ \"nome\":\"id_emp_serv\", \"valor\":\"0\", \"tipo\":\"Int64\"}," +
+                                                        "{ \"nome\":\"Email\", \"valor\":\"" + str_mail + "\", \"tipo\":\"string\"}," +
+                                                        "{ \"nome\":\"CodAcesso\", \"valor\":\"0\", \"tipo\":\"Int64\"}," +
+                                                        "{ \"nome\":\"situacao\", \"valor\":\"0\", \"tipo\":\"Int16\"}]", "ntv_p_sel_tbl_prim_acess", conn);
+                    dyn_ret = JsonConvert.DeserializeObject<List<UserPrimAcess>>(str_ret);
+
+                    if (dyn_ret.Count == 0)
+                    {
+                        //Verifica se o usuário esta ativo 
+                        str_ret = repData.ConsultaGenerica("[{ \"nome\":\"id\", \"valor\":\"0\", \"tipo\":\"Int64\"}," +
+                                                            "{ \"nome\":\"id_empresa\", \"valor\":\"0\", \"tipo\":\"Int64\"}," +
+                                                            "{ \"nome\":\"login\", \"valor\":\"0\", \"tipo\":\"Int64\"}," +
+                                                            "{ \"nome\":\"email\", \"valor\":\"" + str_mail + "\", \"tipo\":\"string\"}," +
+                                                            "{ \"nome\":\"situacao\", \"valor\":\"1\", \"tipo\":\"Int16\"}]", "ntv_p_sel_tbl_usuario", conn);
+                        dyn_ret = JsonConvert.DeserializeObject<List<Usuario>>(str_ret);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    conn.Close();
+                    throw ex;
+                }
+                conn.Close();
+            }
+
+            return dyn_ret;
+
+
+        }
+
         public async Task<IEnumerable<UserPrimAcess>> ValPrimeiroAcesso(string str_mail, Int64 codigo)
         {
 
@@ -135,17 +186,98 @@ namespace WebAppServer.Repositories
             bool bol_ret = false;
 
             string str_ret = "";
-            List<UserPrimAcess> primAcesses = new List<UserPrimAcess>();
+            List<UserPrimAcess> primAcesses = new List<UserPrimAcess>();                        
 
             using (SqlConnection conn = new SqlConnection(configDB.ConnectString))
             {                
                 conn.Open();
-                str_ret = repData.ConsultaGenerica("[{ \"nome\":\"ID\", \"valor\":\"0\", \"tipo\":\"Int64\"},{ \"nome\":\"id_empresa\", \"valor\":\"0\", \"tipo\":\"Int64\"},{ \"nome\":\"Email\", \"valor\":\"" + str_mail + "\", \"tipo\":\"string\"},{ \"nome\":\"CodAcesso\", \"valor\":\"" + codigo.ToString() + "\", \"tipo\":\"Int64\"},{ \"nome\":\"situacao\", \"valor\":\"0\", \"tipo\":\"Int16\"}]", "ntv_p_sel_tbl_prim_acess", conn);
-                primAcesses = JsonConvert.DeserializeObject<List<UserPrimAcess>>(str_ret);
+                str_ret = repData.ConsultaGenerica("[{ \"nome\":\"ID\", \"valor\":\"0\", \"tipo\":\"Int64\"},{ \"nome\":\"id_empresa\", \"valor\":\"0\", \"tipo\":\"Int64\"},{ \"nome\":\"id_emp_serv\", \"valor\":\"0\", \"tipo\":\"Int64\"},{ \"nome\":\"Email\", \"valor\":\"" + str_mail + "\", \"tipo\":\"string\"},{ \"nome\":\"CodAcesso\", \"valor\":\"" + codigo.ToString() + "\", \"tipo\":\"Int64\"},{ \"nome\":\"situacao\", \"valor\":\"0\", \"tipo\":\"Int16\"}]", "ntv_p_sel_tbl_prim_acess", conn);
+                if (str_ret != "[]")
+                {
+                    primAcesses = JsonConvert.DeserializeObject<List<UserPrimAcess>>(str_ret);
+                    if (primAcesses.Count > 0)
+                    {
+                        dynamic user = await AtuPrimeiroAcesso(primAcesses[0]);
+                    }
+                }
 
                 conn.Close();
             }
             return primAcesses;
+        }
+
+        public async Task<IEnumerable<dynamic>> AtuPrimeiroAcesso(UserPrimAcess primAcess)
+        {
+
+            DataRepository repData = new DataRepository();
+            List<UserPrimAcess> prim = new List<UserPrimAcess>();
+            List<Usuario> usu = new List<Usuario>();
+            dynamic dyn_ret = null;
+
+            Int64 int6_ret = 0;
+
+            if (primAcess != null)
+            {
+                using (SqlConnection conn = new SqlConnection(configDB.ConnectString))
+                {
+                    conn.Open();
+                    using (SqlTransaction tran = conn.BeginTransaction())
+                    {
+                        try
+                        {
+                            primAcess.dtm_confirma = DateTime.Now;
+                            primAcess.int_situacao = 1;
+
+                            List<UserPrimAcess> primAcesses = new List<UserPrimAcess>();
+
+                            primAcesses.Add(primAcess);
+
+                            int6_ret = Convert.ToInt64(repData.ManutencaoTabela<UserPrimAcess>("U", primAcesses, "ntv_tbl_prim_acess", conn, tran).Split(";")[0]);
+                            if (int6_ret > 0)
+                            {
+                                if (primAcesses[0].id_user_app > 0)
+                                {
+                                    string str_ret = repData.ConsultaGenerica("[{ \"nome\":\"id\", \"valor\":\"" + primAcesses[0].id_user_app + "\", \"tipo\":\"Int64\"}," +
+                                                                       "{ \"nome\":\"id_empresa\", \"valor\":\"0\", \"tipo\":\"Int64\"}," +
+                                                                       "{ \"nome\":\"login\", \"valor\":\"\", \"tipo\":\"Int64\"}," +
+                                                                       "{ \"nome\":\"Email\", \"valor\":\"\", \"tipo\":\"string\"}," +
+                                                                       "{ \"nome\":\"situacao\", \"valor\":\"0\", \"tipo\":\"Int16\"}]", "ntv_p_sel_tbl_usuario", conn, tran);
+                                    if (str_ret.Length > 0 && str_ret != "[]")
+                                    {
+                                        usu = JsonConvert.DeserializeObject<List<Usuario>>(str_ret);
+                                        dyn_ret = usu;
+                                    }
+
+                                }
+                                else
+                                {
+                                    string str_ret = repData.ConsultaGenerica("[{ \"nome\":\"id\", \"valor\":\"" + int6_ret.ToString() + "\", \"tipo\":\"Int64\"}," +
+                                                                       "{ \"nome\":\"id_empresa\", \"valor\":\"0\", \"tipo\":\"Int64\"}," +
+                                                                       "{ \"nome\":\"id_emp_serv\", \"valor\":\"0\", \"tipo\":\"Int64\"}," +
+                                                                       "{ \"nome\":\"Email\", \"valor\":\"\", \"tipo\":\"string\"}," +
+                                                                       "{ \"nome\":\"CodAcesso\", \"valor\":\"0\", \"tipo\":\"Int64\"}," +
+                                                                       "{ \"nome\":\"situacao\", \"valor\":\"1\", \"tipo\":\"Int16\"}]", "ntv_p_sel_tbl_prim_acess", conn, tran);
+                                    if (str_ret.Length > 0 && str_ret != "[]")
+                                    {
+                                        prim = JsonConvert.DeserializeObject<List<UserPrimAcess>>(str_ret);
+                                        dyn_ret = prim;
+                                    }
+                                }
+                            }
+                            tran.Commit();
+                        }
+                        catch (Exception ex)
+                        {
+                            tran.Rollback();
+                            conn.Close();
+                            throw ex;
+                        }
+                    }
+                    conn.Close();
+                }
+            }
+
+            return dyn_ret;
         }
     }
 }

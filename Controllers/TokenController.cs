@@ -78,18 +78,18 @@ namespace WebAppServer.Controllers
         }
         
 
-        [HttpGet("v1/PrimeiroAcesso/{email}")]
+        [HttpGet("v1/FirstAcess/{email}")]
         public async Task<dynamic> PrimeiroAcesso(string email)
         {
             try
             {
                 dynamic ret = await _repAcesso.PrimeiroAcessoEmp(email);
-                //return ret;
-                return Ok(new
+                return ret;
+                /*return Ok(new
                 {
                     UserPrimAcess = ret
 
-                });
+                })*/
             }
             catch(Exception ex)
             {
@@ -97,24 +97,51 @@ namespace WebAppServer.Controllers
             }
         }
 
-        
-        [HttpGet("v1/ValidaCodAcess")]
+        [HttpGet("v1/ValidUser/{email}")]
+        public async Task<dynamic> VerificaUsuario(string email)
+        {
+            try
+            {
+                dynamic ret = await _repAcesso.VerificaUsuario(email);
+                return ret;
+                /*return Ok(new
+                {
+                    UserAcess = ret
+
+                });*/
+            }
+            catch (Exception ex)
+            {
+                return NotFound(new { message = ex.Message.ToString() });
+            }
+        }
+
+        [HttpGet("v1/ValidCodAcess")]
         public async Task<dynamic> ValPrimAcess([FromQuery] string email, [FromQuery] Int64 codigo)
         {
             try
             {
 
                 dynamic ret = await _repAcesso.ValPrimeiroAcesso(email, codigo);
-                return Ok(new
+                return ret;
+                /*return Ok(new
                 {
                     UserPrimAcess = ret
 
-                });
+                });*/
             }
             catch (Exception ex)
             {
                 return NotFound(new { message = ex.Message.ToString() });
             }
+        }
+
+        [HttpPost("v1/UpdPrimAcess")]
+        public async Task<dynamic> AtuPrimAcess([FromBody] UserPrimAcess primAcess)
+        {
+
+            dynamic ret = await _repAcesso.AtuPrimeiroAcesso(primAcess);
+            return ret;
         }
 
         [HttpGet("v1/ok")]

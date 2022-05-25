@@ -1,6 +1,6 @@
 {
   "ConnectionStrings1": {
-    "DeafultConnectionStrings": "Server=srvNatividade;Database=dbAppPraia;Persist Security Info=True;User ID=natividade;Password="
+    "DeafultConnectionStrings": "Server=192.168.56.1;Database=dbAppPraia;Persist Security Info=True;TrustServerCertificate=true;User ID=natividade;Password="
   },
   "ConnectionStrings": {
     "DeafultConnectionStrings": "Server=ntvcloud.database.windows.net;Database=dbAppPraia;Persist Security Info=True;User ID=natividade;Password="

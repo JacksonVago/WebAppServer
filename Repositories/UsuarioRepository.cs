@@ -15,10 +15,13 @@ namespace WebAppServer.Repositories
     public class UsuarioRepository
     {
         private readonly ConfigDB configDB;
-        public UsuarioRepository()
+        private readonly EmailRepository _repEmail;
+
+        public UsuarioRepository(EmailRepository repMail)
         {
             //_strConnect = config.GetConnectionString("DeafultConnectionStrings") + "@DTILGCF06FW";
             configDB = new ConfigDB();
+            _repEmail = repMail;
         }
 
         public async Task<UsuarioAcesso> ValidaUsuario(string usuario, string senha)
@@ -352,7 +355,7 @@ namespace WebAppServer.Repositories
             return sb;
         }
 
-        public async Task<Int64> GravarUsuario(Int64 company, Int64 user, dynamic dados)
+        public async Task<Int64> GravarUsuario(Int64 company_serv, Int64 company_app, Int64 user_serv, Int64 user_app, dynamic dados)
         {
             DataRepository repData = new DataRepository();
             bool bol_ret = true;
@@ -379,7 +382,7 @@ namespace WebAppServer.Repositories
             usu.Add(new Usuario
             {
                 id = usuApp.id_server,
-                id_empresa = company,
+                id_empresa = company_serv,
                 str_nome = usuApp.str_nome,
                 str_login = usuApp.str_login,
                 str_senha = usuApp.str_senha,
@@ -391,7 +394,7 @@ namespace WebAppServer.Repositories
                 int_situacao = usuApp.int_situacao,
                 str_foto = usuApp.str_foto,
                 id_app = usuApp.id,
-                id_user_man = user
+                id_user_man = user_app
             });
 
             using (SqlConnection conn = new SqlConnection(configDB.ConnectString))
@@ -403,10 +406,96 @@ namespace WebAppServer.Repositories
                     {
                         id_usu = Convert.ToInt64(repData.ManutencaoTabela<Usuario>("I", usu, "ntv_tbl_usuario", conn, tran).Split(";")[0]);
                         if (id_usu > 0)
-                        {
-                            tran.Commit();
+                        {                            
+                            
+                            if (user_serv > 0)
+                            {
+                                //Se for cadastro de um novo usuário envia e-mail de código de confirmação
+                                Int64 id_prim = 0;
+
+                                List<UserPrimAcess> primAcesses = new List<UserPrimAcess>();
+                                primAcesses.Add(new UserPrimAcess
+                                {
+                                    id = 0,
+                                    id_empresa = company_app,
+                                    id_emp_serv = company_serv,
+                                    id_user_app = id_usu,
+                                    str_email = usuApp.str_email,
+                                    dtm_acesso = DateTime.Now,
+                                    int_cod_acesso = 0,
+                                    dtm_confirma = null,
+                                    int_situacao = 0
+                                });
+
+                                id_prim = Convert.ToInt64(repData.ManutencaoTabela<UserPrimAcess>("I", primAcesses, "ntv_tbl_prim_acess", conn, tran).Split(";")[0]);
+
+                                str_ret = repData.ConsultaGenerica("[{ \"nome\":\"id\", \"valor\":\"" + id_prim.ToString() + "\", \"tipo\":\"Int64\"}," +
+                                              "{ \"nome\":\"id_empresa\", \"valor\":\"0\", \"tipo\":\"Int64\"}," +
+                                              "{ \"nome\":\"id_emp_serv\", \"valor\":\"0\", \"tipo\":\"Int64\"}," +
+                                              "{ \"nome\":\"Email\", \"valor\":\"\", \"tipo\":\"string\"}," +
+                                              "{ \"nome\":\"CodAcesso\", \"valor\":\"0\", \"tipo\":\"Int64\"}," +
+                                              "{ \"nome\":\"situacao\", \"valor\":\"0\", \"tipo\":\"Int16\"}]", "ntv_p_sel_tbl_prim_acess", conn, tran);
+                                primAcesses = JsonConvert.DeserializeObject<List<UserPrimAcess>>(str_ret);
+
+                                if (primAcesses.Count > 0)
+                                {
+                                    str_corpo += "<p style = 'font-family:Arial; font-size:120%; font-weight:bold;' > TERMO DE ADESÃO ON-LINE</p>";
+                                    str_corpo += "<br/>";
+                                    str_corpo += "<p style = 'font-family:Arial; font-size:120%; font-weight:bold;' > Prezado Cliente,</p>";
+                                    str_corpo += "<br/>";
+                                    str_corpo += "<p style = 'font-family:Arial; font-size:100%; ' > Segue número de aceite para confirmação do acesso:</p>";
+                                    str_corpo += "<p style = 'font-family:Arial; font-size:100%; font-weight:bold;' > " + String.Format("{0:0000}", primAcesses[0].int_cod_acesso) + "</p>";
+                                    str_corpo += "<p style = 'font-family:Arial; font-size:100%; ' > Atenciosamente,</p>";
+                                    str_corpo += "<p style = 'font-family:Arial; font-size:100%; ' > Natividade Soluções em TI</p>";
+
+                                    List<envEmail> emails = new List<envEmail>();
+                                    emails.Add(new envEmail
+                                    {
+                                        id = 0,
+                                        str_de = "suporte@natividadesolucoes.com.br",
+                                        str_para = usuApp.str_email,
+                                        str_cc = "",
+                                        str_ass = "Adesão ao APP na Areia",
+                                        str_msg = str_corpo,
+                                        str_html = "S",
+                                        dtm_data_inc = DateTime.Now,
+                                        str_modulo = "Primeiro Acesso WebAppServer.Data.Usuario.Repositories",
+                                        str_obs = "",
+                                        int_situacao = 0
+
+                                    });
+                                    _repEmail.EnviarEmails(emails);
+                                }
+
+                                //Gerar dados para sincronização
+                                String[] arr_str = new string[] 
+                                    { 
+                                        "ntv_tbl_empresa", 
+                                        "ntv_tbl_formapag", 
+                                        "ntv_tbl_grupo", 
+                                        "ntv_tbl_itemcombo", 
+                                        "ntv_tbl_local", 
+                                        "ntv_tbl_localcliente", 
+                                        "ntv_tbl_localclipag", 
+                                        "ntv_tbl_produto", 
+                                        "ntv_tbl_usuario"
+                                    };
+
+                                string filtros = "";
+                                
+                                for (int i = 0; i < arr_str.Length; i++)
+                                {
+                                    filtros = "[{ \"nome\":\"id\", \"valor\":\"0\", \"tipo\":\"Int64\"}," +
+                                              "{ \"nome\":\"id_empresa\", \"valor\":\"" + company_serv.ToString() + "\", \"tipo\":\"Int64\"}," +
+                                              "{ \"nome\":\"tabela\", \"valor\":\"" + arr_str[i] + "\", \"tipo\":\"string\"}," +
+                                              "{ \"nome\":\"id_user\", \"valor\":\"" + user_app.ToString() + "\", \"tipo\":\"Int64\"}," +
+                                              "{ \"nome\":\"id_user_dest\", \"valor\":\"" + id_usu.ToString() + "\", \"tipo\":\"Int64\"}]";
+                                    bol_ret = repData.ProcedureUpdate(filtros, "ntv_p_ins_tbl_sync_dados", conn, tran);
+                                }
+                            }                            
                         }
-                        
+                        tran.Commit();
+
                     }
                     catch (Exception ex)
                     {

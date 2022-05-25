@@ -524,7 +524,7 @@ namespace WebAppServer.Repositories
                     {
                         if (props[i].PropertyType.ToString().Contains("DateTime"))
                         {
-                            values[i] = (props[i].GetValue(item)== null ? props[i].GetValue(item) : Convert.ToDateTime(props[i].GetValue(item)).ToString("yyyy-MM-dd HH:mm:ss"));
+                            values[i] = (props[i].GetValue(item)== null ? props[i].GetValue(item) : (Convert.ToDateTime(props[i].GetValue(item)).ToString("yyyy-MM-dd") == "0001-01-01"  ? null : Convert.ToDateTime(props[i].GetValue(item)).ToString("yyyy-MM-dd HH:mm:ss")));
                         }
                         else
                         {
