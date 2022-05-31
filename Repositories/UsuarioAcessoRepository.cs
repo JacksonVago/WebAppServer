@@ -247,7 +247,8 @@ namespace WebAppServer.Repositories
                                         usu = JsonConvert.DeserializeObject<List<Usuario>>(str_ret);
 
                                         if (usu[0].int_situacao == 0) {
-                                            int6_ret = Convert.ToInt64(repData.ManutencaoTabela<Usuario>("U", usu, "ntv_p_sel_tbl_usuario", conn, tran).Split(";")[0]);
+                                            usu[0].int_situacao = 1;
+                                            int6_ret = Convert.ToInt64(repData.ManutencaoTabela<Usuario>("U", usu, "ntv_tbl_usuario", conn, tran).Split(";")[0]);
                                         }
 
                                         dyn_ret = usu;
