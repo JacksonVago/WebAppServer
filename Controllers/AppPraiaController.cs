@@ -37,6 +37,18 @@ namespace WebAppServer.Controllers
             return BadRequest("Problemas na sincronização");
         }
 
+        [HttpGet("v1/SyncDataDownloadRecovery/{filtros}")]
+        public async Task<ActionResult<dynamic>> SynchronizeDataDownRecovery(string filtros)
+        {
+
+            dynamic ret = await _repSync.SyncDataDownloadRecovery(filtros);
+            if (ret != null)
+            {
+                return ret;
+            }
+            return BadRequest("Problemas na sincronização");
+        }
+
         [HttpGet("v1/SyncDataDownload/{filtros}")]
         public async Task<ActionResult<dynamic>> SynchronizeDataDown(string filtros)
         {

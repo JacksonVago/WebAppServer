@@ -151,6 +151,120 @@ namespace WebAppServer.Repositories
         }
 
 
+        public async Task<List<DadosDownload>> SyncDataDownloadRecovery(string filtros)
+        {
+            DataTable dtt_entity = new DataTable();
+            List<DadosDownload> dataDown = new List<DadosDownload>();
+
+            List<DadosDownloadRecovery> dataDownRec = new List<DadosDownloadRecovery>();
+            dataDownRec = JsonConvert.DeserializeObject<List<DadosDownloadRecovery>>(filtros);
+
+            DataRepository repData = new DataRepository();
+
+            string str_proc = "";
+            string str_tabela_aux = "";
+            string str_filtros = "";
+            string str_ret = "";
+
+            using (SqlConnection conn = new SqlConnection(configDB.ConnectString))
+            {
+                conn.Open();
+                try
+                {
+                    for (int i = 0; i < dataDownRec.Count; i++)
+                    {
+                        switch (dataDownRec[i].entity)
+                        {
+                            case "Empresa":
+                                str_proc = "ntv_p_sel_tbl_empresa";
+                                break;
+
+                            case "FormaPag":
+                                str_proc = "ntv_p_sel_tbl_formapag";
+                                break;
+
+                            case "Grupo":
+                                str_proc = "ntv_p_sel_tbl_grupo";
+                                break;
+
+                            case "ItemCombo":
+                                str_proc = "ntv_p_sel_tbl_itemcombo";
+                                break;
+
+                            case "Local":
+                                str_proc = "ntv_p_sel_tbl_local";
+                                break;
+
+                            case "LocalCliente":
+                                str_proc = "ntv_p_sel_tbl_localcliente";
+                                break;
+
+                            case "LocalCliPag":
+                                str_proc = "ntv_p_sel_tbl_localclipag";
+                                break;
+
+                            case "Pedido":
+                                str_proc = "ntv_p_sel_tbl_pedido";
+                                break;
+
+                            case "PedidoItem":
+                                str_proc = "ntv_p_sel_tbl_pedidoitem";
+                                break;
+
+                            case "Produto":
+                                str_proc = "ntv_p_sel_tbl_produto";
+                                break;
+
+                            case "Sala":
+                                str_proc = "ntv_p_sel_tbl_sala";
+                                break;
+
+                            case "SalaUser":
+                                str_proc = "ntv_p_sel_tbl_sala_user";
+                                break;
+
+                            case "SlaUserMsg":
+                                str_proc = "ntv_p_sel_tbl_sala_user_msg";
+                                break;
+
+                            case "Usuario":
+                                str_proc = "ntv_p_sel_tbl_usuario";
+                                break;
+
+                            case "UsuarioHub":
+                                str_proc = "";
+                                break;
+
+                            default:
+                                str_proc = "";
+                                break;
+
+                        }
+
+                        //Executconsulta
+                        if (str_proc.Length > 0)
+                        {
+                            str_ret = repData.ConsultaGenerica(dataDownRec[i].filtro, str_proc, conn);
+                            dataDown.Add(new DadosDownload
+                            {
+                                entity = dataDownRec[i].entity,
+                                data = str_ret
+                            });
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    conn.Close();
+                    throw ex;
+                }
+                conn.Close();
+            }
+
+            return dataDown;
+        }
+
+
         public async Task<string> UpdDataDownload(string filtros)
         {
             DataTable dtt_entity = new DataTable();

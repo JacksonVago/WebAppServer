@@ -167,7 +167,7 @@ namespace WebAppServer.Repositories
                 command.CommandType = System.Data.CommandType.StoredProcedure;
                 for (int r = 0; r < dtt_filtros.Rows.Count; r++)
                 {
-                    command.Parameters.Add(new SqlParameter("@" + dtt_filtros.Rows[r][0].ToString(), (dtt_filtros.Rows[r][2].ToString() == "DateTime" ? Convert.ToDateTime(dtt_filtros.Rows[r][1]).ToString("yyyy-MM-dd") : dtt_filtros.Rows[r][1])));
+                    command.Parameters.Add(new SqlParameter("@" + dtt_filtros.Rows[r][0].ToString(), (dtt_filtros.Rows[r][2].ToString() == "DateTime" ? (dtt_filtros.Rows[r][1].ToString() != "" ? Convert.ToDateTime(dtt_filtros.Rows[r][1]).ToString("yyyy-MM-dd") : "2001-01-01") : dtt_filtros.Rows[r][1])));
                 }
                 //command.Parameters.Add(new SqlParameter("@EmissaoIni", DataIni.ToString("yyyy-MM-dd")));
 
