@@ -43,17 +43,20 @@ namespace WebAppServer.Hubs
             string str_conect_adm = "";
 
             //Verifica se é o administrador que esta conectando
+            _logger.LogInformation(DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss") + " Hub OnConnect - " + empresa + "/" + user + "/" + userAdm);
             if (user == userAdm)
             {
                 str_conect_adm = Context.ConnectionId;
 
                 //Envia para todos os usuários exceto ele mesmo
                 await Clients.AllExcept(str_conect_adm).SendAsync("AdmConnectionID", str_conect_adm, Context.ConnectionId);
+                _logger.LogInformation(DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss") + " Hub OnConnect - Envia para todos os usuários exceto ele mesmo ");
 
             }
             else
             {
                 //Identifica se o administrador esta conectado
+                _logger.LogInformation(DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss") + " Hub OnConnect - Identifica se o administrador esta conectado ");
                 List<SalaUser> lst_salaU = await _repSala.ConsultarSalaUser(0, Convert.ToInt64(empresa), Convert.ToInt64(userAdm));
                 if (lst_salaU != null && lst_salaU.Count > 0)
                 {
@@ -63,9 +66,11 @@ namespace WebAppServer.Hubs
                 }
 
                 //Envia de volta o id do adm conectado
+                _logger.LogInformation(DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss") + " Hub OnConnect - Envia de volta o id do adm conectado (" + str_conect_adm + ")");
                 await Clients.Caller.SendAsync("AdmConnectionID", str_conect_adm, Context.ConnectionId);
 
                 //Verica se tem notificações e envia para o usuário que esta se conectando
+                _logger.LogInformation(DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss") + " Hub OnConnect - Verica se tem notificações e envia para o usuário que esta se conectando");
                 string str_filtros = "";
                 str_filtros += "[";
                 str_filtros += "{ \"nome\":\"id\", \"valor\":\"0\", \"tipo\":\"Int64\"},";
@@ -79,6 +84,7 @@ namespace WebAppServer.Hubs
                 if (str_notif != null && str_notif != "[]")
                 {
                     //Envia notficações
+                    _logger.LogInformation(DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss") + " Hub OnConnect - Envia notficações");
                     await Clients.Caller.SendAsync("ReceiveNotificacoes", str_notif);
                 }
 

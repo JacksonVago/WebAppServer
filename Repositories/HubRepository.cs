@@ -44,7 +44,7 @@ namespace WebAppServer.Repositories
                 {
                     id = pedido.id_server,
                     id_empresa = empresa,
-                    id_localcli = pedido.id_server,
+                    id_localcli = pedido.id_localcli,
                     dtm_pedido = pedido.dtm_pedido,
                     dtm_pagto = pedido.dtm_pagto,
                     dtm_cancel = pedido.dtm_cancel,
