@@ -161,7 +161,8 @@ namespace WebAppServer.Repositories
                                                             "{ \"nome\":\"id_empresa\", \"valor\":\"0\", \"tipo\":\"Int64\"}," +
                                                             "{ \"nome\":\"login\", \"valor\":\"0\", \"tipo\":\"Int64\"}," +
                                                             "{ \"nome\":\"email\", \"valor\":\"" + str_mail + "\", \"tipo\":\"string\"}," +
-                                                            "{ \"nome\":\"situacao\", \"valor\":\"1\", \"tipo\":\"Int16\"}]", "ntv_p_sel_tbl_usuario", conn);
+                                                            "{ \"nome\":\"situacao\", \"valor\":\"1\", \"tipo\":\"Int16\"}," +
+                                                            "{ \"nome\":\"download\", \"valor\":\"0\", \"tipo\":\"Int16\"}]", "ntv_p_sel_tbl_usuario", conn);
                         dyn_ret = JsonConvert.DeserializeObject<List<Usuario>>(str_ret);
                     }
                 }

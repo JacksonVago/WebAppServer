@@ -223,7 +223,7 @@ namespace WebAppServer.Repositories
                                 str_proc = "ntv_p_sel_tbl_sala_user";
                                 break;
 
-                            case "SlaUserMsg":
+                            case "SalaUserMsg":
                                 str_proc = "ntv_p_sel_tbl_sala_user_msg";
                                 break;
 
