@@ -333,6 +333,8 @@ namespace WebAppServer.Repositories
             Int64 id_emp = 0;
             string str_operacao = "";
             string str_ret = "";
+            string str_ret_fim = "";
+            string str_ret_aux = "";
             dynamic dyn_ret = null;
 
             DataTable dtt_reg = new DataTable();
@@ -403,7 +405,7 @@ namespace WebAppServer.Repositories
                                                                     "{ \"nome\":\"email\", \"valor\":\"\", \"tipo\":\"string\"}," +
                                                                     "{ \"nome\":\"situacao\", \"valor\":\"0\", \"tipo\":\"Int16\"}," +
                                                                     "{ \"nome\":\"download\", \"valor\":\"0\", \"tipo\":\"Int16\"}," +
-                                                                    "{ \"nome\":\"id_app\", \"valor\":\"" + usuApp[i].id.ToString() + "\", \"tipo\":\"Int64\"}]", "ntv_p_sel_tbl_usuario", conn);
+                                                                    "{ \"nome\":\"id_app\", \"valor\":\"" + usuApp[i].id.ToString() + "\", \"tipo\":\"Int64\"}]", "ntv_p_sel_tbl_usuario", conn, tran);
                                         if (dtt_reg == null || dtt_reg.Rows.Count == 0)
                                         {
                                             usuInc.Add(new Usuario
@@ -472,16 +474,39 @@ namespace WebAppServer.Repositories
                                 //Inclusões
                                 if (usuInc.Count > 0)
                                 {
-
                                     str_ret = repData.ManutencaoTabela<Usuario>("I", usuInc, "ntv_tbl_usuario", conn, tran);
-                                    dyn_ret = str_ret;
+                                    if (str_ret.Split(";").Count() > 0)
+                                    {
+                                        for (int id = 0; id < str_ret.Split(";").Count(); id++)
+                                        {
+                                            if (str_ret.Split(";")[id] != "")
+                                            {
+                                                str_ret_aux += usuInc[id].id_app + ":" + str_ret.Split(";")[id] + ";";
+                                            }
+                                        }
+                                        str_ret_fim += str_ret_aux;
+                                    }
                                 }
 
                                 //Alterações
                                 if (usuUpd.Count() > 0)
                                 {
-                                    str_ret = repData.ManutencaoTabela<Usuario>("U", usuUpd, "ntv_tbl_usuario", conn, tran);
+                                    str_ret_aux = "";
+                                    str_ret += repData.ManutencaoTabela<Usuario>("U", usuUpd, "ntv_tbl_usuario", conn, tran);
+                                    if (str_ret.Split(";").Count() > 0)
+                                    {
+                                        for (int id = 0; id < str_ret.Split(";").Count(); id++)
+                                        {
+                                            if (str_ret.Split(";")[id] != "")
+                                            {
+                                                str_ret_aux += usuUpd[id].id_app + ":" + str_ret.Split(";")[id] + ";";
+                                            }
+                                        }
+                                        str_ret_fim += str_ret_aux;
+                                    }
                                 }
+                                dyn_ret = str_ret_fim;
+
                                 break;
 
                             case "Produto":
@@ -505,7 +530,7 @@ namespace WebAppServer.Repositories
                                                                 "{ \"nome\":\"id_empresa\", \"valor\":\"" + company.ToString() + "\", \"tipo\":\"Int64\"}," +
                                                                 "{ \"nome\":\"situacao\", \"valor\":\"0\", \"tipo\":\"Int16\"}," +
                                                                 "{ \"nome\":\"download\", \"valor\":\"0\", \"tipo\":\"Int16\"}," +
-                                                                "{ \"nome\":\"id_app\", \"valor\":\"" + prdApp[i].id.ToString() + "\", \"tipo\":\"Int64\"}]", "ntv_p_sel_tbl_produto", conn);
+                                                                "{ \"nome\":\"id_app\", \"valor\":\"" + prdApp[i].id.ToString() + "\", \"tipo\":\"Int64\"}]", "ntv_p_sel_tbl_produto", conn, tran);
                                         if (dtt_reg == null || dtt_reg.Rows.Count == 0)
                                         {
                                             prdInc.Add(new Produto
@@ -586,16 +611,39 @@ namespace WebAppServer.Repositories
                                 //Inclusões
                                 if (prdInc.Count > 0)
                                 {
-
                                     str_ret = repData.ManutencaoTabela<Produto>("I", prdInc, "ntv_tbl_produto", conn, tran);
-                                    dyn_ret = str_ret;
+                                    if (str_ret.Split(";").Count() > 0)
+                                    {
+                                        for (int id = 0; id < str_ret.Split(";").Count(); id++)
+                                        {
+                                            if (str_ret.Split(";")[id] != "")
+                                            {
+                                                str_ret_aux += prdInc[id].id_app + ":" + str_ret.Split(";")[id] + ";";
+                                            }
+                                        }
+                                        str_ret_fim += str_ret_aux;
+                                    }
                                 }
 
                                 //Alterações
                                 if (prdUpd.Count() > 0)
                                 {
-                                    str_ret = repData.ManutencaoTabela<Produto>("U", prdUpd, "ntv_tbl_produto", conn, tran);
+                                    str_ret_aux = "";
+                                    str_ret += repData.ManutencaoTabela<Produto>("U", prdUpd, "ntv_tbl_produto", conn, tran);
+                                    if (str_ret.Split(";").Count() > 0)
+                                    {
+                                        for (int id = 0; id < str_ret.Split(";").Count(); id++)
+                                        {
+                                            if (str_ret.Split(";")[id] != "")
+                                            {
+                                                str_ret_aux += prdUpd[id].id_app + ":" + str_ret.Split(";")[id] + ";";
+                                            }
+                                        }
+                                        str_ret_fim += str_ret_aux;
+                                    }
                                 }
+                                dyn_ret = str_ret_fim;
+
                                 break;
 
                             case "ItemCombo":
@@ -617,7 +665,7 @@ namespace WebAppServer.Repositories
                                                                     "{ \"nome\":\"id_empresa\", \"valor\":\"" + company.ToString() + "\", \"tipo\":\"Int64\"}," +
                                                                     "{ \"nome\":\"situacao\", \"valor\":\"0\", \"tipo\":\"Int16\"}," +
                                                                     "{ \"nome\":\"download\", \"valor\":\"0\", \"tipo\":\"Int16\"}," +
-                                                                    "{ \"nome\":\"id_app\", \"valor\":\"" + icomboApp[i].id.ToString() + "\", \"tipo\":\"Int64\"}]", "ntv_p_sel_tbl_itemcombo", conn);
+                                                                    "{ \"nome\":\"id_app\", \"valor\":\"" + icomboApp[i].id.ToString() + "\", \"tipo\":\"Int64\"}]", "ntv_p_sel_tbl_itemcombo", conn, tran);
                                         if (dtt_reg == null || dtt_reg.Rows.Count == 0)
                                         {
                                             cmbInc.Add(new ItemCombo
@@ -662,16 +710,39 @@ namespace WebAppServer.Repositories
                                 //Inclusões
                                 if (cmbInc.Count > 0)
                                 {
-
                                     str_ret = repData.ManutencaoTabela<ItemCombo>("I", cmbInc, "ntv_tbl_itemcombo", conn, tran);
-                                    dyn_ret = str_ret;
+                                    if (str_ret.Split(";").Count() > 0)
+                                    {
+                                        for (int id = 0; id < str_ret.Split(";").Count(); id++)
+                                        {
+                                            if (str_ret.Split(";")[id] != "")
+                                            {
+                                                str_ret_aux += cmbInc[id].id_app + ":" + str_ret.Split(";")[id] + ";";
+                                            }
+                                        }
+                                        str_ret_fim += str_ret_aux;
+                                    }
                                 }
 
                                 //Alterações
                                 if (cmbUpd.Count() > 0)
                                 {
-                                    str_ret = repData.ManutencaoTabela<ItemCombo>("U", cmbUpd, "ntv_tbl_itemcombo", conn, tran);
+                                    str_ret_aux = "";
+                                    str_ret += repData.ManutencaoTabela<ItemCombo>("U", cmbUpd, "ntv_tbl_itemcombo", conn, tran);
+                                    if (str_ret.Split(";").Count() > 0)
+                                    {
+                                        for (int id = 0; id < str_ret.Split(";").Count(); id++)
+                                        {
+                                            if (str_ret.Split(";")[id] != "")
+                                            {
+                                                str_ret_aux += cmbUpd[id].id_app + ":" + str_ret.Split(";")[id] + ";";
+                                            }
+                                        }
+                                        str_ret_fim += str_ret_aux;
+                                    }
                                 }
+                                dyn_ret = str_ret_fim;
+
                                 break;
 
                             case "Grupo":
@@ -693,7 +764,7 @@ namespace WebAppServer.Repositories
                                                                     "{ \"nome\":\"id_empresa\", \"valor\":\"" + company.ToString() + "\", \"tipo\":\"Int64\"}," +
                                                                     "{ \"nome\":\"situacao\", \"valor\":\"0\", \"tipo\":\"Int16\"}," +
                                                                     "{ \"nome\":\"download\", \"valor\":\"0\", \"tipo\":\"Int16\"}," +
-                                                                    "{ \"nome\":\"id_app\", \"valor\":\"" + grpApp[i].id.ToString() + "\", \"tipo\":\"Int64\"}]", "ntv_p_sel_tbl_grupo", conn);
+                                                                    "{ \"nome\":\"id_app\", \"valor\":\"" + grpApp[i].id.ToString() + "\", \"tipo\":\"Int64\"}]", "ntv_p_sel_tbl_grupo", conn, tran);
                                         if (dtt_reg == null || dtt_reg.Rows.Count == 0)
                                         {
                                             grpInc.Add(new Grupo
@@ -747,16 +818,39 @@ namespace WebAppServer.Repositories
                                 //Inclusões
                                 if (grpInc.Count > 0)
                                 {
-
                                     str_ret = repData.ManutencaoTabela<Grupo>("I", grpInc, "ntv_tbl_grupo", conn, tran);
-                                    dyn_ret = str_ret;
+                                    if (str_ret.Split(";").Count() > 0)
+                                    {
+                                        for (int id = 0; id < str_ret.Split(";").Count(); id++)
+                                        {
+                                            if (str_ret.Split(";")[id] != "")
+                                            {
+                                                str_ret_aux += grpInc[id].id_app + ":" + str_ret.Split(";")[id] + ";";
+                                            }
+                                        }
+                                        str_ret_fim += str_ret_aux;
+                                    }
                                 }
 
                                 //Alterações
                                 if (grpUpd.Count() > 0)
                                 {
-                                    str_ret = repData.ManutencaoTabela<Grupo>("U", grpUpd, "ntv_tbl_grupo", conn, tran);
+                                    str_ret_aux = "";
+                                    str_ret += repData.ManutencaoTabela<Grupo>("U", grpUpd, "ntv_tbl_grupo", conn, tran);
+                                    if (str_ret.Split(";").Count() > 0)
+                                    {
+                                        for (int id = 0; id < str_ret.Split(";").Count(); id++)
+                                        {
+                                            if (str_ret.Split(";")[id] != "")
+                                            {
+                                                str_ret_aux += grpUpd[id].id_app + ":" + str_ret.Split(";")[id] + ";";
+                                            }
+                                        }
+                                        str_ret_fim += str_ret_aux;
+                                    }
                                 }
+                                dyn_ret = str_ret_fim;
+
                                 break;
 
                             case "FormaPag":
@@ -778,7 +872,7 @@ namespace WebAppServer.Repositories
                                                                     "{ \"nome\":\"id_empresa\", \"valor\":\"" + company.ToString() + "\", \"tipo\":\"Int64\"}," +
                                                                     "{ \"nome\":\"situacao\", \"valor\":\"0\", \"tipo\":\"Int16\"}," +
                                                                     "{ \"nome\":\"download\", \"valor\":\"0\", \"tipo\":\"Int16\"}," +
-                                                                    "{ \"nome\":\"id_app\", \"valor\":\"" + formaApp[i].id.ToString() + "\", \"tipo\":\"Int64\"}]", "ntv_p_sel_tbl_formapag", conn);
+                                                                    "{ \"nome\":\"id_app\", \"valor\":\"" + formaApp[i].id.ToString() + "\", \"tipo\":\"Int64\"}]", "ntv_p_sel_tbl_formapag", conn, tran);
                                         if (dtt_reg == null || dtt_reg.Rows.Count == 0)
                                         {
                                             formaInc.Add(new FormaPag
@@ -829,16 +923,39 @@ namespace WebAppServer.Repositories
                                 //Inclusões
                                 if (formaInc.Count > 0)
                                 {
-
                                     str_ret = repData.ManutencaoTabela<FormaPag>("I", formaInc, "ntv_tbl_formapag", conn, tran);
-                                    dyn_ret = str_ret;
+                                    if (str_ret.Split(";").Count() > 0)
+                                    {
+                                        for (int id = 0; id < str_ret.Split(";").Count(); id++)
+                                        {
+                                            if (str_ret.Split(";")[id] != "")
+                                            {
+                                                str_ret_aux += formaInc[id].id_app + ":" + str_ret.Split(";")[id] + ";";
+                                            }
+                                        }
+                                        str_ret_fim += str_ret_aux;
+                                    }
                                 }
 
                                 //Alterações
                                 if (formaUpd.Count() > 0)
                                 {
-                                    str_ret = repData.ManutencaoTabela<FormaPag>("U", formaUpd, "ntv_tbl_formapag", conn, tran);
+                                    str_ret_aux = "";
+                                    str_ret += repData.ManutencaoTabela<FormaPag>("U", formaUpd, "ntv_tbl_formapag", conn, tran);
+                                    if (str_ret.Split(";").Count() > 0)
+                                    {
+                                        for (int id = 0; id < str_ret.Split(";").Count(); id++)
+                                        {
+                                            if (str_ret.Split(";")[id] != "")
+                                            {
+                                                str_ret_aux += formaUpd[id].id_app + ":" + str_ret.Split(";")[id] + ";";
+                                            }
+                                        }
+                                        str_ret_fim += str_ret_aux;
+                                    }
                                 }
+                                dyn_ret = str_ret_fim;
+
 
                                 break;
 
@@ -860,7 +977,7 @@ namespace WebAppServer.Repositories
                                                                     "{ \"nome\":\"id_empresa\", \"valor\":\"" + company.ToString() + "\", \"tipo\":\"Int64\"}," +
                                                                     "{ \"nome\":\"situacao\", \"valor\":\"0\", \"tipo\":\"Int16\"}," +
                                                                     "{ \"nome\":\"download\", \"valor\":\"0\", \"tipo\":\"Int16\"}," +
-                                                                    "{ \"nome\":\"id_app\", \"valor\":\"" + locApp[i].id.ToString() + "\", \"tipo\":\"Int64\"}]", "ntv_p_sel_tbl_local", conn);
+                                                                    "{ \"nome\":\"id_app\", \"valor\":\"" + locApp[i].id.ToString() + "\", \"tipo\":\"Int64\"}]", "ntv_p_sel_tbl_local", conn, tran);
                                         if (dtt_reg == null || dtt_reg.Rows.Count == 0)
                                         {
                                             locInc.Add(new Local
@@ -921,14 +1038,38 @@ namespace WebAppServer.Repositories
                                 if (locInc.Count > 0)
                                 {
                                     str_ret = repData.ManutencaoTabela<Local>("I", locInc, "ntv_tbl_local", conn, tran);
-                                    dyn_ret = str_ret;
+                                    if (str_ret.Split(";").Count() > 0)
+                                    {
+                                        for (int id = 0; id < str_ret.Split(";").Count(); id++)
+                                        {
+                                            if (str_ret.Split(";")[id] != "")
+                                            {
+                                                str_ret_aux += locInc[id].id_app + ":" + str_ret.Split(";")[id] + ";";
+                                            }
+                                        }
+                                        str_ret_fim += str_ret_aux;
+                                    }
                                 }
 
                                 //Alterações
                                 if (locUpd.Count() > 0)
                                 {
-                                    str_ret = repData.ManutencaoTabela<Local>("U", locUpd, "ntv_tbl_local", conn, tran);
+                                    str_ret_aux = "";
+                                    str_ret += repData.ManutencaoTabela<Local>("U", locUpd, "ntv_tbl_local", conn, tran);
+                                    if (str_ret.Split(";").Count() > 0)
+                                    {
+                                        for (int id = 0; id < str_ret.Split(";").Count(); id++)
+                                        {
+                                            if (str_ret.Split(";")[id] != "")
+                                            {
+                                                str_ret_aux += locUpd[id].id_app + ":" + str_ret.Split(";")[id] + ";";
+                                            }
+                                        }
+                                        str_ret_fim += str_ret_aux;
+                                    }
                                 }
+                                dyn_ret = str_ret_fim;
+
                                 break;
 
                             case "LocalCliente":
@@ -949,7 +1090,7 @@ namespace WebAppServer.Repositories
                                                                     "{ \"nome\":\"id_empresa\", \"valor\":\"" + company.ToString() + "\", \"tipo\":\"Int64\"}," +
                                                                     "{ \"nome\":\"situacao\", \"valor\":\"0\", \"tipo\":\"Int16\"}," +
                                                                     "{ \"nome\":\"download\", \"valor\":\"0\", \"tipo\":\"Int16\"}," +
-                                                                    "{ \"nome\":\"id_app\", \"valor\":\"" + locCliApp[i].id.ToString() + "\", \"tipo\":\"Int64\"}]", "ntv_p_sel_tbl_localcliente", conn);
+                                                                    "{ \"nome\":\"id_app\", \"valor\":\"" + locCliApp[i].id.ToString() + "\", \"tipo\":\"Int64\"}]", "ntv_p_sel_tbl_localcliente", conn, tran);
                                         if (dtt_reg == null || dtt_reg.Rows.Count == 0)
                                         {
                                             locCliInc.Add(new LocalCliente
@@ -1029,14 +1170,38 @@ namespace WebAppServer.Repositories
                                 if (locCliInc.Count > 0)
                                 {
                                     str_ret = repData.ManutencaoTabela<LocalCliente>("I", locCliInc, "ntv_tbl_localcliente", conn, tran);
-                                    dyn_ret = str_ret;
+                                    if (str_ret.Split(";").Count() > 0)
+                                    {
+                                        for (int id = 0; id < str_ret.Split(";").Count(); id++)
+                                        {
+                                            if (str_ret.Split(";")[id] != "")
+                                            {
+                                                str_ret_aux += locCliInc[id].id_app + ":" + str_ret.Split(";")[id] + ";";
+                                            }
+                                        }
+                                        str_ret_fim += str_ret_aux;
+                                    }
                                 }
 
                                 //Alterações
                                 if (locCliUpd.Count() > 0)
                                 {
-                                    str_ret = repData.ManutencaoTabela<LocalCliente>("U", locCliUpd, "ntv_tbl_localcliente", conn, tran);
+                                    str_ret_aux = "";
+                                    str_ret += repData.ManutencaoTabela<LocalCliente>("U", locCliUpd, "ntv_tbl_localcliente", conn, tran);
+                                    if (str_ret.Split(";").Count() > 0)
+                                    {
+                                        for (int id = 0; id < str_ret.Split(";").Count(); id++)
+                                        {
+                                            if (str_ret.Split(";")[id] != "")
+                                            {
+                                                str_ret_aux += locCliUpd[id].id_app + ":" + str_ret.Split(";")[id] + ";";
+                                            }
+                                        }
+                                        str_ret_fim += str_ret_aux;
+                                    }
                                 }
+                                dyn_ret = str_ret_fim;
+
                                 break;
 
                             case "Pedido":
@@ -1057,11 +1222,11 @@ namespace WebAppServer.Repositories
                                         dtt_reg = repData.ConsultaGenericaDtt("[{ \"nome\":\"id\", \"valor\":\"0\", \"tipo\":\"Int64\"}," +
                                                                     "{ \"nome\":\"id_empresa\", \"valor\":\"" + company.ToString() + "\", \"tipo\":\"Int64\"}," +
                                                                     "{ \"nome\":\"dtm_ini\", \"valor\":\"2001-01-01\", \"tipo\":\"DateTime\"}," +
-                                                                    "{ \"nome\":\"dtm_ini\", \"valor\":\"2001-01-01\", \"tipo\":\"DateTime\"}," +
+                                                                    "{ \"nome\":\"dtm_fim\", \"valor\":\"2001-01-01\", \"tipo\":\"DateTime\"}," +
                                                                     "{ \"nome\":\"id_usuario\", \"valor\":\"0\", \"tipo\":\"Int64\"}," +
                                                                     "{ \"nome\":\"situacao\", \"valor\":\"0\", \"tipo\":\"Int16\"}," +
                                                                     "{ \"nome\":\"download\", \"valor\":\"0\", \"tipo\":\"Int16\"}," +
-                                                                    "{ \"nome\":\"id_app\", \"valor\":\"" + pedApp[i].id.ToString() + "\", \"tipo\":\"Int64\"}]", "ntv_p_sel_tbl_pedido", conn);
+                                                                    "{ \"nome\":\"id_app\", \"valor\":\"" + pedApp[i].id.ToString() + "\", \"tipo\":\"Int64\"}]", "ntv_p_sel_tbl_pedido", conn, tran);
                                         if (dtt_reg == null || dtt_reg.Rows.Count == 0)
                                         {
                                             pedInc.Add(new Pedido
@@ -1137,14 +1302,37 @@ namespace WebAppServer.Repositories
                                 if (pedInc.Count > 0)
                                 {
                                     str_ret = repData.ManutencaoTabela<Pedido>("I", pedInc, "ntv_tbl_pedido", conn, tran);
-                                    dyn_ret = str_ret;
+                                    if (str_ret.Split(";").Count() > 0)
+                                    {
+                                        for (int id = 0; id < str_ret.Split(";").Count(); id++)
+                                        {
+                                            if (str_ret.Split(";")[id] != "")
+                                            {
+                                                str_ret_aux += pedInc[id].id_app + ":" + str_ret.Split(";")[id] + ";";
+                                            }
+                                        }
+                                        str_ret_fim += str_ret_aux;
+                                    }
                                 }
 
                                 //Alterações
                                 if (pedUpd.Count() > 0)
                                 {
-                                    str_ret = repData.ManutencaoTabela<Pedido>("U", pedUpd, "ntv_tbl_pedido", conn, tran);
+                                    str_ret_aux = "";
+                                    str_ret += repData.ManutencaoTabela<Pedido>("U", pedUpd, "ntv_tbl_pedido", conn, tran);
+                                    if (str_ret.Split(";").Count() > 0)
+                                    {
+                                        for (int id = 0; id < str_ret.Split(";").Count(); id++)
+                                        {
+                                            if (str_ret.Split(";")[id] != "")
+                                            {
+                                                str_ret_aux += pedUpd[id].id_app + ":" + str_ret.Split(";")[id] + ";";
+                                            }
+                                        }
+                                        str_ret_fim += str_ret_aux;
+                                    }
                                 }
+                                dyn_ret = str_ret_fim;
 
                                 break;
 
@@ -1166,11 +1354,11 @@ namespace WebAppServer.Repositories
                                         dtt_reg = repData.ConsultaGenericaDtt("[{ \"nome\":\"id\", \"valor\":\"0\", \"tipo\":\"Int64\"}," +
                                                                     "{ \"nome\":\"id_empresa\", \"valor\":\"" + company.ToString() + "\", \"tipo\":\"Int64\"}," +
                                                                     "{ \"nome\":\"dtm_ini\", \"valor\":\"2001-01-01\", \"tipo\":\"DateTime\"}," +
-                                                                    "{ \"nome\":\"dtm_ini\", \"valor\":\"2001-01-01\", \"tipo\":\"DateTime\"}," +
+                                                                    "{ \"nome\":\"dtm_fim\", \"valor\":\"2001-01-01\", \"tipo\":\"DateTime\"}," +
                                                                     "{ \"nome\":\"id_usuario\", \"valor\":\"0\", \"tipo\":\"Int64\"}," +
                                                                     "{ \"nome\":\"situacao\", \"valor\":\"0\", \"tipo\":\"Int16\"}," +
                                                                     "{ \"nome\":\"download\", \"valor\":\"0\", \"tipo\":\"Int16\"}," +
-                                                                    "{ \"nome\":\"id_app\", \"valor\":\"" + pedIApp[i].id.ToString() + "\", \"tipo\":\"Int64\"}]", "ntv_p_sel_tbl_pedidoitem", conn);
+                                                                    "{ \"nome\":\"id_app\", \"valor\":\"" + pedIApp[i].id.ToString() + "\", \"tipo\":\"Int64\"}]", "ntv_p_sel_tbl_pedidoitem", conn, tran);
                                         if (dtt_reg == null || dtt_reg.Rows.Count == 0)
                                         {
                                             pediInc.Add(new PedidoItem
@@ -1234,14 +1422,37 @@ namespace WebAppServer.Repositories
                                 if (pediInc.Count > 0)
                                 {
                                     str_ret = repData.ManutencaoTabela<PedidoItem>("I", pediInc, "ntv_tbl_pedidoitem", conn, tran);
-                                    dyn_ret = str_ret;
+                                    if (str_ret.Split(";").Count() > 0)
+                                    {
+                                        for (int id = 0; id < str_ret.Split(";").Count(); id++)
+                                        {
+                                            if (str_ret.Split(";")[id] != "")
+                                            {
+                                                str_ret_aux += pediInc[id].id_app + ":" + str_ret.Split(";")[id] + ";";
+                                            }
+                                        }
+                                        str_ret_fim += str_ret_aux;
+                                    }
                                 }
 
                                 //Alterações
                                 if (pediUpd.Count() > 0)
                                 {
-                                    str_ret = repData.ManutencaoTabela<PedidoItem>("U", pediUpd, "ntv_tbl_pedidoitem", conn, tran);
+                                    str_ret_aux = "";
+                                    str_ret += repData.ManutencaoTabela<PedidoItem>("U", pediUpd, "ntv_tbl_pedidoitem", conn, tran);
+                                    if (str_ret.Split(";").Count() > 0)
+                                    {
+                                        for (int id = 0; id < str_ret.Split(";").Count(); id++)
+                                        {
+                                            if (str_ret.Split(";")[id] != "")
+                                            {
+                                                str_ret_aux += pediUpd[id].id_app + ":" + str_ret.Split(";")[id] + ";";
+                                            }
+                                        }
+                                        str_ret_fim += str_ret_aux;
+                                    }
                                 }
+                                dyn_ret = str_ret_fim;
 
                                 break;
 
@@ -1263,7 +1474,7 @@ namespace WebAppServer.Repositories
                                                                     "{ \"nome\":\"id_empresa\", \"valor\":\"" + company.ToString() + "\", \"tipo\":\"Int64\"}," +
                                                                     "{ \"nome\":\"situacao\", \"valor\":\"0\", \"tipo\":\"Int16\"}," +
                                                                     "{ \"nome\":\"download\", \"valor\":\"0\", \"tipo\":\"Int16\"}," +
-                                                                    "{ \"nome\":\"id_app\", \"valor\":\"" + cliPApp[i].id.ToString() + "\", \"tipo\":\"Int64\"}]", "ntv_p_sel_tbl_localclipag", conn);
+                                                                    "{ \"nome\":\"id_app\", \"valor\":\"" + cliPApp[i].id.ToString() + "\", \"tipo\":\"Int64\"}]", "ntv_p_sel_tbl_localclipag", conn, tran);
                                         if (dtt_reg == null || dtt_reg.Rows.Count == 0)
                                         {
                                             clipInc.Add(new LocalCliPag
@@ -1321,14 +1532,38 @@ namespace WebAppServer.Repositories
                                 if (clipInc.Count > 0)
                                 {
                                     str_ret = repData.ManutencaoTabela<LocalCliPag>("I", clipInc, "ntv_tbl_localclipag", conn, tran);
-                                    dyn_ret = str_ret;
+                                    if (str_ret.Split(";").Count() > 0)
+                                    {
+                                        for (int id = 0; id < str_ret.Split(";").Count(); id++)
+                                        {
+                                            if (str_ret.Split(";")[id] != "")
+                                            {
+                                                str_ret_aux += clipInc[id].id_app + ":" + str_ret.Split(";")[id] + ";";
+                                            }
+                                        }
+                                        str_ret_fim += str_ret_aux;
+                                    }
                                 }
 
                                 //Alterações
                                 if (clipUpd.Count() > 0)
                                 {
-                                    str_ret = repData.ManutencaoTabela<LocalCliPag>("U", clipUpd, "ntv_tbl_localclipag", conn, tran);
+                                    str_ret_aux = "";
+                                    str_ret += repData.ManutencaoTabela<LocalCliPag>("U", clipUpd, "ntv_tbl_localclipag", conn, tran);
+                                    if (str_ret.Split(";").Count() > 0)
+                                    {
+                                        for (int id = 0; id < str_ret.Split(";").Count(); id++)
+                                        {
+                                            if (str_ret.Split(";")[id] != "")
+                                            {
+                                                str_ret_aux += clipUpd[id].id_app + ":" + str_ret.Split(";")[id] + ";";
+                                            }
+                                        }
+                                        str_ret_fim += str_ret_aux;
+                                    }
                                 }
+                                dyn_ret = str_ret_fim;
+
                                 break;
                         }
                         tran.Commit();
