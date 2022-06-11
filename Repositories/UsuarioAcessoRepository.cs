@@ -162,7 +162,8 @@ namespace WebAppServer.Repositories
                                                             "{ \"nome\":\"login\", \"valor\":\"0\", \"tipo\":\"Int64\"}," +
                                                             "{ \"nome\":\"email\", \"valor\":\"" + str_mail + "\", \"tipo\":\"string\"}," +
                                                             "{ \"nome\":\"situacao\", \"valor\":\"1\", \"tipo\":\"Int16\"}," +
-                                                            "{ \"nome\":\"download\", \"valor\":\"0\", \"tipo\":\"Int16\"}]", "ntv_p_sel_tbl_usuario", conn);
+                                                            "{ \"nome\":\"download\", \"valor\":\"0\", \"tipo\":\"Int16\"}, " +
+                                                            "{ \"nome\":\"id_app\", \"valor\":\"0\", \"tipo\":\"Int64\"}]", "ntv_p_sel_tbl_usuario", conn);
                         dyn_ret = JsonConvert.DeserializeObject<List<Usuario>>(str_ret);
                     }
                 }
@@ -192,7 +193,12 @@ namespace WebAppServer.Repositories
             using (SqlConnection conn = new SqlConnection(configDB.ConnectString))
             {                
                 conn.Open();
-                str_ret = repData.ConsultaGenerica("[{ \"nome\":\"ID\", \"valor\":\"0\", \"tipo\":\"Int64\"},{ \"nome\":\"id_empresa\", \"valor\":\"0\", \"tipo\":\"Int64\"},{ \"nome\":\"id_emp_serv\", \"valor\":\"0\", \"tipo\":\"Int64\"},{ \"nome\":\"Email\", \"valor\":\"" + str_mail + "\", \"tipo\":\"string\"},{ \"nome\":\"CodAcesso\", \"valor\":\"" + codigo.ToString() + "\", \"tipo\":\"Int64\"},{ \"nome\":\"situacao\", \"valor\":\"0\", \"tipo\":\"Int16\"}]", "ntv_p_sel_tbl_prim_acess", conn);
+                str_ret = repData.ConsultaGenerica("[{ \"nome\":\"ID\", \"valor\":\"0\", \"tipo\":\"Int64\"}," +
+                                                    "{ \"nome\":\"id_empresa\", \"valor\":\"0\", \"tipo\":\"Int64\"}," +
+                                                    "{ \"nome\":\"id_emp_serv\", \"valor\":\"0\", \"tipo\":\"Int64\"}," + 
+                                                    "{ \"nome\":\"Email\", \"valor\":\"" + str_mail + "\", \"tipo\":\"string\"}," +
+                                                    "{ \"nome\":\"CodAcesso\", \"valor\":\"" + codigo.ToString() + "\", \"tipo\":\"Int64\"}," +
+                                                    "{ \"nome\":\"situacao\", \"valor\":\"0\", \"tipo\":\"Int16\"}]", "ntv_p_sel_tbl_prim_acess", conn);
                 if (str_ret != "[]")
                 {
                     primAcesses = JsonConvert.DeserializeObject<List<UserPrimAcess>>(str_ret);
@@ -242,7 +248,8 @@ namespace WebAppServer.Repositories
                                                                        "{ \"nome\":\"id_empresa\", \"valor\":\"0\", \"tipo\":\"Int64\"}," +
                                                                        "{ \"nome\":\"login\", \"valor\":\"\", \"tipo\":\"Int64\"}," +
                                                                        "{ \"nome\":\"Email\", \"valor\":\"\", \"tipo\":\"string\"}," +
-                                                                       "{ \"nome\":\"situacao\", \"valor\":\"0\", \"tipo\":\"Int16\"}]", "ntv_p_sel_tbl_usuario", conn, tran);
+                                                                       "{ \"nome\":\"situacao\", \"valor\":\"0\", \"tipo\":\"Int16\"}, " +
+                                                                       "{ \"nome\":\"id_app\", \"valor\":\"0\", \"tipo\":\"Int64\"}]", "ntv_p_sel_tbl_usuario", conn, tran);
                                     if (str_ret.Length > 0 && str_ret != "[]")
                                     {
                                         usu = JsonConvert.DeserializeObject<List<Usuario>>(str_ret);
