@@ -249,6 +249,7 @@ namespace WebAppServer.Repositories
                                                                        "{ \"nome\":\"login\", \"valor\":\"\", \"tipo\":\"Int64\"}," +
                                                                        "{ \"nome\":\"Email\", \"valor\":\"\", \"tipo\":\"string\"}," +
                                                                        "{ \"nome\":\"situacao\", \"valor\":\"0\", \"tipo\":\"Int16\"}, " +
+                                                                       "{ \"nome\":\"download\", \"valor\":\"0\", \"tipo\":\"Int16\"}, " +
                                                                        "{ \"nome\":\"id_app\", \"valor\":\"0\", \"tipo\":\"Int64\"}]", "ntv_p_sel_tbl_usuario", conn, tran);
                                     if (str_ret.Length > 0 && str_ret != "[]")
                                     {
