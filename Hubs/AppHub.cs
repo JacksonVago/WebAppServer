@@ -160,6 +160,7 @@ namespace WebAppServer.Hubs
             else
             {
                 //Envia para o destinatário a confirmação do pedido)
+                //await Clients.Group(Convert.ToInt64(empresa).ToString()).Client(str_conect_id).SendAsync("ReceivePedido", destinatario, str_pedido, str_pedido);
                 await Clients.Client(str_conect_id).SendAsync("ReceivePedido", destinatario, str_pedido, str_pedido);
 
             }

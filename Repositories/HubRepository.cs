@@ -2,6 +2,7 @@
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 using WebAppServer.Models;
@@ -178,69 +179,114 @@ namespace WebAppServer.Repositories
             List<LocalApp> itemApp = new List<LocalApp>();
             List<Local> itens = new List<Local>();
 
+            List<Local> locInc = new List<Local>();
+            List<Local> locUpd = new List<Local>();
+
+            DataTable dtt_reg = new DataTable();
+
             itemApp = JsonConvert.DeserializeObject<List<LocalApp>>((dados.Contains("[") ? dados : "[" + dados + "]"));
 
             if (itemApp != null && itemApp.Count > 0)
             {
-                if (itemApp[0].id_server == 0)
-                {
-                    str_operacao = "I";
-                }
-                else
-                {
-                    str_operacao = "U";
-                }
+                string str_conn = configDB.ConnectString;
 
-                for (int i = 0; i < itemApp.Count; i++)
+                using (SqlConnection conn = new SqlConnection(str_conn))
                 {
-                    itens.Add(new Local
+                    conn.Open();
+
+                    using (SqlTransaction tran = conn.BeginTransaction())
                     {
-                        id = itemApp[i].id_server,
-                        id_empresa = empresa,
-                        int_numero = itemApp[i].int_numero,
-                        int_tipo = itemApp[i].int_tipo,
-                        int_qtd_pess = itemApp[i].int_qtd_pess,
-                        str_foto = itemApp[i].str_foto,
-                        dtm_inclusao = itemApp[i].dtm_inclusao,
-                        dtm_alteracao = DateTime.Now,
-                        int_situacao = itemApp[i].int_situacao,
-                        id_app = itemApp[i].id,
-                        id_user_man = 0
-                    });
-
-                }
-
-                if (itens.Count > 0)
-                {
-                    string str_conn = configDB.ConnectString;
-
-                    using (SqlConnection conn = new SqlConnection(str_conn))
-                    {
-                        conn.Open();
-
-                        using (SqlTransaction tran = conn.BeginTransaction())
+                        try
                         {
-                            try
+                            for (int i = 0; i < itemApp.Count; i++)
                             {
-                                str_id = repData.ManutencaoTabela<Local>(str_operacao, itens, "ntv_tbl_local", conn, tran);
 
-                                for (int i = 0; i < itemApp.Count; i++)
+                                if (itemApp[i].id_server == 0)
                                 {
-                                    itemApp[i].id_server = Convert.ToInt64(str_id.Split(';')[i]);
+                                    dtt_reg = repData.ConsultaGenericaDtt("[{ \"nome\":\"id\", \"valor\":\"0\", \"tipo\":\"Int64\"}," +
+                                        "{ \"nome\":\"id_empresa\", \"valor\":\"" + empresa.ToString() + "\", \"tipo\":\"Int64\"}," +
+                                        "{ \"nome\":\"situacao\", \"valor\":\"0\", \"tipo\":\"Int16\"}," +
+                                        "{ \"nome\":\"download\", \"valor\":\"0\", \"tipo\":\"Int16\"}," +
+                                        "{ \"nome\":\"id_app\", \"valor\":\"" + itemApp[i].id.ToString() + "\", \"tipo\":\"Int64\"}]", "ntv_p_sel_tbl_local", conn, tran);
+                                    if (dtt_reg == null || dtt_reg.Rows.Count == 0)
+                                    {
+                                        locInc.Add(new Local
+                                        {
+                                            id = 0,
+                                            id_empresa = empresa,
+                                            int_numero = itemApp[i].int_numero,
+                                            int_tipo = itemApp[i].int_tipo,
+                                            int_qtd_pess = itemApp[i].int_qtd_pess,
+                                            str_foto = itemApp[i].str_foto,
+                                            dtm_inclusao = itemApp[i].dtm_inclusao,
+                                            dtm_alteracao = DateTime.Now,
+                                            int_situacao = itemApp[i].int_situacao,
+                                            id_app = itemApp[i].id,
+                                            id_user_man = itemApp[i].id_usuario
+                                        });
+                                    }
+                                    else
+                                    {
+                                        locUpd.Add(new Local
+                                        {
+                                            id = Convert.ToInt64(dtt_reg.Rows[0]["id"]),
+                                            id_empresa = empresa,
+                                            int_numero = itemApp[i].int_numero,
+                                            int_tipo = itemApp[i].int_tipo,
+                                            int_qtd_pess = itemApp[i].int_qtd_pess,
+                                            str_foto = itemApp[i].str_foto,
+                                            dtm_inclusao = itemApp[i].dtm_inclusao,
+                                            dtm_alteracao = DateTime.Now,
+                                            int_situacao = itemApp[i].int_situacao,
+                                            id_app = itemApp[i].id,
+                                            id_user_man = itemApp[i].id_usuario
+                                        });
+
+                                    }
                                 }
-                                str_ret = JsonConvert.SerializeObject(itemApp);
+                                else
+                                {
+                                    locUpd.Add(new Local
+                                    {
+                                        id = itemApp[i].id_server,
+                                        id_empresa = empresa,
+                                        int_numero = itemApp[i].int_numero,
+                                        int_tipo = itemApp[i].int_tipo,
+                                        int_qtd_pess = itemApp[i].int_qtd_pess,
+                                        str_foto = itemApp[i].str_foto,
+                                        dtm_inclusao = itemApp[i].dtm_inclusao,
+                                        dtm_alteracao = DateTime.Now,
+                                        int_situacao = itemApp[i].int_situacao,
+                                        id_app = itemApp[i].id,
+                                        id_user_man = itemApp[i].id_usuario
+                                    });
+
+                                }
+
                             }
-                            catch (Exception ex)
+                            //Inclusões
+                            if (locInc.Count > 0)
                             {
-                                tran.Rollback();
-                                conn.Close();
-                                throw ex;
+                                str_ret = repData.ManutencaoTabela<Local>("I", locInc, "ntv_tbl_local", conn, tran);
                             }
 
-                            tran.Commit();
+                            //Alterações
+                            if (locUpd.Count() > 0)
+                            {
+                                str_ret += repData.ManutencaoTabela<Local>("U", locUpd, "ntv_tbl_local", conn, tran);
+                            }
+
                         }
-                        conn.Close();
+                        catch (Exception ex)
+                        {
+                            tran.Rollback();
+                            conn.Close();
+                            throw ex;
+                        }
+
+                        tran.Commit();
                     }
+                    conn.Close();
                 }
             }
 
@@ -253,81 +299,146 @@ namespace WebAppServer.Repositories
             string str_id = "";
             string str_operacao = "";
 
+            DataTable dtt_reg = new DataTable();
+
             List<LocalClienteApp> itemApp = new List<LocalClienteApp>();
             List<LocalCliente> itens = new List<LocalCliente>();
+
+            List<LocalCliente> locCliInc = new List<LocalCliente>();
+            List<LocalCliente> locCliUpd = new List<LocalCliente>();
 
             itemApp = JsonConvert.DeserializeObject<List<LocalClienteApp>>((dados.Contains("[") ? dados : "[" + dados + "]"));
 
             if (itemApp != null && itemApp.Count > 0)
             {
-                if (itemApp[0].id_server == 0)
-                {
-                    str_operacao = "I";
-                }
-                else
-                {
-                    str_operacao = "U";
-                }
 
-                for (int i = 0; i < itemApp.Count; i++)
+
+                string str_conn = configDB.ConnectString;
+
+                using (SqlConnection conn = new SqlConnection(str_conn))
                 {
-                    itens.Add(new LocalCliente
+                    conn.Open();
+
+                    using (SqlTransaction tran = conn.BeginTransaction())
                     {
-                        id = itemApp[i].id_server,
-                        id_empresa = empresa,
-                        id_local = itemApp[i].id_local,
-                        str_cliente = itemApp[i].str_cliente,
-                        str_senha = itemApp[i].str_senha,
-                        int_qtdped = itemApp[i].int_qtdped,
-                        int_qtditem = itemApp[i].int_qtditem,
-                        dbl_val_tot = itemApp[i].dbl_val_tot,
-                        dbl_val_desc = itemApp[i].dbl_val_desc,
-                        dbl_val_liq = itemApp[i].dbl_val_liq,
-                        dbl_val_pag = itemApp[i].dbl_val_pag,
-                        dtm_inclusao = itemApp[i].dtm_inclusao,
-                        dtm_pagto = itemApp[i].dtm_pagto,
-                        dtm_cancel = itemApp[i].dtm_cancel,
-                        int_situacao = itemApp[i].int_situacao,
-                        id_app = itemApp[i].id,
-                        id_user_man = 0
-                    });
-
-                }
-
-                if (itens.Count > 0)
-                {
-                    string str_conn = configDB.ConnectString;
-
-                    using (SqlConnection conn = new SqlConnection(str_conn))
-                    {
-                        conn.Open();
-
-                        using (SqlTransaction tran = conn.BeginTransaction())
+                        try
                         {
-                            try
-                            {
-                                str_id = repData.ManutencaoTabela<LocalCliente>(str_operacao, itens, "ntv_tbl_localcliente", conn, tran);
 
-                                for (int i = 0; i < itemApp.Count; i++)
+                            for (int i = 0; i < itemApp.Count; i++)
+                            {
+                                dtt_reg.Clear();
+
+                                if (itemApp[i].id_server == 0)
                                 {
-                                    itemApp[i].id_server = Convert.ToInt64(str_id.Split(';')[i]);
+                                    //Verifica se o registro já existe
+                                    dtt_reg = repData.ConsultaGenericaDtt("[{ \"nome\":\"id\", \"valor\":\"0\", \"tipo\":\"Int64\"}," +
+                                                                "{ \"nome\":\"id_empresa\", \"valor\":\"" + empresa.ToString() + "\", \"tipo\":\"Int64\"}," +
+                                                                "{ \"nome\":\"situacao\", \"valor\":\"0\", \"tipo\":\"Int16\"}," +
+                                                                "{ \"nome\":\"download\", \"valor\":\"0\", \"tipo\":\"Int16\"}," +
+                                                                "{ \"nome\":\"id_app\", \"valor\":\"" + itemApp[i].id.ToString() + "\", \"tipo\":\"Int64\"}]", "ntv_p_sel_tbl_localcliente", conn, tran);
+                                    if (dtt_reg == null || dtt_reg.Rows.Count == 0)
+                                    {
+                                        locCliInc.Add(new LocalCliente
+                                        {
+                                            id = 0,
+                                            id_empresa = empresa,
+                                            id_local = itemApp[i].id_local,
+                                            str_cliente = itemApp[i].str_cliente,
+                                            str_senha = itemApp[i].str_senha,
+                                            int_qtdped = itemApp[i].int_qtdped,
+                                            int_qtditem = itemApp[i].int_qtditem,
+                                            dbl_val_tot = itemApp[i].dbl_val_tot,
+                                            dbl_val_desc = itemApp[i].dbl_val_desc,
+                                            dbl_val_liq = itemApp[i].dbl_val_liq,
+                                            dbl_val_pag = itemApp[i].dbl_val_pag,
+                                            dtm_inclusao = itemApp[i].dtm_inclusao,
+                                            dtm_pagto = itemApp[i].dtm_pagto,
+                                            dtm_cancel = itemApp[i].dtm_cancel,
+                                            int_situacao = itemApp[i].int_situacao,
+                                            id_app = itemApp[i].id,
+                                            id_user_man = 0
+
+                                        });
+                                    }
+                                    else
+                                    {
+                                        locCliUpd.Add(new LocalCliente
+                                        {
+                                            id = Convert.ToInt64(dtt_reg.Rows[0]["id"]),
+                                            id_empresa = empresa,
+                                            id_local = itemApp[i].id_local,
+                                            str_cliente = itemApp[i].str_cliente,
+                                            str_senha = itemApp[i].str_senha,
+                                            int_qtdped = itemApp[i].int_qtdped,
+                                            int_qtditem = itemApp[i].int_qtditem,
+                                            dbl_val_tot = itemApp[i].dbl_val_tot,
+                                            dbl_val_desc = itemApp[i].dbl_val_desc,
+                                            dbl_val_liq = itemApp[i].dbl_val_liq,
+                                            dbl_val_pag = itemApp[i].dbl_val_pag,
+                                            dtm_inclusao = itemApp[i].dtm_inclusao,
+                                            dtm_pagto = itemApp[i].dtm_pagto,
+                                            dtm_cancel = itemApp[i].dtm_cancel,
+                                            int_situacao = itemApp[i].int_situacao,
+                                            id_app = itemApp[i].id,
+                                            id_user_man = 0
+                                        });
+
+                                    }
                                 }
-                                str_ret = JsonConvert.SerializeObject(itemApp);
-                            }
-                            catch (Exception ex)
-                            {
-                                tran.Rollback();
-                                conn.Close();
-                                throw ex;
+                                else
+                                {
+                                    locCliUpd.Add(new LocalCliente
+                                    {
+                                        id = itemApp[i].id_server,
+                                        id_empresa = empresa,
+                                        id_local = itemApp[i].id_local,
+                                        str_cliente = itemApp[i].str_cliente,
+                                        str_senha = itemApp[i].str_senha,
+                                        int_qtdped = itemApp[i].int_qtdped,
+                                        int_qtditem = itemApp[i].int_qtditem,
+                                        dbl_val_tot = itemApp[i].dbl_val_tot,
+                                        dbl_val_desc = itemApp[i].dbl_val_desc,
+                                        dbl_val_liq = itemApp[i].dbl_val_liq,
+                                        dbl_val_pag = itemApp[i].dbl_val_pag,
+                                        dtm_inclusao = itemApp[i].dtm_inclusao,
+                                        dtm_pagto = itemApp[i].dtm_pagto,
+                                        dtm_cancel = itemApp[i].dtm_cancel,
+                                        int_situacao = itemApp[i].int_situacao,
+                                        id_app = itemApp[i].id,
+                                        id_user_man = 0
+                                    });
+
+                                }
+
                             }
 
-                            tran.Commit();
+                            //Inclusões
+                            if (locCliInc.Count > 0)
+                            {
+                                str_ret = repData.ManutencaoTabela<LocalCliente>("I", locCliInc, "ntv_tbl_localcliente", conn, tran);
+                            }
+
+                            //Alterações
+                            if (locCliUpd.Count() > 0)
+                            {
+                                str_ret += repData.ManutencaoTabela<LocalCliente>("U", locCliUpd, "ntv_tbl_localcliente", conn, tran);
+                            }
                         }
-                        conn.Close();
+                        catch (Exception ex)
+                        {
+                            tran.Rollback();
+                            conn.Close();
+                            throw ex;
+                        }
+
+                        tran.Commit();
                     }
+                    conn.Close();
+
+
+
                 }
             }
-
             return str_ret;
         }
     }
