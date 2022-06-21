@@ -175,6 +175,7 @@ namespace WebAppServer.Repositories
             string str_ret = "";
             string str_id = "";
             string str_operacao = "";
+            Int64 id_local = 0;
 
             List<LocalApp> itemApp = new List<LocalApp>();
             List<Local> itens = new List<Local>();
@@ -267,7 +268,9 @@ namespace WebAppServer.Repositories
                             //Inclusões
                             if (locInc.Count > 0)
                             {
-                                str_ret = repData.ManutencaoTabela<Local>("I", locInc, "ntv_tbl_local", conn, tran);
+                                id_local = Convert.ToInt64(repData.ManutencaoTabela<Local>("I", locInc, "ntv_tbl_local", conn, tran).Split(";")[0]);
+
+                                itemApp[0].id_server = id_local;
                             }
 
                             //Alterações
@@ -275,6 +278,8 @@ namespace WebAppServer.Repositories
                             {
                                 str_ret += repData.ManutencaoTabela<Local>("U", locUpd, "ntv_tbl_local", conn, tran);
                             }
+
+                            str_ret = JsonConvert.SerializeObject(itemApp);
 
                         }
                         catch (Exception ex)
@@ -298,6 +303,7 @@ namespace WebAppServer.Repositories
             string str_ret = "";
             string str_id = "";
             string str_operacao = "";
+            Int64 id_localcli = 0;
 
             DataTable dtt_reg = new DataTable();
 
@@ -415,7 +421,8 @@ namespace WebAppServer.Repositories
                             //Inclusões
                             if (locCliInc.Count > 0)
                             {
-                                str_ret = repData.ManutencaoTabela<LocalCliente>("I", locCliInc, "ntv_tbl_localcliente", conn, tran);
+                                id_localcli = Convert.ToInt64(repData.ManutencaoTabela<LocalCliente>("I", locCliInc, "ntv_tbl_localcliente", conn, tran).Split(";")[0]);
+                                itemApp[0].id_server = id_localcli;
                             }
 
                             //Alterações
@@ -423,6 +430,8 @@ namespace WebAppServer.Repositories
                             {
                                 str_ret += repData.ManutencaoTabela<LocalCliente>("U", locCliUpd, "ntv_tbl_localcliente", conn, tran);
                             }
+
+                            str_ret = JsonConvert.SerializeObject(itemApp);
                         }
                         catch (Exception ex)
                         {
