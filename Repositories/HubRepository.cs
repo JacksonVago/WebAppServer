@@ -20,6 +20,169 @@ namespace WebAppServer.Repositories
             repData = new DataRepository();
         }
 
+        public async Task<string> PagarConta(Int64 empresa, string pedidos, string formas)
+        {
+            string str_ret = "";
+            string str_operacao = "";
+            Int64 id_pedido = 0;
+            PedidoApp pedido = new PedidoApp();
+            List<PedidoApp> lst_pedApp = new List<PedidoApp>();
+            List<Pedido> pedidosUpd = new List<Pedido>();
+            List<Pedido> pedidosIns = new List<Pedido>();
+
+            if (pedidos.IndexOf("[") > -1)
+            {
+                lst_pedApp = JsonConvert.DeserializeObject<List<PedidoApp>>(pedidos);
+            }
+            else
+            {
+                pedido = JsonConvert.DeserializeObject<PedidoApp>(pedidos);
+            }
+
+
+            if (pedido != null)
+            {
+                if (pedido.id_server == 0)
+                {
+                    pedidosIns.Add(new Pedido
+                    {
+                        id = pedido.id_server,
+                        id_empresa = empresa,
+                        id_localcli = pedido.id_localcli,
+                        dtm_pedido = pedido.dtm_pedido,
+                        dtm_pagto = pedido.dtm_pagto,
+                        dtm_cancel = pedido.dtm_cancel,
+                        int_qtd_item = pedido.int_qtd_item,
+                        dbl_val_tot = pedido.dbl_val_tot,
+                        dbl_val_desc = pedido.dbl_val_desc,
+                        dbl_val_liq = pedido.dbl_val_liq,
+                        dbl_val_pag = pedido.dbl_val_pag,
+                        str_obs = pedido.str_obervacao,
+                        int_situacao = pedido.int_situacao, //0 - Aberto / 1 - Confirmado / 2 - Entregue Parcial / 3 - Entregue total / 4 - Pago parcialmente / 5 - Pago total / 9 - Cancelado
+                        id_usuario = pedido.id_usuario,
+                        id_app = pedido.id,
+                        id_user_man = pedido.id_usuario
+                    });
+                }
+                else
+                {
+                    pedidosUpd.Add(new Pedido
+                    {
+                        id = pedido.id_server,
+                        id_empresa = empresa,
+                        id_localcli = pedido.id_localcli,
+                        dtm_pedido = pedido.dtm_pedido,
+                        dtm_pagto = pedido.dtm_pagto,
+                        dtm_cancel = pedido.dtm_cancel,
+                        int_qtd_item = pedido.int_qtd_item,
+                        dbl_val_tot = pedido.dbl_val_tot,
+                        dbl_val_desc = pedido.dbl_val_desc,
+                        dbl_val_liq = pedido.dbl_val_liq,
+                        dbl_val_pag = pedido.dbl_val_pag,
+                        str_obs = pedido.str_obervacao,
+                        int_situacao = pedido.int_situacao, //0 - Aberto / 1 - Confirmado / 2 - Entregue Parcial / 3 - Entregue total / 4 - Pago parcialmente / 5 - Pago total / 9 - Cancelado
+                        id_usuario = pedido.id_usuario,
+                        id_app = pedido.id,
+                        id_user_man = pedido.id_usuario
+                    });
+                }
+            }
+            else
+            {
+                if (lst_pedApp.Count > 0)
+                {
+                    foreach (var item in lst_pedApp)
+                    {
+                        if (item.id_server == 0)
+                        {
+                            pedidosIns.Add(new Pedido
+                            {
+                                id = item.id_server,
+                                id_empresa = empresa,
+                                id_localcli = item.id_localcli,
+                                dtm_pedido = item.dtm_pedido,
+                                dtm_pagto = item.dtm_pagto,
+                                dtm_cancel = item.dtm_cancel,
+                                int_qtd_item = item.int_qtd_item,
+                                dbl_val_tot = item.dbl_val_tot,
+                                dbl_val_desc = item.dbl_val_desc,
+                                dbl_val_liq = item.dbl_val_liq,
+                                dbl_val_pag = item.dbl_val_pag,
+                                str_obs = item.str_obervacao,
+                                int_situacao = item.int_situacao, //0 - Aberto / 1 - Confirmado / 2 - Iniciado / 3 - Finalizado / 4 - Entregue Parcial / 5 - Entregue total / 6 - Pago parcialmente / 7 - Pago total / 9 - Cancelado
+                                id_usuario = item.id_usuario,
+                                id_app = item.id,
+                                id_user_man = item.id_usuario
+                            });
+                        }
+                        else
+                        {
+                            pedidosUpd.Add(new Pedido
+                            {
+                                id = item.id_server,
+                                id_empresa = empresa,
+                                id_localcli = item.id_localcli,
+                                dtm_pedido = item.dtm_pedido,
+                                dtm_pagto = item.dtm_pagto,
+                                dtm_cancel = item.dtm_cancel,
+                                int_qtd_item = item.int_qtd_item,
+                                dbl_val_tot = item.dbl_val_tot,
+                                dbl_val_desc = item.dbl_val_desc,
+                                dbl_val_liq = item.dbl_val_liq,
+                                dbl_val_pag = item.dbl_val_pag,
+                                str_obs = item.str_obervacao,
+                                int_situacao = item.int_situacao, //0 - Aberto / 1 - Confirmado / 2 - Iniciado / 3 - Finalizado / 4 - Entregue Parcial / 5 - Entregue total / 6 - Pago parcialmente / 7 - Pago total / 9 - Cancelado
+                                id_usuario = item.id_usuario,
+                                id_app = item.id,
+                                id_user_man = item.id_usuario
+                            });
+                        }
+
+                    }
+                }
+            }
+
+            if (pedidosIns.Count > 0 || pedidosUpd.Count > 0)
+            {
+                string str_conn = configDB.ConnectString;
+
+                using (SqlConnection conn = new SqlConnection(str_conn))
+                {
+                    conn.Open();
+
+                    using (SqlTransaction tran = conn.BeginTransaction())
+                    {
+                        try
+                        {
+                            //Inclusões
+                            if (pedidosIns.Count > 0)
+                            {
+                                id_pedido = Convert.ToInt64(repData.ManutencaoTabela<Pedido>("I", pedidosIns, "ntv_tbl_pedido", conn, tran).Split(";")[0]);
+                                pedido.id_server = id_pedido;
+                                str_ret = JsonConvert.SerializeObject(pedido);
+                            }
+
+                        }
+                        catch (Exception ex)
+                        {
+                            tran.Rollback();
+                            conn.Close();
+                            throw ex;
+                        }
+
+                        tran.Commit();
+                    }
+                    conn.Close();
+                }
+
+
+
+            }
+
+
+            return str_ret;
+        }
+
         public async Task<string> GravarPedido(Int64 empresa, string dados)
         {
             string str_ret = "";

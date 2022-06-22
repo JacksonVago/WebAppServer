@@ -115,8 +115,9 @@ namespace WebAppServer.Hubs
             //Envia para o administrador
             await Clients.Client(dest.str_idconnect).SendAsync("ReceivePedido", destinatario, str_pedido, str_itens);
 
-            //Devolve para o usuario que enviou
-            await Clients.Caller.SendAsync("ReceivePedido", destinatario, str_pedido, str_itens);
+            //Envia para todos os usuário
+            //await Clients.Caller.SendAsync("ReceivePedido", destinatario, str_pedido, str_itens);
+            await Clients.OthersInGroup(empresa.ToString()).SendAsync("ReceivePedido", destinatario, str_pedido, str_itens);
         }
 
         public async Task SendLocalCli(string empresa, string userID, string str_localcli)
@@ -125,8 +126,8 @@ namespace WebAppServer.Hubs
             str_localcli = await _repHub.GravarLocalCli(Convert.ToInt64(empresa), str_localcli);
 
             //Envia para todos ataulizar id_serve
-            await Clients.All.SendAsync("ReceiveLocalCli", str_localcli);
-
+            //await Clients.All.SendAsync("ReceiveLocalCli", str_localcli);
+            await Clients.Group(empresa.ToString()).SendAsync("ReceiveLocalCli", str_localcli);
         }
 
         public async Task SendLocal(string empresa, string userID, string str_local)
@@ -135,7 +136,8 @@ namespace WebAppServer.Hubs
             str_local = await _repHub.GravarLocal(Convert.ToInt64(empresa), str_local);
 
             //Envia para todos ataulizar id_serve
-            await Clients.All.SendAsync("ReceiveLocal", str_local);
+            //await Clients.All.SendAsync("ReceiveLocal", str_local);
+            await Clients.Group(empresa.ToString()).SendAsync("ReceiveLocal", str_local);
 
         }
 
