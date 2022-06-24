@@ -256,78 +256,158 @@ namespace WebAppServer.Repositories
 
         public async Task<string> GravarPedidoItem(Int64 empresa, string dados)
         {
+            DataTable dtt_reg = new DataTable();
             string str_ret = "";
             string str_id = "";
             string str_operacao = "";
 
             List<PedidoItemApp> itemApp = new List<PedidoItemApp>();
+            List<PedidoItemApp> itemApp_ret = new List<PedidoItemApp>();
+
             List<PedidoItem> itens = new List<PedidoItem>();
+            List<PedidoItem> itensUpd = new List<PedidoItem>();
+            List<PedidoItem> itensIns = new List<PedidoItem>();
 
             itemApp = JsonConvert.DeserializeObject<List<PedidoItemApp>>((dados.Contains("[") ? dados : "[" + dados + "]"));
 
+
             if (itemApp != null && itemApp.Count > 0)
             {
-                if (itemApp[0].id_server == 0)
-                {
-                    str_operacao = "I";
-                }
-                else
-                {
-                    str_operacao = "U";
-                }
+                string str_conn = configDB.ConnectString;
 
-                for (int i = 0; i < itemApp.Count; i++)
+                using (SqlConnection conn = new SqlConnection(str_conn))
                 {
-                    itens.Add(new PedidoItem
+                    conn.Open();
+                    for (int i = 0; i < itemApp.Count; i++)
                     {
-                        id = itemApp[i].id_server,
-                        id_empresa = empresa,
-                        id_pedido = itemApp[i].id_pedido,
-                        id_produto = itemApp[i].id_produto,
-                        dbl_precounit = itemApp[i].dbl_precounit,
-                        int_qtd_comp = itemApp[i].int_qtd_comp,
-                        dbl_tot_item = itemApp[i].dbl_tot_item,
-                        dbl_desconto = itemApp[i].dbl_desconto,
-                        dbl_tot_liq = itemApp[i].dbl_tot_liq,
-                        int_situacao = itemApp[i].int_situacao, // 0 - Não entregue / 1 - Entregue / 9 - Cancelado
-                        id_app = itemApp[i].id,
-                        id_user_man = 0
-                    });
+                        if (itemApp[i].id_server == 0)
+                        {
+                            //Verifica se o registro já existe
+                            dtt_reg = repData.ConsultaGenericaDtt("[{ \"nome\":\"id\", \"valor\":\"0\", \"tipo\":\"Int64\"}," +
+                                                        "{ \"nome\":\"id_empresa\", \"valor\":\"" + empresa.ToString() + "\", \"tipo\":\"Int64\"}," +
+                                                        "{ \"nome\":\"dtm_ini\", \"valor\":\"2001-01-01\", \"tipo\":\"DateTime\"}," +
+                                                        "{ \"nome\":\"dtm_fim\", \"valor\":\"2001-01-01\", \"tipo\":\"DateTime\"}," +
+                                                        "{ \"nome\":\"id_usuario\", \"valor\":\"0\", \"tipo\":\"Int64\"}," +
+                                                        "{ \"nome\":\"situacao\", \"valor\":\"0\", \"tipo\":\"Int16\"}," +
+                                                        "{ \"nome\":\"download\", \"valor\":\"0\", \"tipo\":\"Int16\"}," +
+                                                        "{ \"nome\":\"id_app\", \"valor\":\"" + itemApp[i].id.ToString() + "\", \"tipo\":\"Int64\"}]", "ntv_p_sel_tbl_pedidoitem", conn);
+                            if (dtt_reg == null || dtt_reg.Rows.Count == 0)
+                            {
+                                itensIns.Add(new PedidoItem
+                                {
+                                    id = 0,
+                                    id_empresa = empresa,
+                                    id_pedido = itemApp[i].id_pedido,
+                                    id_produto = itemApp[i].id_produto,
+                                    dbl_precounit = itemApp[i].dbl_precounit,
+                                    int_qtd_comp = itemApp[i].int_qtd_comp,
+                                    dbl_tot_item = itemApp[i].dbl_tot_item,
+                                    dbl_desconto = itemApp[i].dbl_desconto,
+                                    dbl_tot_liq = itemApp[i].dbl_tot_liq,
+                                    int_situacao = itemApp[i].int_situacao,
+                                    id_app = itemApp[i].id,
+                                    id_user_man = 0
+                                });
+                            }
+                            else
+                            {
+                                itensUpd.Add(new PedidoItem
+                                {
+                                    id = Convert.ToInt64(dtt_reg.Rows[0]["id"]),
+                                    id_empresa = empresa,
+                                    id_pedido = itemApp[i].id_pedido,
+                                    id_produto = itemApp[i].id_produto,
+                                    dbl_precounit = itemApp[i].dbl_precounit,
+                                    int_qtd_comp = itemApp[i].int_qtd_comp,
+                                    dbl_tot_item = itemApp[i].dbl_tot_item,
+                                    dbl_desconto = itemApp[i].dbl_desconto,
+                                    dbl_tot_liq = itemApp[i].dbl_tot_liq,
+                                    int_situacao = itemApp[i].int_situacao, // 0 - Não entregue / 1 - Entregue / 9 - Cancelado
+                                    id_app = itemApp[i].id,
+                                    id_user_man = 0
+                                });
 
-                }
+                            }
+                        }
+                        else
+                        {
+                            itensUpd.Add(new PedidoItem
+                            {
+                                id = itemApp[i].id_server,
+                                id_empresa = empresa,
+                                id_pedido = itemApp[i].id_pedido,
+                                id_produto = itemApp[i].id_produto,
+                                dbl_precounit = itemApp[i].dbl_precounit,
+                                int_qtd_comp = itemApp[i].int_qtd_comp,
+                                dbl_tot_item = itemApp[i].dbl_tot_item,
+                                dbl_desconto = itemApp[i].dbl_desconto,
+                                dbl_tot_liq = itemApp[i].dbl_tot_liq,
+                                int_situacao = itemApp[i].int_situacao, // 0 - Não entregue / 1 - Entregue / 9 - Cancelado
+                                id_app = itemApp[i].id,
+                                id_user_man = 0
+                            });
+                        }
+                    }
 
-                if (itens.Count > 0)
-                {
-                    string str_conn = configDB.ConnectString;
-
-                    using (SqlConnection conn = new SqlConnection(str_conn))
+                    if (itensIns.Count > 0 || itensUpd.Count > 0)
                     {
-                        conn.Open();
-
                         using (SqlTransaction tran = conn.BeginTransaction())
                         {
                             try
                             {
-                                str_id = repData.ManutencaoTabela<PedidoItem>(str_operacao, itens, "ntv_tbl_pedidoitem", conn, tran);
-
-                                for (int i = 0; i < itemApp.Count; i++)
+                                //Inclusões
+                                if (itensIns.Count > 0)
                                 {
-                                    itemApp[i].id_server = Convert.ToInt64(str_id.Split(';')[i]);
+                                    str_ret = repData.ManutencaoTabela<PedidoItem>("I", itensIns, "ntv_tbl_pedidoitem", conn, tran);
+                                    if (str_ret.Split(";").Count() > 0)
+                                    {
+                                        for (int id = 0; id < str_ret.Split(";").Count(); id++)
+                                        {
+                                            if (str_ret.Split(";")[id] != "")
+                                            {
+                                                PedidoItemApp item = (from reg in itemApp where reg.id == itensIns[id].id_app select reg).FirstOrDefault();
+                                                item.int_sinc = 1;
+                                                item.id_server = Convert.ToInt64(str_ret.Split(";")[id]);
+                                                itemApp_ret.Add(item);
+
+                                            }
+                                        }
+                                    }
                                 }
-                                str_ret = JsonConvert.SerializeObject(itemApp);
+
+                                //Alterações
+                                if (itensUpd.Count() > 0)
+                                {
+                                    str_ret += repData.ManutencaoTabela<PedidoItem>("U", itensUpd, "ntv_tbl_pedidoitem", conn, tran);
+                                    if (str_ret.Split(";").Count() > 0)
+                                    {
+                                        for (int id = 0; id < str_ret.Split(";").Count(); id++)
+                                        {
+                                            if (str_ret.Split(";")[id] != "")
+                                            {
+                                                PedidoItemApp item = (from reg in itemApp where reg.id == itensUpd[id].id_app select reg).FirstOrDefault();
+                                                item.int_sinc = 1;
+                                                item.id_server = Convert.ToInt64(str_ret.Split(";")[id]);
+                                                itemApp_ret.Add(item);
+                                            }
+                                        }
+                                    }
+                                }
                             }
                             catch (Exception ex)
                             {
                                 tran.Rollback();
-                                conn.Close();
                                 throw ex;
                             }
-
                             tran.Commit();
                         }
-                        conn.Close();
                     }
+                    conn.Close();
+
                 }
+
+
+                str_ret = JsonConvert.SerializeObject(itemApp_ret);
             }
 
             return str_ret;
@@ -613,5 +693,170 @@ namespace WebAppServer.Repositories
             }
             return str_ret;
         }
+        /*
+                 public async Task<string> GravarPedido(Int64 empresa, string dados)
+        {
+            string str_ret = "";
+            string str_operacao = "";
+            Int64 id_pedido = 0;
+            PedidoApp pedido = new PedidoApp();
+            List<PedidoApp> lst_pedApp = new List<PedidoApp>();
+            List<Pedido> pedidosUpd = new List<Pedido>();
+            List<Pedido> pedidosIns = new List<Pedido>();
+
+            if (dados.IndexOf("[") > -1)
+            {
+                lst_pedApp = JsonConvert.DeserializeObject<List<PedidoApp>>(dados);
+            }
+            else
+            {
+                pedido = JsonConvert.DeserializeObject<PedidoApp>(dados);
+            }
+            
+
+            if (pedido != null)
+            {
+                if (pedido.id_server == 0)
+                {
+                    pedidosIns.Add(new Pedido
+                    {
+                        id = pedido.id_server,
+                        id_empresa = empresa,
+                        id_localcli = pedido.id_localcli,
+                        dtm_pedido = pedido.dtm_pedido,
+                        dtm_pagto = pedido.dtm_pagto,
+                        dtm_cancel = pedido.dtm_cancel,
+                        int_qtd_item = pedido.int_qtd_item,
+                        dbl_val_tot = pedido.dbl_val_tot,
+                        dbl_val_desc = pedido.dbl_val_desc,
+                        dbl_val_liq = pedido.dbl_val_liq,
+                        dbl_val_pag = pedido.dbl_val_pag,
+                        str_obs = pedido.str_obervacao,
+                        int_situacao = pedido.int_situacao, //0 - Aberto / 1 - Confirmado / 2 - Entregue Parcial / 3 - Entregue total / 4 - Pago parcialmente / 5 - Pago total / 9 - Cancelado
+                        id_usuario = pedido.id_usuario,
+                        id_app = pedido.id,
+                        id_user_man = pedido.id_usuario
+                    });
+                }
+                else
+                {
+                    pedidosUpd.Add(new Pedido
+                    {
+                        id = pedido.id_server,
+                        id_empresa = empresa,
+                        id_localcli = pedido.id_localcli,
+                        dtm_pedido = pedido.dtm_pedido,
+                        dtm_pagto = pedido.dtm_pagto,
+                        dtm_cancel = pedido.dtm_cancel,
+                        int_qtd_item = pedido.int_qtd_item,
+                        dbl_val_tot = pedido.dbl_val_tot,
+                        dbl_val_desc = pedido.dbl_val_desc,
+                        dbl_val_liq = pedido.dbl_val_liq,
+                        dbl_val_pag = pedido.dbl_val_pag,
+                        str_obs = pedido.str_obervacao,
+                        int_situacao = pedido.int_situacao, //0 - Aberto / 1 - Confirmado / 2 - Entregue Parcial / 3 - Entregue total / 4 - Pago parcialmente / 5 - Pago total / 9 - Cancelado
+                        id_usuario = pedido.id_usuario,
+                        id_app = pedido.id,
+                        id_user_man = pedido.id_usuario
+                    });
+                }
+            }
+            else
+            {
+                if (lst_pedApp.Count > 0)
+                {
+                    foreach(var item in lst_pedApp)
+                    {
+                        if (item.id_server == 0)
+                        {
+                            pedidosIns.Add(new Pedido
+                            {
+                                id = item.id_server,
+                                id_empresa = empresa,
+                                id_localcli = item.id_localcli,
+                                dtm_pedido = item.dtm_pedido,
+                                dtm_pagto = item.dtm_pagto,
+                                dtm_cancel = item.dtm_cancel,
+                                int_qtd_item = item.int_qtd_item,
+                                dbl_val_tot = item.dbl_val_tot,
+                                dbl_val_desc = item.dbl_val_desc,
+                                dbl_val_liq = item.dbl_val_liq,
+                                dbl_val_pag = item.dbl_val_pag,
+                                str_obs = item.str_obervacao,
+                                int_situacao = item.int_situacao, //0 - Aberto / 1 - Confirmado / 2 - Iniciado / 3 - Finalizado / 4 - Entregue Parcial / 5 - Entregue total / 6 - Pago parcialmente / 7 - Pago total / 9 - Cancelado
+                                id_usuario = item.id_usuario,
+                                id_app = item.id,
+                                id_user_man = item.id_usuario
+                            });
+                        }
+                        else
+                        {
+                            pedidosUpd.Add(new Pedido
+                            {
+                                id = item.id_server,
+                                id_empresa = empresa,
+                                id_localcli = item.id_localcli,
+                                dtm_pedido = item.dtm_pedido,
+                                dtm_pagto = item.dtm_pagto,
+                                dtm_cancel = item.dtm_cancel,
+                                int_qtd_item = item.int_qtd_item,
+                                dbl_val_tot = item.dbl_val_tot,
+                                dbl_val_desc = item.dbl_val_desc,
+                                dbl_val_liq = item.dbl_val_liq,
+                                dbl_val_pag = item.dbl_val_pag,
+                                str_obs = item.str_obervacao,
+                                int_situacao = item.int_situacao, //0 - Aberto / 1 - Confirmado / 2 - Iniciado / 3 - Finalizado / 4 - Entregue Parcial / 5 - Entregue total / 6 - Pago parcialmente / 7 - Pago total / 9 - Cancelado
+                                id_usuario = item.id_usuario,
+                                id_app = item.id,
+                                id_user_man = item.id_usuario
+                            });
+                        }
+
+                    }
+                }
+            }
+
+            if (pedidosIns.Count > 0 || pedidosUpd.Count > 0)
+            {
+                string str_conn = configDB.ConnectString;
+
+                using (SqlConnection conn = new SqlConnection(str_conn))
+                {
+                    conn.Open();
+
+                    using (SqlTransaction tran = conn.BeginTransaction())
+                    {
+                        try
+                        {
+                            //Inclusões
+                            if (pedidosIns.Count > 0)
+                            {
+                                id_pedido = Convert.ToInt64(repData.ManutencaoTabela<Pedido>("I", pedidosIns, "ntv_tbl_pedido", conn, tran).Split(";")[0]);
+                                pedido.id_server = id_pedido;
+                                str_ret = JsonConvert.SerializeObject(pedido);
+                            }
+
+                        }
+                        catch (Exception ex)
+                        {
+                            tran.Rollback();
+                            conn.Close();
+                            throw ex;
+                        }
+
+                        tran.Commit();
+                    }
+                    conn.Close();
+                }
+
+
+
+            }
+
+
+            return str_ret;
+        }
+
+         */
     }
 }
