@@ -287,7 +287,7 @@ namespace WebAppServer.Repositories
                                                         "{ \"nome\":\"id_empresa\", \"valor\":\"" + empresa.ToString() + "\", \"tipo\":\"Int64\"}," +
                                                         "{ \"nome\":\"dtm_ini\", \"valor\":\"2001-01-01\", \"tipo\":\"DateTime\"}," +
                                                         "{ \"nome\":\"dtm_fim\", \"valor\":\"2001-01-01\", \"tipo\":\"DateTime\"}," +
-                                                        "{ \"nome\":\"id_usuario\", \"valor\":\"0\", \"tipo\":\"Int64\"}," +
+                                                        "{ \"nome\":\"id_usuario\", \"valor\":\"" + itemApp[i].id_usuario.ToString() + "\", \"tipo\":\"Int64\"}," +
                                                         "{ \"nome\":\"situacao\", \"valor\":\"0\", \"tipo\":\"Int16\"}," +
                                                         "{ \"nome\":\"download\", \"valor\":\"0\", \"tipo\":\"Int16\"}," +
                                                         "{ \"nome\":\"id_app\", \"valor\":\"" + itemApp[i].id.ToString() + "\", \"tipo\":\"Int64\"}]", "ntv_p_sel_tbl_pedidoitem", conn);
@@ -305,6 +305,7 @@ namespace WebAppServer.Repositories
                                     dbl_desconto = itemApp[i].dbl_desconto,
                                     dbl_tot_liq = itemApp[i].dbl_tot_liq,
                                     int_situacao = itemApp[i].int_situacao,
+                                    id_usuario = itemApp[i].id_usuario,
                                     id_app = itemApp[i].id,
                                     id_user_man = 0
                                 });
@@ -323,6 +324,7 @@ namespace WebAppServer.Repositories
                                     dbl_desconto = itemApp[i].dbl_desconto,
                                     dbl_tot_liq = itemApp[i].dbl_tot_liq,
                                     int_situacao = itemApp[i].int_situacao, // 0 - Não entregue / 1 - Entregue / 9 - Cancelado
+                                    id_usuario = itemApp[i].id_usuario,
                                     id_app = itemApp[i].id,
                                     id_user_man = 0
                                 });
@@ -343,6 +345,7 @@ namespace WebAppServer.Repositories
                                 dbl_desconto = itemApp[i].dbl_desconto,
                                 dbl_tot_liq = itemApp[i].dbl_tot_liq,
                                 int_situacao = itemApp[i].int_situacao, // 0 - Não entregue / 1 - Entregue / 9 - Cancelado
+                                id_usuario = itemApp[i].id_usuario,
                                 id_app = itemApp[i].id,
                                 id_user_man = 0
                             });
@@ -584,6 +587,7 @@ namespace WebAppServer.Repositories
                                                                 "{ \"nome\":\"id_empresa\", \"valor\":\"" + empresa.ToString() + "\", \"tipo\":\"Int64\"}," +
                                                                 "{ \"nome\":\"situacao\", \"valor\":\"0\", \"tipo\":\"Int16\"}," +
                                                                 "{ \"nome\":\"download\", \"valor\":\"0\", \"tipo\":\"Int16\"}," +
+                                                                "{ \"nome\":\"id_usuario\", \"valor\":\"" + itemApp[i].id_usuario.ToString() + "\", \"tipo\":\"Int64\"}," +
                                                                 "{ \"nome\":\"id_app\", \"valor\":\"" + itemApp[i].id.ToString() + "\", \"tipo\":\"Int64\"}]", "ntv_p_sel_tbl_localcliente", conn, tran);
                                     if (dtt_reg == null || dtt_reg.Rows.Count == 0)
                                     {
@@ -604,6 +608,7 @@ namespace WebAppServer.Repositories
                                             dtm_pagto = itemApp[i].dtm_pagto,
                                             dtm_cancel = itemApp[i].dtm_cancel,
                                             int_situacao = itemApp[i].int_situacao,
+                                            id_usuario = itemApp[i].id_usuario,
                                             id_app = itemApp[i].id,
                                             id_user_man = 0
 
@@ -628,6 +633,7 @@ namespace WebAppServer.Repositories
                                             dtm_pagto = itemApp[i].dtm_pagto,
                                             dtm_cancel = itemApp[i].dtm_cancel,
                                             int_situacao = itemApp[i].int_situacao,
+                                            id_usuario = itemApp[i].id_usuario,
                                             id_app = itemApp[i].id,
                                             id_user_man = 0
                                         });
@@ -653,6 +659,7 @@ namespace WebAppServer.Repositories
                                         dtm_pagto = itemApp[i].dtm_pagto,
                                         dtm_cancel = itemApp[i].dtm_cancel,
                                         int_situacao = itemApp[i].int_situacao,
+                                        id_usuario = itemApp[i].id_usuario,
                                         id_app = itemApp[i].id,
                                         id_user_man = 0
                                     });

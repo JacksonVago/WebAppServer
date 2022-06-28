@@ -1090,6 +1090,7 @@ namespace WebAppServer.Repositories
                                                                     "{ \"nome\":\"id_empresa\", \"valor\":\"" + company.ToString() + "\", \"tipo\":\"Int64\"}," +
                                                                     "{ \"nome\":\"situacao\", \"valor\":\"0\", \"tipo\":\"Int16\"}," +
                                                                     "{ \"nome\":\"download\", \"valor\":\"0\", \"tipo\":\"Int16\"}," +
+                                                                    "{ \"nome\":\"id_usuario\", \"valor\":\"" + locCliApp[i].id_usuario.ToString() + "\", \"tipo\":\"Int64\"}," +
                                                                     "{ \"nome\":\"id_app\", \"valor\":\"" + locCliApp[i].id.ToString() + "\", \"tipo\":\"Int64\"}]", "ntv_p_sel_tbl_localcliente", conn, tran);
                                         if (dtt_reg == null || dtt_reg.Rows.Count == 0)
                                         {
@@ -1110,6 +1111,7 @@ namespace WebAppServer.Repositories
                                                 dtm_pagto = locCliApp[i].dtm_pagto,
                                                 dtm_cancel = locCliApp[i].dtm_cancel,
                                                 int_situacao = locCliApp[i].int_situacao,
+                                                id_usuario = locCliApp[i].id_usuario,
                                                 id_app = locCliApp[i].id,
                                                 id_user_man = user
 
@@ -1134,6 +1136,7 @@ namespace WebAppServer.Repositories
                                                 dtm_pagto = locCliApp[i].dtm_pagto,
                                                 dtm_cancel = locCliApp[i].dtm_cancel,
                                                 int_situacao = locCliApp[i].int_situacao,
+                                                id_usuario = locCliApp[i].id_usuario,
                                                 id_app = locCliApp[i].id,
                                                 id_user_man = user
                                             });
@@ -1159,6 +1162,7 @@ namespace WebAppServer.Repositories
                                             dtm_pagto = locCliApp[i].dtm_pagto,
                                             dtm_cancel = locCliApp[i].dtm_cancel,
                                             int_situacao = locCliApp[i].int_situacao,
+                                            id_usuario = locCliApp[i].id_usuario,
                                             id_app = locCliApp[i].id,
                                             id_user_man = user
                                         });
@@ -1223,7 +1227,7 @@ namespace WebAppServer.Repositories
                                                                     "{ \"nome\":\"id_empresa\", \"valor\":\"" + company.ToString() + "\", \"tipo\":\"Int64\"}," +
                                                                     "{ \"nome\":\"dtm_ini\", \"valor\":\"2001-01-01\", \"tipo\":\"DateTime\"}," +
                                                                     "{ \"nome\":\"dtm_fim\", \"valor\":\"2001-01-01\", \"tipo\":\"DateTime\"}," +
-                                                                    "{ \"nome\":\"id_usuario\", \"valor\":\"0\", \"tipo\":\"Int64\"}," +
+                                                                    "{ \"nome\":\"id_usuario\", \"valor\":\"" + pedApp[i].id_usuario.ToString() + "\", \"tipo\":\"Int64\"}," +
                                                                     "{ \"nome\":\"situacao\", \"valor\":\"0\", \"tipo\":\"Int16\"}," +
                                                                     "{ \"nome\":\"download\", \"valor\":\"0\", \"tipo\":\"Int16\"}," +
                                                                     "{ \"nome\":\"id_app\", \"valor\":\"" + pedApp[i].id.ToString() + "\", \"tipo\":\"Int64\"}]", "ntv_p_sel_tbl_pedido", conn, tran);
@@ -1355,7 +1359,7 @@ namespace WebAppServer.Repositories
                                                                     "{ \"nome\":\"id_empresa\", \"valor\":\"" + company.ToString() + "\", \"tipo\":\"Int64\"}," +
                                                                     "{ \"nome\":\"dtm_ini\", \"valor\":\"2001-01-01\", \"tipo\":\"DateTime\"}," +
                                                                     "{ \"nome\":\"dtm_fim\", \"valor\":\"2001-01-01\", \"tipo\":\"DateTime\"}," +
-                                                                    "{ \"nome\":\"id_usuario\", \"valor\":\"0\", \"tipo\":\"Int64\"}," +
+                                                                    "{ \"nome\":\"id_usuario\", \"valor\":\"" + pedIApp[i].id_usuario.ToString() + "\", \"tipo\":\"Int64\"}," +
                                                                     "{ \"nome\":\"situacao\", \"valor\":\"0\", \"tipo\":\"Int16\"}," +
                                                                     "{ \"nome\":\"download\", \"valor\":\"0\", \"tipo\":\"Int16\"}," +
                                                                     "{ \"nome\":\"id_app\", \"valor\":\"" + pedIApp[i].id.ToString() + "\", \"tipo\":\"Int64\"}]", "ntv_p_sel_tbl_pedidoitem", conn, tran);
@@ -1373,6 +1377,7 @@ namespace WebAppServer.Repositories
                                                 dbl_desconto = pedIApp[i].dbl_desconto,
                                                 dbl_tot_liq = pedIApp[i].dbl_tot_liq,
                                                 int_situacao = pedIApp[i].int_situacao,
+                                                id_usuario = pedIApp[i].id_usuario,
                                                 id_app = pedIApp[i].id,
                                                 id_user_man = user
                                             });
@@ -1391,6 +1396,7 @@ namespace WebAppServer.Repositories
                                                 dbl_desconto = pedIApp[i].dbl_desconto,
                                                 dbl_tot_liq = pedIApp[i].dbl_tot_liq,
                                                 int_situacao = pedIApp[i].int_situacao,
+                                                id_usuario = pedIApp[i].id_usuario,
                                                 id_app = pedIApp[i].id,
                                                 id_user_man = user
                                             });
@@ -1411,6 +1417,7 @@ namespace WebAppServer.Repositories
                                             dbl_desconto = pedIApp[i].dbl_desconto,
                                             dbl_tot_liq = pedIApp[i].dbl_tot_liq,
                                             int_situacao = pedIApp[i].int_situacao,
+                                            id_usuario = pedIApp[i].id_usuario,
                                             id_app = pedIApp[i].id,
                                             id_user_man = user
                                         });
@@ -1474,6 +1481,7 @@ namespace WebAppServer.Repositories
                                                                     "{ \"nome\":\"id_empresa\", \"valor\":\"" + company.ToString() + "\", \"tipo\":\"Int64\"}," +
                                                                     "{ \"nome\":\"situacao\", \"valor\":\"0\", \"tipo\":\"Int16\"}," +
                                                                     "{ \"nome\":\"download\", \"valor\":\"0\", \"tipo\":\"Int16\"}," +
+                                                                    "{ \"nome\":\"id_usuario\", \"valor\":\"" + cliPApp[i].id_usuario.ToString() + "\", \"tipo\":\"Int64\"}," +
                                                                     "{ \"nome\":\"id_app\", \"valor\":\"" + cliPApp[i].id.ToString() + "\", \"tipo\":\"Int64\"}]", "ntv_p_sel_tbl_localclipag", conn, tran);
                                         if (dtt_reg == null || dtt_reg.Rows.Count == 0)
                                         {
@@ -1487,6 +1495,7 @@ namespace WebAppServer.Repositories
                                                 dtm_cancel = cliPApp[i].dtm_cancel,
                                                 dbl_val_pgto = cliPApp[i].dbl_val_pgto,
                                                 dbl_desconto = cliPApp[i].dbl_desconto,
+                                                id_usuario = cliPApp[i].id_usuario,
                                                 id_app = cliPApp[i].id,
                                                 id_user_man = user
                                             });
@@ -1503,6 +1512,7 @@ namespace WebAppServer.Repositories
                                                 dtm_cancel = cliPApp[i].dtm_cancel,
                                                 dbl_val_pgto = cliPApp[i].dbl_val_pgto,
                                                 dbl_desconto = cliPApp[i].dbl_desconto,
+                                                id_usuario = cliPApp[i].id_usuario,
                                                 id_app = cliPApp[i].id,
                                                 id_user_man = user
                                             });
@@ -1521,6 +1531,7 @@ namespace WebAppServer.Repositories
                                             dtm_cancel = cliPApp[i].dtm_cancel,
                                             dbl_val_pgto = cliPApp[i].dbl_val_pgto,
                                             dbl_desconto = cliPApp[i].dbl_desconto,
+                                            id_usuario = cliPApp[i].id_usuario,
                                             id_app = cliPApp[i].id,
                                             id_user_man = user
                                         });

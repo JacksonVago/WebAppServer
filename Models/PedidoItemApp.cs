@@ -16,6 +16,7 @@ namespace WebAppServer.Models
         public double dbl_desconto { get; set; }
         public double dbl_tot_liq { get; set; }
         public Int16 int_situacao { get; set; } // 0 - Não entregue / 1 - Entregue / 9 - Cancelado
+        public Int64 id_usuario { get; set; }
         public Int64 id_server { get; set; }
         public Int16 int_sinc { get; set; }
     }
