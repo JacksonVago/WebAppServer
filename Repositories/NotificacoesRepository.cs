@@ -19,7 +19,7 @@ namespace WebAppServer.Repositories
             repData = new DataRepository();
         }
 
-        public async Task GravarNotificacoes(string dados)
+        public string GravarNotificacoes(string dados)
         {
             string str_ret = "";
             string str_operacao = "";
@@ -70,14 +70,15 @@ namespace WebAppServer.Repositories
                         {
                             tran.Rollback();
                             conn.Close();
-                            throw ex;
+                            str_ret = ex.Message.ToString();
                         }
 
                         tran.Commit();
                     }
-                    conn.Close();
+                    conn.Close();                    
                 }
             }
+            return str_ret;
         }
 
         public async Task<string> ConsultarNotificacoes(string dados)

@@ -26,18 +26,6 @@ namespace WebAppServer.Hubs
             _repNotif = repnotif;
         }
 
-        /*public override async Task OnConnectedAsync()
-        {
-            await AtualizaGrupo(true);
-            await base.OnConnectedAsync();
-        }
-
-        public override async Task OnDisconnectedAsync(Exception? exception)
-        {
-            await AtualizaGrupo(false);
-            await base.OnDisconnectedAsync(exception);
-        }*/
-
         public async Task OnConnect(string empresa, string user, string userAdm)
         {
             string str_conect_adm = "";
@@ -69,31 +57,28 @@ namespace WebAppServer.Hubs
                 _logger.LogInformation(DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss") + " Hub OnConnect - Envia de volta o id do adm conectado (" + str_conect_adm + ")");
                 await Clients.Caller.SendAsync("AdmConnectionID", str_conect_adm, Context.ConnectionId);
 
-                //Verica se tem notificações e envia para o usuário que esta se conectando
-                _logger.LogInformation(DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss") + " Hub OnConnect - Verica se tem notificações e envia para o usuário que esta se conectando");
-                string str_filtros = "";
-                str_filtros += "[";
-                str_filtros += "{ \"nome\":\"id\", \"valor\":\"0\", \"tipo\":\"Int64\"},";
-                str_filtros += "{ \"nome\":\"id_empresa\", \"valor\":\"" + empresa + "\", \"tipo\":\"Int64\"},";
-                str_filtros += "{ \"nome\":\"id_usu_orig\", \"valor\":\"0\", \"tipo\":\"Int64\"},";
-                str_filtros += "{ \"nome\":\"id_usu_dest\", \"valor\":\"" + user + "\", \"tipo\":\"Int64\"},";
-                str_filtros += "{ \"nome\":\"situacao\", \"valor\":\"0\", \"tipo\":\"Int16\"}";
-                str_filtros += "]";
-
-                String str_notif = await _repNotif.ConsultarNotificacoes(str_filtros);
-                if (str_notif != null && str_notif != "[]")
-                {
-                    //Envia notficações
-                    _logger.LogInformation(DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss") + " Hub OnConnect - Envia notficações");
-                    await Clients.Caller.SendAsync("ReceiveNotificacoes", str_notif);
-                }
-
             }
 
-            if (str_conect_adm != "")
+            //Verica se tem notificações e envia para o usuário que esta se conectando
+            _logger.LogInformation(DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss") + " Hub OnConnect - Verica se tem notificações e envia para o usuário que esta se conectando");
+            string str_filtros = "";
+            str_filtros += "[";
+            str_filtros += "{ \"nome\":\"id\", \"valor\":\"0\", \"tipo\":\"Int64\"},";
+            str_filtros += "{ \"nome\":\"id_empresa\", \"valor\":\"" + empresa + "\", \"tipo\":\"Int64\"},";
+            str_filtros += "{ \"nome\":\"id_usu_orig\", \"valor\":\"0\", \"tipo\":\"Int64\"},";
+            str_filtros += "{ \"nome\":\"id_usu_dest\", \"valor\":\"" + user + "\", \"tipo\":\"Int64\"},";
+            str_filtros += "{ \"nome\":\"situacao\", \"valor\":\"0\", \"tipo\":\"Int16\"}";
+            str_filtros += "]";
+
+            String str_notif = await _repNotif.ConsultarNotificacoes(str_filtros);
+            if (str_notif != null && str_notif != "[]")
             {
-                await AtualizaGrupo(empresa, user, true);
+                //Envia notficações
+                _logger.LogInformation(DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss") + " Hub OnConnect - Envia notficações");
+                await Clients.Caller.SendAsync("ReceiveNotificacoes", str_notif);
             }
+
+            await AtualizaGrupo(empresa, user, true);
             await base.OnConnectedAsync();
 
         }
@@ -104,45 +89,79 @@ namespace WebAppServer.Hubs
             await base.OnDisconnectedAsync(null);
         }
 
+        public async Task AtuNotificacao(string empresa, string user, string str_notifica)
+        {
+            string str_notific = _repHub.GravarNotificacoes(Convert.ToInt64(empresa), Convert.ToInt64(user), str_notifica);
+        }
+
         public async Task SendPedido(string empresa, string userID, string destinatario, string str_pedido, string str_itens)
         {
+            string str_notPed = "";
+            string str_notItens = "";
             UsuarioHub dest = JsonConvert.DeserializeObject<UsuarioHub>(destinatario);
 
             //Grava o pedido no servidor e retorna com o ID
             str_pedido = await _repHub.GravarPedido(Convert.ToInt64(empresa), str_pedido);
             str_itens = await _repHub.GravarPedidoItem(Convert.ToInt64(empresa), str_itens);
-            
+
+            //Precisa gravar as notificações para poder aguardar a confirmação de recebimento pelo administrador/destinatário
+            str_notPed = _repHub.GravarNotificacoes(Convert.ToInt64(empresa), Convert.ToInt64(userID), dest.id_usu_dest, "ntv_tbl_pedido", str_pedido);
+            str_notItens = _repHub.GravarNotificacoes(Convert.ToInt64(empresa), Convert.ToInt64(userID), dest.id_usu_dest, "ntv_tbl_pedidoitem", str_itens);
+
             //Envia para o administrador
-            await Clients.Client(dest.str_idconnect).SendAsync("ReceivePedido", destinatario, str_pedido, str_itens);
+            await Clients.Client(dest.str_idconnect).SendAsync("ReceivePedido", destinatario, str_pedido, str_itens, str_notPed, str_notItens);
+
+            //Precisa gravar as notificações para quem chamou para saber se recebeu a confirmação da gravação do retorno.
+            str_notPed = _repHub.GravarNotificacoes(Convert.ToInt64(empresa), Convert.ToInt64(userID), Convert.ToInt64(userID), "ntv_tbl_pedido", str_pedido);
+            str_notItens = _repHub.GravarNotificacoes(Convert.ToInt64(empresa), Convert.ToInt64(userID), Convert.ToInt64(userID), "ntv_tbl_pedidoitem", str_itens);
+            //Envia para o usuário que chamou
+            await Clients.Caller.SendAsync("ReceivePedido", destinatario, str_pedido, str_itens, str_notPed, str_notItens);
 
             //Envia para todos os usuário
-            //await Clients.Caller.SendAsync("ReceivePedido", destinatario, str_pedido, str_itens);
             await Clients.OthersInGroup(empresa.ToString()).SendAsync("ReceivePedido", destinatario, str_pedido, str_itens);
+
+            //Notificar os usuário off-line
         }
 
-        public async Task SendLocalCli(string empresa, string userID, string str_localcli)
+        public async Task SendLocalCli(string empresa, string userID, string userAdm, string str_localcli)
         {
+            string str_notific = "";
             //Grava o pedido no servidor e retorna com o ID
             str_localcli = await _repHub.GravarLocalCli(Convert.ToInt64(empresa), str_localcli);
+            
+            //Precisa gravar as notificações para poder aguardar a confirmação de recebimento de quem chamou
+            str_notific = _repHub.GravarNotificacoes(Convert.ToInt64(empresa), Convert.ToInt64(userID), 0, "ntv_tbl_localcliente", str_localcli);
+            await Clients.Caller.SendAsync("ReceiveLocalCli", str_localcli, str_notific);
 
-            //Envia para todos ataulizar id_serve
+            //Precisa gravar as notificações para poder aguardar a confirmação de recebimento do admnistrador ed evia para todos
+            str_notific = _repHub.GravarNotificacoes(Convert.ToInt64(empresa), Convert.ToInt64(userAdm), 0, "ntv_tbl_localcliente", str_localcli);
+            await Clients.OthersInGroup(empresa.ToString()).SendAsync("ReceiveLocalCli", str_localcli, str_notific);
+
+            //Envia para todos atualizar id_serve e status
             //await Clients.All.SendAsync("ReceiveLocalCli", str_localcli);
-            await Clients.Group(empresa.ToString()).SendAsync("ReceiveLocalCli", str_localcli);
+            //await Clients.Group(empresa.ToString()).SendAsync("ReceiveLocalCli", str_localcli, str_notific);
         }
 
         public async Task SendLocal(string empresa, string userID, string str_local)
         {
+            string str_notific = "";
+
             //Grava o pedido no servidor e retorna com o ID
             str_local = await _repHub.GravarLocal(Convert.ToInt64(empresa), str_local);
 
-            //Envia para todos ataulizar id_serve
+            //Precisa gravar as notificações para poder aguardar a confirmação de recebimento
+            str_notific = _repHub.GravarNotificacoes(Convert.ToInt64(empresa), Convert.ToInt64(userID), 0, "ntv_tbl_local", str_local);
+
+            //Envia para todos ataulizar id_serve e status
             //await Clients.All.SendAsync("ReceiveLocal", str_local);
-            await Clients.Group(empresa.ToString()).SendAsync("ReceiveLocal", str_local);
+            await Clients.Group(empresa.ToString()).SendAsync("ReceiveLocal", str_local, str_notific);
 
         }
 
         public async Task ConfirmaPedido(string empresa, string userID, string destinatario, string str_pedido, string str_itens)
         {
+            string str_notific = "";
+
             UsuarioHub dest = JsonConvert.DeserializeObject<UsuarioHub>(destinatario);
 
             //Grava o pedido no servidor e retorna com o ID
@@ -154,16 +173,14 @@ namespace WebAppServer.Hubs
             //Identifica se o administrador esta conectado
             string str_conect_id = await VerificaAdm(Convert.ToInt64(empresa), dest.id_usu_dest);
 
-            if (str_conect_id == null || str_conect_id == "")
-            {
-                //Precisa gravar as notificações para poder carregar se o usuário de destino não estive conectado
-                GravarNotificacoes(Convert.ToInt64(empresa), Convert.ToInt64(userID), dest.id_usu_dest, "ntv_tbl_pedido", str_pedido);
-            }
-            else
+            //Precisa gravar as notificações para poder carregar se o usuário de destino não estive conectado
+            str_notific = _repHub.GravarNotificacoes(Convert.ToInt64(empresa), Convert.ToInt64(userID), 0, "ntv_tbl_pedido", str_pedido);
+
+            if (str_conect_id != null || str_conect_id != "")
             {
                 //Envia para o destinatário a confirmação do pedido)
                 //await Clients.Group(Convert.ToInt64(empresa).ToString()).Client(str_conect_id).SendAsync("ReceivePedido", destinatario, str_pedido, str_pedido);
-                await Clients.Client(str_conect_id).SendAsync("ReceivePedido", destinatario, str_pedido, str_pedido);
+                await Clients.Client(str_conect_id).SendAsync("ReceivePedido", destinatario, str_pedido, str_pedido, str_notific);
 
             }
         }
@@ -268,28 +285,5 @@ namespace WebAppServer.Hubs
             return str_conect_adm;
         }
 
-        private async Task GravarNotificacoes(Int64 empresa, Int64 usu_orig, Int64 usu_dest, string tabela, string dados)
-        {
-            string str_conect_adm = "";            
-            DataTable dtt_entity = JsonConvert.DeserializeObject<DataTable>(dados);
-            Notificacoes notific = new Notificacoes();
-
-            if (dtt_entity != null && dtt_entity.Rows.Count > 0)
-            {
-                for (int i = 0; i < dtt_entity.Rows.Count; i++)
-                {
-                    notific.id = 0;
-                    notific.id_empresa = empresa;
-                    notific.id_usu_orig = usu_orig;
-                    notific.id_usu_dest = usu_dest;
-                    notific.str_tabela = tabela;
-                    notific.id_registro = Convert.ToInt64(dtt_entity.Rows[i]["id"]);
-                    notific.dtm_inclusao = DateTime.Now;
-                    notific.int_situacao = 0; //0 - Não Recebida / 1 - Recebida
-
-                    await _repNotif.GravarNotificacoes(JsonConvert.SerializeObject(notific));
-                }
-            }
-        }
     }
 }

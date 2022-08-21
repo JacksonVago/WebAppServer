@@ -13,11 +13,13 @@ namespace WebAppServer.Repositories
     {
         private readonly ConfigDB configDB;
         private DataRepository repData;
+        private readonly NotificacoesRepository _repNotif;
 
         public HubRepository()
         {
             configDB = new ConfigDB();
             repData = new DataRepository();
+            _repNotif = new NotificacoesRepository();
         }
 
         public async Task<string> PagarConta(Int64 empresa, string pedidos, string formas)
@@ -865,5 +867,57 @@ namespace WebAppServer.Repositories
         }
 
          */
+
+        public string GravarNotificacoes(Int64 empresa, Int64 usu_orig, Int64 usu_dest, string tabela, string dados)
+        {
+            string str_notific = "";
+            DataTable dtt_entity = JsonConvert.DeserializeObject<DataTable>((dados.IndexOf("[") > -1 ? dados : "[" + dados + "]"));
+            Notificacoes notific = new Notificacoes();
+
+            if (dtt_entity != null && dtt_entity.Rows.Count > 0)
+            {
+                for (int i = 0; i < dtt_entity.Rows.Count; i++)
+                {
+                    notific.id = 0;
+                    notific.id_empresa = empresa;
+                    notific.id_usu_orig = usu_orig;
+                    notific.id_usu_dest = usu_dest;
+                    notific.str_tabela = tabela;
+                    notific.id_registro = Convert.ToInt64(dtt_entity.Rows[i]["id"]);
+                    notific.dtm_inclusao = DateTime.Now;
+                    notific.int_situacao = 0; //0 - Não notificado / 1 - Notificado
+
+                    str_notific = _repNotif.GravarNotificacoes(JsonConvert.SerializeObject(notific));
+                }
+            }
+
+            return str_notific;
+        }
+        public string GravarNotificacoes(Int64 empresa, Int64 usu_orig, string dados)
+        {
+            string str_notific = "";
+            List<Notificacoes> lst_notific = new List<Notificacoes>();
+            lst_notific = JsonConvert.DeserializeObject<List<Notificacoes>>(dados);
+            Notificacoes notific = new Notificacoes();
+
+            if (lst_notific != null || lst_notific.Count > 0)
+            {
+                for (int i = 0; i < lst_notific.Count; i++)
+                {
+                    notific.id = lst_notific[i].id;
+                    notific.id_empresa = lst_notific[i].id_empresa;
+                    notific.id_usu_orig = lst_notific[i].id_usu_orig;
+                    notific.id_usu_dest = lst_notific[i].id_usu_dest;
+                    notific.str_tabela = lst_notific[i].str_tabela;
+                    notific.id_registro = lst_notific[i].id_registro;
+                    notific.dtm_inclusao = lst_notific[i].dtm_inclusao;
+                    notific.int_situacao = lst_notific[i].int_situacao; //0 - Não notificado / 1 - Notificado
+
+                    str_notific = _repNotif.GravarNotificacoes(JsonConvert.SerializeObject(notific));
+                }
+            }
+
+            return str_notific;
+        }
     }
 }

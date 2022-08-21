@@ -10,7 +10,7 @@ namespace WebAppServer.Models
         public Int64 id { get; set; }
         public Int64 id_empresa { get; set; }
         public Int64 id_produto { get; set; }
-        public Int32 int_qtd_item { get; set; }
+        public Double int_qtd_item { get; set; }
         public Double dbl_val_unit { get; set; }
         public Int64 id_app { get; set; }
         public Int64 id_user_man { get; set; }

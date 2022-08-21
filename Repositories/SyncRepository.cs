@@ -114,6 +114,14 @@ namespace WebAppServer.Repositories
                                             str_tabela = "";
                                             break;
 
+                                        case "ntv_tbl_entrada":
+                                            str_tabela = "Entrada";
+                                            break;
+
+                                        case "ntv_tbl_entrada_item":
+                                            str_tabela = "EntradaItem";
+                                            break;
+
                                         default:
                                             str_tabela = "";
                                             break;
@@ -157,8 +165,17 @@ namespace WebAppServer.Repositories
             List<DadosDownload> dataDown = new List<DadosDownload>();
 
             List<DadosDownloadRecovery> dataDownRec = new List<DadosDownloadRecovery>();
-            dataDownRec = JsonConvert.DeserializeObject<List<DadosDownloadRecovery>>(filtros);
 
+            try
+            {
+                dataDownRec = JsonConvert.DeserializeObject<List<DadosDownloadRecovery>>(filtros.Replace("||", "'"));
+            }
+            catch(Exception e)
+            {
+                string str_err = e.Message.ToString();
+                throw e;
+            }
+            
             DataRepository repData = new DataRepository();
 
             string str_proc = "";
@@ -235,6 +252,14 @@ namespace WebAppServer.Repositories
                                 str_proc = "";
                                 break;
 
+                            case "Entrada":
+                                str_proc = "ntv_p_sel_tbl_entrada";
+                                break;
+
+                            case "EntradaItem":
+                                str_proc = "ntv_p_sel_tbl_entrada_item";
+                                break;
+
                             default:
                                 str_proc = "";
                                 break;
@@ -244,7 +269,7 @@ namespace WebAppServer.Repositories
                         //Executconsulta
                         if (str_proc.Length > 0)
                         {
-                            str_ret = repData.ConsultaGenerica(dataDownRec[i].filtro, str_proc, conn);
+                            str_ret = repData.ConsultaGenerica(dataDownRec[i].filtro.Replace("##","\""), str_proc, conn);
                             dataDown.Add(new DadosDownload
                             {
                                 entity = dataDownRec[i].entity,
@@ -1576,6 +1601,260 @@ namespace WebAppServer.Repositories
                                 dyn_ret = str_ret_fim;
 
                                 break;
+                            case "Entrada":
+                                List<EntradaApp> entApp = new List<EntradaApp>();
+                                entApp = JsonConvert.DeserializeObject<List<EntradaApp>>(data.Dados.ToString().Replace("','", "\",\"").Replace("':'", "\":\"").Replace("':", "\":").Replace(",'", ",\"").Replace("{'", "{\"").Replace("'}", "\"}"));
+                                List<Entrada> entInc = new List<Entrada>();
+                                List<Entrada> entUpd = new List<Entrada>();
+
+                                for (int i = 0; i < entApp.Count; i++)
+                                {
+
+                                    dtt_reg.Clear();
+
+                                    if (entApp[i].id_server == 0)
+                                    {
+
+                                        //Verifica se o registro já existe
+                                        dtt_reg = repData.ConsultaGenericaDtt("[{ \"nome\":\"id\", \"valor\":\"0\", \"tipo\":\"Int64\"}," +
+                                                                    "{ \"nome\":\"id_empresa\", \"valor\":\"" + company.ToString() + "\", \"tipo\":\"Int64\"}," +
+                                                                    "{ \"nome\":\"dtm_ini\", \"valor\":\"2001-01-01\", \"tipo\":\"DateTime\"}," +
+                                                                    "{ \"nome\":\"dtm_fim\", \"valor\":\"2001-01-01\", \"tipo\":\"DateTime\"}," +
+                                                                    "{ \"nome\":\"id_usuario\", \"valor\":\"" + entApp[i].id_usuario.ToString() + "\", \"tipo\":\"Int64\"}," +
+                                                                    "{ \"nome\":\"situacao\", \"valor\":\"0\", \"tipo\":\"Int16\"}," +
+                                                                    "{ \"nome\":\"download\", \"valor\":\"0\", \"tipo\":\"Int16\"}," +
+                                                                    "{ \"nome\":\"id_app\", \"valor\":\"" + entApp[i].id.ToString() + "\", \"tipo\":\"Int64\"}]", "ntv_p_sel_tbl_entrada", conn, tran);
+                                        if (dtt_reg == null || dtt_reg.Rows.Count == 0)
+                                        {
+                                            entInc.Add(new Entrada
+                                            {
+                                                id = 0,
+                                                id_empresa = company,
+                                                dtm_entrada = entApp[i].dtm_entrada,
+                                                int_nota = entApp[i].int_nota,
+                                                int_fornecedor = entApp[i].int_fornecedor,
+                                                str_serie = entApp[i].str_serie,
+                                                dtm_nota = entApp[i].dtm_nota,
+                                                dbl_tot_nf = entApp[i].dbl_tot_nf,
+                                                int_qtd_item = entApp[i].int_qtd_item,
+                                                dbl_tot_item = entApp[i].dbl_tot_item,
+                                                dbl_tot_desc = entApp[i].dbl_tot_desc,
+                                                dbl_tot_liq = entApp[i].dbl_tot_liq,
+                                                str_obs = entApp[i].str_obs,
+                                                int_situacao = entApp[i].int_situacao,
+                                                id_usuario = entApp[i].id_usuario,
+                                                id_app = entApp[i].id,
+                                                id_user_man = user
+                                            });
+                                        }
+                                        else
+                                        {
+                                            entUpd.Add(new Entrada
+                                            {
+                                                id = Convert.ToInt64(dtt_reg.Rows[0]["id"]),
+                                                id_empresa = company,
+                                                dtm_entrada = entApp[i].dtm_entrada,
+                                                int_nota = entApp[i].int_nota,
+                                                int_fornecedor = entApp[i].int_fornecedor,
+                                                str_serie = entApp[i].str_serie,
+                                                dtm_nota = entApp[i].dtm_nota,
+                                                dbl_tot_nf = entApp[i].dbl_tot_nf,
+                                                int_qtd_item = entApp[i].int_qtd_item,
+                                                dbl_tot_item = entApp[i].dbl_tot_item,
+                                                dbl_tot_desc = entApp[i].dbl_tot_desc,
+                                                dbl_tot_liq = entApp[i].dbl_tot_liq,
+                                                str_obs = entApp[i].str_obs,
+                                                int_situacao = entApp[i].int_situacao,
+                                                id_usuario = entApp[i].id_usuario,
+                                                id_app = entApp[i].id,
+                                                id_user_man = user
+                                            });
+
+                                        }
+                                    }
+                                    else
+                                    {
+                                        entUpd.Add(new Entrada
+                                        {
+                                            id = entApp[i].id_server,
+                                            id_empresa = company,
+                                            dtm_entrada = entApp[i].dtm_entrada,
+                                            int_nota = entApp[i].int_nota,
+                                            int_fornecedor = entApp[i].int_fornecedor,
+                                            str_serie = entApp[i].str_serie,
+                                            dtm_nota = entApp[i].dtm_nota,
+                                            dbl_tot_nf = entApp[i].dbl_tot_nf,
+                                            int_qtd_item = entApp[i].int_qtd_item,
+                                            dbl_tot_item = entApp[i].dbl_tot_item,
+                                            dbl_tot_desc = entApp[i].dbl_tot_desc,
+                                            dbl_tot_liq = entApp[i].dbl_tot_liq,
+                                            str_obs = entApp[i].str_obs,
+                                            int_situacao = entApp[i].int_situacao,
+                                            id_usuario = entApp[i].id_usuario,
+                                            id_app = entApp[i].id,
+                                            id_user_man = user
+                                        });
+
+                                    }
+                                }
+
+                                //Inclusões
+                                if (entInc.Count > 0)
+                                {
+                                    str_ret = repData.ManutencaoTabela<Entrada>("I", entInc, "ntv_tbl_entrada", conn, tran);
+                                    if (str_ret.Split(";").Count() > 0)
+                                    {
+                                        for (int id = 0; id < str_ret.Split(";").Count(); id++)
+                                        {
+                                            if (str_ret.Split(";")[id] != "")
+                                            {
+                                                str_ret_aux += entInc[id].id_app + ":" + str_ret.Split(";")[id] + ";";
+                                            }
+                                        }
+                                        str_ret_fim += str_ret_aux;
+                                    }
+                                }
+
+                                //Alterações
+                                if (entUpd.Count() > 0)
+                                {
+                                    str_ret_aux = "";
+                                    str_ret += repData.ManutencaoTabela<Entrada>("U", entUpd, "ntv_tbl_entrada", conn, tran);
+                                    if (str_ret.Split(";").Count() > 0)
+                                    {
+                                        for (int id = 0; id < str_ret.Split(";").Count(); id++)
+                                        {
+                                            if (str_ret.Split(";")[id] != "")
+                                            {
+                                                str_ret_aux += entUpd[id].id_app + ":" + str_ret.Split(";")[id] + ";";
+                                            }
+                                        }
+                                        str_ret_fim += str_ret_aux;
+                                    }
+                                }
+                                dyn_ret = str_ret_fim;
+
+                                break;
+
+                            case "EntradaItem":
+                                List<EntradaItemApp> entIApp = new List<EntradaItemApp>();
+                                entIApp = JsonConvert.DeserializeObject<List<EntradaItemApp>>(data.Dados.ToString().Replace("','", "\",\"").Replace("':'", "\":\"").Replace("':", "\":").Replace(",'", ",\"").Replace("{'", "{\"").Replace("'}", "\"}"));
+                                List<EntradaItem> entiInc = new List<EntradaItem>();
+                                List<EntradaItem> entiUpd = new List<EntradaItem>();
+
+                                for (int i = 0; i < entIApp.Count; i++)
+                                {
+
+                                    dtt_reg.Clear();
+
+                                    if (entIApp[i].id_server == 0)
+                                    {
+
+                                        //Verifica se o registro já existe
+                                        dtt_reg = repData.ConsultaGenericaDtt("[{ \"nome\":\"id\", \"valor\":\"0\", \"tipo\":\"Int64\"}," +
+                                                                    "{ \"nome\":\"id_empresa\", \"valor\":\"" + company.ToString() + "\", \"tipo\":\"Int64\"}," +
+                                                                    "{ \"nome\":\"dtm_ini\", \"valor\":\"2001-01-01\", \"tipo\":\"DateTime\"}," +
+                                                                    "{ \"nome\":\"dtm_fim\", \"valor\":\"2001-01-01\", \"tipo\":\"DateTime\"}," +
+                                                                    "{ \"nome\":\"situacao\", \"valor\":\"0\", \"tipo\":\"Int16\"}," +
+                                                                    "{ \"nome\":\"download\", \"valor\":\"0\", \"tipo\":\"Int16\"}," +
+                                                                    "{ \"nome\":\"id_app\", \"valor\":\"" + entIApp[i].id.ToString() + "\", \"tipo\":\"Int64\"}]", "ntv_p_sel_tbl_entrada_item", conn, tran);
+                                        if (dtt_reg == null || dtt_reg.Rows.Count == 0)
+                                        {
+                                            entiInc.Add(new EntradaItem
+                                            {
+                                                id = 0,
+                                                id_empresa = company,
+                                                id_entrada = entIApp[i].id_entrada,
+                                                id_produto = entIApp[i].id_produto,
+                                                dbl_precounit = entIApp[i].dbl_precounit,
+                                                int_qtd_comp = entIApp[i].int_qtd_comp,
+                                                dbl_tot_item = entIApp[i].dbl_tot_item,
+                                                dbl_desconto = entIApp[i].dbl_desconto,
+                                                dbl_tot_liq = entIApp[i].dbl_tot_liq,
+                                                int_situacao = entIApp[i].int_situacao,
+                                                id_app = entIApp[i].id,
+                                                id_user_man = user
+                                            });
+                                        }
+                                        else
+                                        {
+                                            entiUpd.Add(new EntradaItem
+                                            {
+                                                id = Convert.ToInt64(dtt_reg.Rows[0]["id"]),
+                                                id_empresa = company,
+                                                id_entrada = entIApp[i].id_entrada,
+                                                id_produto = entIApp[i].id_produto,
+                                                dbl_precounit = entIApp[i].dbl_precounit,
+                                                int_qtd_comp = entIApp[i].int_qtd_comp,
+                                                dbl_tot_item = entIApp[i].dbl_tot_item,
+                                                dbl_desconto = entIApp[i].dbl_desconto,
+                                                dbl_tot_liq = entIApp[i].dbl_tot_liq,
+                                                int_situacao = entIApp[i].int_situacao,
+                                                id_app = entIApp[i].id,
+                                                id_user_man = user
+                                            });
+
+                                        }
+                                    }
+                                    else
+                                    {
+                                        entiUpd.Add(new EntradaItem
+                                        {
+                                            id = entIApp[i].id_server,
+                                            id_empresa = company,
+                                            id_entrada = entIApp[i].id_entrada,
+                                            id_produto = entIApp[i].id_produto,
+                                            dbl_precounit = entIApp[i].dbl_precounit,
+                                            int_qtd_comp = entIApp[i].int_qtd_comp,
+                                            dbl_tot_item = entIApp[i].dbl_tot_item,
+                                            dbl_desconto = entIApp[i].dbl_desconto,
+                                            dbl_tot_liq = entIApp[i].dbl_tot_liq,
+                                            int_situacao = entIApp[i].int_situacao,
+                                            id_app = entIApp[i].id,
+                                            id_user_man = user
+                                        });
+
+                                    }
+                                }
+
+                                //Inclusões
+                                if (entiInc.Count > 0)
+                                {
+                                    str_ret = repData.ManutencaoTabela<EntradaItem>("I", entiInc, "ntv_tbl_entrada_item", conn, tran);
+                                    if (str_ret.Split(";").Count() > 0)
+                                    {
+                                        for (int id = 0; id < str_ret.Split(";").Count(); id++)
+                                        {
+                                            if (str_ret.Split(";")[id] != "")
+                                            {
+                                                str_ret_aux += entiInc[id].id_app + ":" + str_ret.Split(";")[id] + ";";
+                                            }
+                                        }
+                                        str_ret_fim += str_ret_aux;
+                                    }
+                                }
+
+                                //Alterações
+                                if (entiUpd.Count() > 0)
+                                {
+                                    str_ret_aux = "";
+                                    str_ret += repData.ManutencaoTabela<EntradaItem>("U", entiUpd, "ntv_tbl_entrada_item", conn, tran);
+                                    if (str_ret.Split(";").Count() > 0)
+                                    {
+                                        for (int id = 0; id < str_ret.Split(";").Count(); id++)
+                                        {
+                                            if (str_ret.Split(";")[id] != "")
+                                            {
+                                                str_ret_aux += entiUpd[id].id_app + ":" + str_ret.Split(";")[id] + ";";
+                                            }
+                                        }
+                                        str_ret_fim += str_ret_aux;
+                                    }
+                                }
+                                dyn_ret = str_ret_fim;
+
+                                break;
+
                         }
                         tran.Commit();
                     }
