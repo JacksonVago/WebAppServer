@@ -1855,6 +1855,107 @@ namespace WebAppServer.Repositories
 
                                 break;
 
+                            case "PrdEstoque":
+                                List<PrdEstoqueApp> prdEApp = new List<PrdEstoqueApp>();
+                                prdEApp = JsonConvert.DeserializeObject<List<PrdEstoqueApp>>(data.Dados.ToString().Replace("','", "\",\"").Replace("':'", "\":\"").Replace("':", "\":").Replace(",'", ",\"").Replace("{'", "{\"").Replace("'}", "\"}"));
+                                List<PrdEstoque> prdEInc = new List<PrdEstoque>();
+                                List<PrdEstoque> prdEUpd = new List<PrdEstoque>();
+
+                                for (int i = 0; i < prdEApp.Count; i++)
+                                {
+
+                                    dtt_reg.Clear();
+
+                                    if (prdEApp[i].id_server == 0)
+                                    {
+
+                                        //Verifica se o registro já existe
+                                        dtt_reg = repData.ConsultaGenericaDtt("[{ \"nome\":\"id\", \"valor\":\"0\", \"tipo\":\"Int64\"}," +
+                                                                    "{ \"nome\":\"id_empresa\", \"valor\":\"" + company.ToString() + "\", \"tipo\":\"Int64\"}," +
+                                                                    "{ \"nome\":\"download\", \"valor\":\"0\", \"tipo\":\"Int16\"}," +
+                                                                    "{ \"nome\":\"id_app\", \"valor\":\"" + prdEApp[i].id.ToString() + "\", \"tipo\":\"Int64\"}]", "ntv_p_sel_tbl_produto_estoque", conn, tran);
+                                        if (dtt_reg == null || dtt_reg.Rows.Count == 0)
+                                        {
+                                            prdEInc.Add(new PrdEstoque
+                                            {
+                                                id = 0,
+                                                id_empresa = company,
+                                                id_produto = prdEApp[i].id_produto,
+                                                int_qtd_est = prdEApp[i].int_qtd_est,
+                                                dtm_estoque = prdEApp[i].dtm_estoque,
+                                                id_app = prdEApp[i].id,
+                                                id_user_man = user
+                                            });
+                                        }
+                                        else
+                                        {
+                                            prdEUpd.Add(new PrdEstoque
+                                            {
+                                                id = Convert.ToInt64(dtt_reg.Rows[0]["id"]),
+                                                id_empresa = company,
+                                                id_produto = prdEApp[i].id_produto,
+                                                int_qtd_est = prdEApp[i].int_qtd_est,
+                                                dtm_estoque = prdEApp[i].dtm_estoque,
+                                                id_app = prdEApp[i].id,
+                                                id_user_man = user
+                                            });
+
+                                        }
+                                    }
+                                    else
+                                    {
+                                        prdEUpd.Add(new PrdEstoque
+                                        {
+                                            id = prdEApp[i].id_server,
+                                            id_empresa = company,
+                                            id_produto = prdEApp[i].id_produto,
+                                            int_qtd_est = prdEApp[i].int_qtd_est,
+                                            dtm_estoque = prdEApp[i].dtm_estoque,
+                                            id_app = prdEApp[i].id,
+                                            id_user_man = user
+                                        });
+
+                                    }
+                                }
+
+                                //Inclusões
+                                if (prdEInc.Count > 0)
+                                {
+                                    str_ret = repData.ManutencaoTabela<PrdEstoque>("I", prdEInc, "ntv_tbl_produto_estoque", conn, tran);
+                                    if (str_ret.Split(";").Count() > 0)
+                                    {
+                                        for (int id = 0; id < str_ret.Split(";").Count(); id++)
+                                        {
+                                            if (str_ret.Split(";")[id] != "")
+                                            {
+                                                str_ret_aux += prdEInc[id].id_app + ":" + str_ret.Split(";")[id] + ";";
+                                            }
+                                        }
+                                        str_ret_fim += str_ret_aux;
+                                    }
+                                }
+
+                                //Alterações
+                                if (prdEUpd.Count() > 0)
+                                {
+                                    str_ret_aux = "";
+                                    str_ret += repData.ManutencaoTabela<PrdEstoque>("U", prdEUpd, "ntv_tbl_produto_estoque", conn, tran);
+                                    if (str_ret.Split(";").Count() > 0)
+                                    {
+                                        for (int id = 0; id < str_ret.Split(";").Count(); id++)
+                                        {
+                                            if (str_ret.Split(";")[id] != "")
+                                            {
+                                                str_ret_aux += prdEUpd[id].id_app + ":" + str_ret.Split(";")[id] + ";";
+                                            }
+                                        }
+                                        str_ret_fim += str_ret_aux;
+                                    }
+                                }
+                                dyn_ret = str_ret_fim;
+
+                                break;
+
                         }
                         tran.Commit();
                     }

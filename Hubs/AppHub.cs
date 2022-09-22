@@ -123,6 +123,30 @@ namespace WebAppServer.Hubs
             //Notificar os usuário off-line
         }
 
+        public async Task SendProduto(string empresa, string str_produto)
+        {
+            string str_notProd = "";
+
+            //Grava o pedido no servidor e retorna com o ID
+            str_produto = await _repHub.GravarProduto(Convert.ToInt64(empresa), str_produto);
+
+            //Envia para todos os usuário
+            await Clients.OthersInGroup(empresa.ToString()).SendAsync("ReceiveProduto", str_produto);
+
+        }
+
+        public async Task SendPrdEstoque(string empresa, string str_produto)
+        {
+            string str_notProd = "";
+
+            //Grava o pedido no servidor e retorna com o ID
+            str_produto = await _repHub.GravarPrdEstoque(Convert.ToInt64(empresa), str_produto);
+
+            //Envia para todos os usuário
+            await Clients.OthersInGroup(empresa.ToString()).SendAsync("ReceivePrdEstoque", str_produto);
+
+        }
+
         public async Task SendLocalCli(string empresa, string userID, string userAdm, string str_localcli)
         {
             string str_notific = "";

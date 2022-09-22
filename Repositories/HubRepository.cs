@@ -185,6 +185,147 @@ namespace WebAppServer.Repositories
             return str_ret;
         }
 
+        public async Task<string> GravarProduto(Int64 empresa, string dados)
+        {
+            string str_ret = "";
+            string str_operacao = "";
+            Int64 id_produto = 0;
+            ProdutoApp produto = new ProdutoApp();
+            List<Produto> produtos = new List<Produto>();
+
+            produto = JsonConvert.DeserializeObject<ProdutoApp>(dados);
+
+            if (produto != null)
+            {
+                if (produto.id_server == 0)
+                {
+                    str_operacao = "I";
+                }
+                else
+                {
+                    str_operacao = "U";
+                }
+
+                produtos.Add(new Produto
+                {
+                    id = produto.id_server,
+                    id_empresa = empresa,
+                    id_grupo = produto.id_grupo,
+                    str_descricao = produto.str_descricao,
+                    str_obs = produto.str_obs,
+                    int_qtd_est = produto.int_qtd_est,
+                    int_qtd_combo = produto.int_qtd_combo,
+                    dbl_val_comp = produto.dbl_val_comp,
+                    dbl_val_unit = produto.dbl_val_unit,
+                    dbl_val_desc = produto.dbl_val_desc,
+                    dbl_perc_desc = produto.dbl_perc_desc,
+                    dbl_val_combo = produto.dbl_val_combo,
+                    str_foto = produto.str_foto,
+                    int_tipo = produto.int_tipo,
+                    int_unid_med = produto.int_unid_med,
+                    str_venda = produto.str_venda,
+                    str_estoque = produto.str_estoque,
+                    dtm_inclusao = produto.dtm_inclusao,
+                    dtm_alteracao = produto.dtm_alteracao,
+                    int_situacao = produto.int_situacao,
+                    id_app = produto.id,
+                    id_user_man = 1
+
+                });
+
+                string str_conn = configDB.ConnectString;
+
+                using (SqlConnection conn = new SqlConnection(str_conn))
+                {
+                    conn.Open();
+
+                    using (SqlTransaction tran = conn.BeginTransaction())
+                    {
+                        try
+                        {
+                            id_produto = Convert.ToInt64(repData.ManutencaoTabela<Produto>(str_operacao, produtos, "ntv_tbl_produto", conn, tran).Split(";")[0]);
+                            produto.id_server = id_produto;
+                            str_ret = JsonConvert.SerializeObject(produto);
+                        }
+                        catch (Exception ex)
+                        {
+                            tran.Rollback();
+                            conn.Close();
+                            throw ex;
+                        }
+
+                        tran.Commit();
+                    }
+                    conn.Close();
+                }
+            }
+
+            return str_ret;
+        }
+
+        public async Task<string> GravarPrdEstoque(Int64 empresa, string dados)
+        {
+            string str_ret = "";
+            string str_operacao = "";
+            Int64 id_produto = 0;
+            PrdEstoqueApp produto = new PrdEstoqueApp();
+            List<PrdEstoque> produtos = new List<PrdEstoque>();
+
+            produto = JsonConvert.DeserializeObject<PrdEstoqueApp>(dados);
+
+            if (produto != null)
+            {
+                if (produto.id_server == 0)
+                {
+                    str_operacao = "I";
+                }
+                else
+                {
+                    str_operacao = "U";
+                }
+
+                produtos.Add(new PrdEstoque
+                {
+                    id = produto.id_server,
+                    id_empresa = empresa,
+                    id_produto = produto.id_produto,
+                    int_qtd_est = produto.int_qtd_est,
+                    dtm_estoque = produto.dtm_estoque,
+                    id_app = produto.id,
+                    id_user_man = 1
+
+                });
+
+                string str_conn = configDB.ConnectString;
+
+                using (SqlConnection conn = new SqlConnection(str_conn))
+                {
+                    conn.Open();
+
+                    using (SqlTransaction tran = conn.BeginTransaction())
+                    {
+                        try
+                        {
+                            id_produto = Convert.ToInt64(repData.ManutencaoTabela<PrdEstoque>(str_operacao, produtos, "ntv_tbl_produto_estoque", conn, tran).Split(";")[0]);
+                            produto.id_server = id_produto;
+                            str_ret = JsonConvert.SerializeObject(produto);
+                        }
+                        catch (Exception ex)
+                        {
+                            tran.Rollback();
+                            conn.Close();
+                            throw ex;
+                        }
+
+                        tran.Commit();
+                    }
+                    conn.Close();
+                }
+            }
+
+            return str_ret;
+        }
+
         public async Task<string> GravarPedido(Int64 empresa, string dados)
         {
             string str_ret = "";
