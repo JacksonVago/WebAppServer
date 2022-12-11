@@ -20,6 +20,7 @@ namespace WebAppServer.Repositories
 
         public async Task<List<DadosDownload>> SyncDataDownload(string filtros)
         {
+            string str_filtros_aux = filtros.Replace("||", "'");
             DataTable dtt_entity = new DataTable();
 
             List<DadosDownload> dataDown = new List<DadosDownload>();
@@ -38,7 +39,7 @@ namespace WebAppServer.Repositories
                 {
                     try
                     {
-                        dtt_entity = repData.ConsultaGenericaDtt(filtros, "ntv_p_sel_tbl_sync_dados", conn, tran);
+                        dtt_entity = repData.ConsultaGenericaDtt(str_filtros_aux.Replace("##", "\""), "ntv_p_sel_tbl_sync_dados", conn, tran);
 
                         if (dtt_entity.Rows.Count > 0)
                         {
@@ -517,7 +518,7 @@ namespace WebAppServer.Repositories
                                 if (usuUpd.Count() > 0)
                                 {
                                     str_ret_aux = "";
-                                    str_ret += repData.ManutencaoTabela<Usuario>("U", usuUpd, "ntv_tbl_usuario", conn, tran);
+                                    str_ret = repData.ManutencaoTabela<Usuario>("U", usuUpd, "ntv_tbl_usuario", conn, tran);
                                     if (str_ret.Split(";").Count() > 0)
                                     {
                                         for (int id = 0; id < str_ret.Split(";").Count(); id++)
@@ -566,6 +567,7 @@ namespace WebAppServer.Repositories
                                                 str_descricao = prdApp[i].str_descricao,
                                                 str_obs = prdApp[i].str_obs,
                                                 int_qtd_est = prdApp[i].int_qtd_est,
+                                                int_qtd_estmin = prdApp[i].int_qtd_estmin,
                                                 int_qtd_combo = prdApp[i].int_qtd_combo,
                                                 dbl_val_unit = prdApp[i].dbl_val_unit,
                                                 dbl_val_desc = prdApp[i].dbl_val_desc,
@@ -573,6 +575,9 @@ namespace WebAppServer.Repositories
                                                 dbl_val_combo = prdApp[i].dbl_val_combo,
                                                 str_foto = prdApp[i].str_foto,
                                                 int_tipo = prdApp[i].int_tipo,
+                                                int_unid_med = prdApp[i].int_unid_med,
+                                                str_venda = prdApp[i].str_venda,
+                                                str_estoque = prdApp[i].str_estoque,
                                                 dtm_inclusao = prdApp[i].dtm_inclusao,
                                                 dtm_alteracao = prdApp[i].dtm_alteracao,
                                                 int_situacao = prdApp[i].int_situacao,
@@ -590,6 +595,7 @@ namespace WebAppServer.Repositories
                                                 str_descricao = prdApp[i].str_descricao,
                                                 str_obs = prdApp[i].str_obs,
                                                 int_qtd_est = prdApp[i].int_qtd_est,
+                                                int_qtd_estmin = prdApp[i].int_qtd_estmin,
                                                 int_qtd_combo = prdApp[i].int_qtd_combo,
                                                 dbl_val_unit = prdApp[i].dbl_val_unit,
                                                 dbl_val_desc = prdApp[i].dbl_val_desc,
@@ -597,6 +603,9 @@ namespace WebAppServer.Repositories
                                                 dbl_val_combo = prdApp[i].dbl_val_combo,
                                                 str_foto = prdApp[i].str_foto,
                                                 int_tipo = prdApp[i].int_tipo,
+                                                int_unid_med = prdApp[i].int_unid_med,
+                                                str_venda = prdApp[i].str_venda,
+                                                str_estoque = prdApp[i].str_estoque,
                                                 dtm_inclusao = prdApp[i].dtm_inclusao,
                                                 dtm_alteracao = prdApp[i].dtm_alteracao,
                                                 int_situacao = prdApp[i].int_situacao,
@@ -616,6 +625,7 @@ namespace WebAppServer.Repositories
                                             str_descricao = prdApp[i].str_descricao,
                                             str_obs = prdApp[i].str_obs,
                                             int_qtd_est = prdApp[i].int_qtd_est,
+                                            int_qtd_estmin = prdApp[i].int_qtd_estmin,
                                             int_qtd_combo = prdApp[i].int_qtd_combo,
                                             dbl_val_unit = prdApp[i].dbl_val_unit,
                                             dbl_val_desc = prdApp[i].dbl_val_desc,
@@ -623,6 +633,9 @@ namespace WebAppServer.Repositories
                                             dbl_val_combo = prdApp[i].dbl_val_combo,
                                             str_foto = prdApp[i].str_foto,
                                             int_tipo = prdApp[i].int_tipo,
+                                            int_unid_med = prdApp[i].int_unid_med,
+                                            str_venda = prdApp[i].str_venda,
+                                            str_estoque = prdApp[i].str_estoque,
                                             dtm_inclusao = prdApp[i].dtm_inclusao,
                                             dtm_alteracao = prdApp[i].dtm_alteracao,
                                             int_situacao = prdApp[i].int_situacao,
@@ -654,7 +667,7 @@ namespace WebAppServer.Repositories
                                 if (prdUpd.Count() > 0)
                                 {
                                     str_ret_aux = "";
-                                    str_ret += repData.ManutencaoTabela<Produto>("U", prdUpd, "ntv_tbl_produto", conn, tran);
+                                    str_ret = repData.ManutencaoTabela<Produto>("U", prdUpd, "ntv_tbl_produto", conn, tran);
                                     if (str_ret.Split(";").Count() > 0)
                                     {
                                         for (int id = 0; id < str_ret.Split(";").Count(); id++)
@@ -753,7 +766,7 @@ namespace WebAppServer.Repositories
                                 if (cmbUpd.Count() > 0)
                                 {
                                     str_ret_aux = "";
-                                    str_ret += repData.ManutencaoTabela<ItemCombo>("U", cmbUpd, "ntv_tbl_itemcombo", conn, tran);
+                                    str_ret = repData.ManutencaoTabela<ItemCombo>("U", cmbUpd, "ntv_tbl_itemcombo", conn, tran);
                                     if (str_ret.Split(";").Count() > 0)
                                     {
                                         for (int id = 0; id < str_ret.Split(";").Count(); id++)
@@ -861,7 +874,7 @@ namespace WebAppServer.Repositories
                                 if (grpUpd.Count() > 0)
                                 {
                                     str_ret_aux = "";
-                                    str_ret += repData.ManutencaoTabela<Grupo>("U", grpUpd, "ntv_tbl_grupo", conn, tran);
+                                    str_ret = repData.ManutencaoTabela<Grupo>("U", grpUpd, "ntv_tbl_grupo", conn, tran);
                                     if (str_ret.Split(";").Count() > 0)
                                     {
                                         for (int id = 0; id < str_ret.Split(";").Count(); id++)
@@ -966,7 +979,7 @@ namespace WebAppServer.Repositories
                                 if (formaUpd.Count() > 0)
                                 {
                                     str_ret_aux = "";
-                                    str_ret += repData.ManutencaoTabela<FormaPag>("U", formaUpd, "ntv_tbl_formapag", conn, tran);
+                                    str_ret = repData.ManutencaoTabela<FormaPag>("U", formaUpd, "ntv_tbl_formapag", conn, tran);
                                     if (str_ret.Split(";").Count() > 0)
                                     {
                                         for (int id = 0; id < str_ret.Split(";").Count(); id++)
@@ -1080,7 +1093,7 @@ namespace WebAppServer.Repositories
                                 if (locUpd.Count() > 0)
                                 {
                                     str_ret_aux = "";
-                                    str_ret += repData.ManutencaoTabela<Local>("U", locUpd, "ntv_tbl_local", conn, tran);
+                                    str_ret = repData.ManutencaoTabela<Local>("U", locUpd, "ntv_tbl_local", conn, tran);
                                     if (str_ret.Split(";").Count() > 0)
                                     {
                                         for (int id = 0; id < str_ret.Split(";").Count(); id++)
@@ -1216,7 +1229,7 @@ namespace WebAppServer.Repositories
                                 if (locCliUpd.Count() > 0)
                                 {
                                     str_ret_aux = "";
-                                    str_ret += repData.ManutencaoTabela<LocalCliente>("U", locCliUpd, "ntv_tbl_localcliente", conn, tran);
+                                    str_ret = repData.ManutencaoTabela<LocalCliente>("U", locCliUpd, "ntv_tbl_localcliente", conn, tran);
                                     if (str_ret.Split(";").Count() > 0)
                                     {
                                         for (int id = 0; id < str_ret.Split(";").Count(); id++)
@@ -1348,7 +1361,7 @@ namespace WebAppServer.Repositories
                                 if (pedUpd.Count() > 0)
                                 {
                                     str_ret_aux = "";
-                                    str_ret += repData.ManutencaoTabela<Pedido>("U", pedUpd, "ntv_tbl_pedido", conn, tran);
+                                    str_ret = repData.ManutencaoTabela<Pedido>("U", pedUpd, "ntv_tbl_pedido", conn, tran);
                                     if (str_ret.Split(";").Count() > 0)
                                     {
                                         for (int id = 0; id < str_ret.Split(";").Count(); id++)
@@ -1471,7 +1484,7 @@ namespace WebAppServer.Repositories
                                 if (pediUpd.Count() > 0)
                                 {
                                     str_ret_aux = "";
-                                    str_ret += repData.ManutencaoTabela<PedidoItem>("U", pediUpd, "ntv_tbl_pedidoitem", conn, tran);
+                                    str_ret = repData.ManutencaoTabela<PedidoItem>("U", pediUpd, "ntv_tbl_pedidoitem", conn, tran);
                                     if (str_ret.Split(";").Count() > 0)
                                     {
                                         for (int id = 0; id < str_ret.Split(";").Count(); id++)
@@ -1585,7 +1598,7 @@ namespace WebAppServer.Repositories
                                 if (clipUpd.Count() > 0)
                                 {
                                     str_ret_aux = "";
-                                    str_ret += repData.ManutencaoTabela<LocalCliPag>("U", clipUpd, "ntv_tbl_localclipag", conn, tran);
+                                    str_ret = repData.ManutencaoTabela<LocalCliPag>("U", clipUpd, "ntv_tbl_localclipag", conn, tran);
                                     if (str_ret.Split(";").Count() > 0)
                                     {
                                         for (int id = 0; id < str_ret.Split(";").Count(); id++)
@@ -1719,7 +1732,7 @@ namespace WebAppServer.Repositories
                                 if (entUpd.Count() > 0)
                                 {
                                     str_ret_aux = "";
-                                    str_ret += repData.ManutencaoTabela<Entrada>("U", entUpd, "ntv_tbl_entrada", conn, tran);
+                                    str_ret = repData.ManutencaoTabela<Entrada>("U", entUpd, "ntv_tbl_entrada", conn, tran);
                                     if (str_ret.Split(";").Count() > 0)
                                     {
                                         for (int id = 0; id < str_ret.Split(";").Count(); id++)
@@ -1838,7 +1851,7 @@ namespace WebAppServer.Repositories
                                 if (entiUpd.Count() > 0)
                                 {
                                     str_ret_aux = "";
-                                    str_ret += repData.ManutencaoTabela<EntradaItem>("U", entiUpd, "ntv_tbl_entrada_item", conn, tran);
+                                    str_ret = repData.ManutencaoTabela<EntradaItem>("U", entiUpd, "ntv_tbl_entrada_item", conn, tran);
                                     if (str_ret.Split(";").Count() > 0)
                                     {
                                         for (int id = 0; id < str_ret.Split(";").Count(); id++)
@@ -1939,7 +1952,7 @@ namespace WebAppServer.Repositories
                                 if (prdEUpd.Count() > 0)
                                 {
                                     str_ret_aux = "";
-                                    str_ret += repData.ManutencaoTabela<PrdEstoque>("U", prdEUpd, "ntv_tbl_produto_estoque", conn, tran);
+                                    str_ret = repData.ManutencaoTabela<PrdEstoque>("U", prdEUpd, "ntv_tbl_produto_estoque", conn, tran);
                                     if (str_ret.Split(";").Count() > 0)
                                     {
                                         for (int id = 0; id < str_ret.Split(";").Count(); id++)

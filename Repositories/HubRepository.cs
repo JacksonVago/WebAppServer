@@ -1024,7 +1024,7 @@ namespace WebAppServer.Repositories
                     notific.id_usu_orig = usu_orig;
                     notific.id_usu_dest = usu_dest;
                     notific.str_tabela = tabela;
-                    notific.id_registro = Convert.ToInt64(dtt_entity.Rows[i]["id"]);
+                    notific.id_registro = Convert.ToInt64(dtt_entity.Rows[i]["id_server"]);
                     notific.dtm_inclusao = DateTime.Now;
                     notific.int_situacao = 0; //0 - Não notificado / 1 - Notificado
 

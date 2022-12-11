@@ -50,10 +50,10 @@ namespace WebAppServer.Controllers
         }
 
         [HttpPost("v1/SyncDataDownload")]
-        public async Task<ActionResult<dynamic>> SynchronizeDataDown([FromBody] string filtros)
+        public async Task<ActionResult<dynamic>> SynchronizeDataDown([FromBody] DadosSync filtros)
         {
 
-            dynamic ret = await _repSync.SyncDataDownload(filtros);
+            dynamic ret = await _repSync.SyncDataDownload(filtros.Dados.ToString());
             if (ret != null)
             {
                 return ret;

@@ -13,6 +13,7 @@ namespace WebAppServer.Models
         public Int64 int_nota { get; set; }
         public Int64 int_fornecedor { get; set; }
         public string str_serie { get; set; }
+        public Int64 id_tipo { get; set; } // 1 - Entradas / 2 - Saídas
         public DateTime dtm_nota { get; set; }
         public double dbl_tot_nf { get; set; }
         public double int_qtd_item { get; set; }

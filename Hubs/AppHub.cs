@@ -37,7 +37,7 @@ namespace WebAppServer.Hubs
                 str_conect_adm = Context.ConnectionId;
 
                 //Envia para todos os usuários exceto ele mesmo
-                await Clients.AllExcept(str_conect_adm).SendAsync("AdmConnectionID", str_conect_adm, Context.ConnectionId);
+                await Clients.OthersInGroup(empresa).SendAsync("AdmConnectionID", str_conect_adm, Context.ConnectionId);
                 _logger.LogInformation(DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss") + " Hub OnConnect - Envia para todos os usuários exceto ele mesmo ");
 
             }
@@ -105,8 +105,28 @@ namespace WebAppServer.Hubs
             str_itens = await _repHub.GravarPedidoItem(Convert.ToInt64(empresa), str_itens);
 
             //Precisa gravar as notificações para poder aguardar a confirmação de recebimento pelo administrador/destinatário
-            str_notPed = _repHub.GravarNotificacoes(Convert.ToInt64(empresa), Convert.ToInt64(userID), dest.id_usu_dest, "ntv_tbl_pedido", str_pedido);
-            str_notItens = _repHub.GravarNotificacoes(Convert.ToInt64(empresa), Convert.ToInt64(userID), dest.id_usu_dest, "ntv_tbl_pedidoitem", str_itens);
+            if (Convert.ToInt64(userID) == dest.id_usu_dest) //Administrador confirmando o pedido pois o USERID é o adm
+            {
+                str_notPed = _repHub.GravarNotificacoes(Convert.ToInt64(empresa), Convert.ToInt64(userID), dest.id_usu_orig, "ntv_tbl_pedido", str_pedido);
+                str_notItens = _repHub.GravarNotificacoes(Convert.ToInt64(empresa), Convert.ToInt64(userID), dest.id_usu_orig, "ntv_tbl_pedidoitem", str_itens);
+            }
+            else
+            {
+                //Verificar se o connect ID do adm ainda é o mesmo
+                string str_conect_id = await VerificaAdm(Convert.ToInt64(empresa), dest.id_usu_dest);
+
+                if (str_conect_id != "")
+                {
+                    if (dest.str_idconnect != str_conect_id)
+                    {
+                        dest.str_idconnect = str_conect_id;
+                        await Clients.Caller.SendAsync("AdmConnectionID", str_conect_id, Context.ConnectionId);
+                    }
+                }
+
+                str_notPed = _repHub.GravarNotificacoes(Convert.ToInt64(empresa), Convert.ToInt64(userID), dest.id_usu_dest, "ntv_tbl_pedido", str_pedido);
+                str_notItens = _repHub.GravarNotificacoes(Convert.ToInt64(empresa), Convert.ToInt64(userID), dest.id_usu_dest, "ntv_tbl_pedidoitem", str_itens);
+            }
 
             //Envia para o administrador
             await Clients.Client(dest.str_idconnect).SendAsync("ReceivePedido", destinatario, str_pedido, str_itens, str_notPed, str_notItens);
@@ -114,16 +134,17 @@ namespace WebAppServer.Hubs
             //Precisa gravar as notificações para quem chamou para saber se recebeu a confirmação da gravação do retorno.
             str_notPed = _repHub.GravarNotificacoes(Convert.ToInt64(empresa), Convert.ToInt64(userID), Convert.ToInt64(userID), "ntv_tbl_pedido", str_pedido);
             str_notItens = _repHub.GravarNotificacoes(Convert.ToInt64(empresa), Convert.ToInt64(userID), Convert.ToInt64(userID), "ntv_tbl_pedidoitem", str_itens);
+
             //Envia para o usuário que chamou
             await Clients.Caller.SendAsync("ReceivePedido", destinatario, str_pedido, str_itens, str_notPed, str_notItens);
 
             //Envia para todos os usuário
-            await Clients.OthersInGroup(empresa.ToString()).SendAsync("ReceivePedido", destinatario, str_pedido, str_itens);
+            await Clients.OthersInGroup(empresa).SendAsync("ReceivePedido", destinatario, str_pedido, str_itens, str_notPed, str_notItens);
 
             //Notificar os usuário off-line
         }
 
-        public async Task SendProduto(string empresa, string str_produto)
+        public async Task SendProduto(string empresa, string userOrig, string userAdm, string str_produto)
         {
             string str_notProd = "";
 
@@ -131,7 +152,7 @@ namespace WebAppServer.Hubs
             str_produto = await _repHub.GravarProduto(Convert.ToInt64(empresa), str_produto);
 
             //Envia para todos os usuário
-            await Clients.OthersInGroup(empresa.ToString()).SendAsync("ReceiveProduto", str_produto);
+            await Clients.OthersInGroup(empresa).SendAsync("ReceiveProduto", str_produto);
 
         }
 
@@ -143,7 +164,7 @@ namespace WebAppServer.Hubs
             str_produto = await _repHub.GravarPrdEstoque(Convert.ToInt64(empresa), str_produto);
 
             //Envia para todos os usuário
-            await Clients.OthersInGroup(empresa.ToString()).SendAsync("ReceivePrdEstoque", str_produto);
+            await Clients.OthersInGroup(empresa).SendAsync("ReceivePrdEstoque", str_produto);
 
         }
 
@@ -159,11 +180,7 @@ namespace WebAppServer.Hubs
 
             //Precisa gravar as notificações para poder aguardar a confirmação de recebimento do admnistrador ed evia para todos
             str_notific = _repHub.GravarNotificacoes(Convert.ToInt64(empresa), Convert.ToInt64(userAdm), 0, "ntv_tbl_localcliente", str_localcli);
-            await Clients.OthersInGroup(empresa.ToString()).SendAsync("ReceiveLocalCli", str_localcli, str_notific);
-
-            //Envia para todos atualizar id_serve e status
-            //await Clients.All.SendAsync("ReceiveLocalCli", str_localcli);
-            //await Clients.Group(empresa.ToString()).SendAsync("ReceiveLocalCli", str_localcli, str_notific);
+            await Clients.OthersInGroup(empresa).SendAsync("ReceiveLocalCli", str_localcli, str_notific);
         }
 
         public async Task SendLocal(string empresa, string userID, string str_local)
@@ -178,7 +195,7 @@ namespace WebAppServer.Hubs
 
             //Envia para todos ataulizar id_serve e status
             //await Clients.All.SendAsync("ReceiveLocal", str_local);
-            await Clients.Group(empresa.ToString()).SendAsync("ReceiveLocal", str_local, str_notific);
+            await Clients.OthersInGroup(empresa).SendAsync("ReceiveLocal", str_local, str_notific);
 
         }
 
@@ -265,7 +282,7 @@ namespace WebAppServer.Hubs
                     salaU.dtm_inclusao = DateTime.Now;
                     salaU.id_app = 0;
 
-                    await _repSala.GravarSalaUser(salaU, "I");
+                    await _repSala.GravarSalaUser(salaU, "I");                    
                     await Groups.AddToGroupAsync(Context.ConnectionId, empresa);
                 }
                 else
