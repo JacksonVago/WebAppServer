@@ -15,6 +15,8 @@ namespace WebAppServer.Models
         public DateTime? dtm_cancel { get; set; }
         public double dbl_val_pgto { get; set; }
         public double dbl_desconto { get; set; }
+        public double dbl_gorjeta { get; set; }
+        public double dbl_acrescimo { get; set; }
         public Int64 id_usuario { get; set; }
         public Int64 id_app { get; set; }
         public Int64 id_user_man { get; set; }

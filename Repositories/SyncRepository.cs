@@ -91,8 +91,16 @@ namespace WebAppServer.Repositories
                                             str_tabela = "PedidoItem";
                                             break;
 
+                                        case "ntv_tbl_pedidoitemcombo":
+                                            str_tabela = "PedidoItemCombo";
+                                            break;
+
                                         case "ntv_tbl_produto":
                                             str_tabela = "Produto";
+                                            break;
+
+                                        case "ntv_tbl_produto_lista":
+                                            str_tabela = "ProdutoLista";
                                             break;
 
                                         case "ntv_tbl_sala":
@@ -229,8 +237,16 @@ namespace WebAppServer.Repositories
                                 str_proc = "ntv_p_sel_tbl_pedidoitem";
                                 break;
 
+                            case "PedidoItemCombo":
+                                str_proc = "ntv_p_sel_tbl_pedidoitemcombo";
+                                break;
+
                             case "Produto":
                                 str_proc = "ntv_p_sel_tbl_produto";
+                                break;
+
+                            case "ProdutoLista":
+                                str_proc = "ntv_p_sel_tbl_produto_lista";
                                 break;
 
                             case "Sala":
@@ -711,7 +727,9 @@ namespace WebAppServer.Repositories
                                                 id = 0,
                                                 id_empresa = company,
                                                 id_produto = icomboApp[i].id_produto,
+                                                id_prd_combo = icomboApp[i].id_prd_combo,
                                                 int_qtd_item = icomboApp[i].int_qtd_item,
+                                                dbl_val_unit = icomboApp[i].dbl_val_unit,
                                                 id_app = icomboApp[i].id,
                                                 id_user_man = user
                                             });
@@ -723,7 +741,9 @@ namespace WebAppServer.Repositories
                                                 id = Convert.ToInt64(dtt_reg.Rows[0]["id"]),
                                                 id_empresa = company,
                                                 id_produto = icomboApp[i].id_produto,
+                                                id_prd_combo = icomboApp[i].id_prd_combo,
                                                 int_qtd_item = icomboApp[i].int_qtd_item,
+                                                dbl_val_unit = icomboApp[i].dbl_val_unit,
                                                 id_app = icomboApp[i].id,
                                                 id_user_man = user
                                             });
@@ -737,7 +757,9 @@ namespace WebAppServer.Repositories
                                             id = icomboApp[i].id_server,
                                             id_empresa = company,
                                             id_produto = icomboApp[i].id_produto,
+                                            id_prd_combo = icomboApp[i].id_prd_combo,
                                             int_qtd_item = icomboApp[i].int_qtd_item,
+                                            dbl_val_unit = icomboApp[i].dbl_val_unit,
                                             id_app = icomboApp[i].id,
                                             id_user_man = user
                                         });
@@ -774,6 +796,104 @@ namespace WebAppServer.Repositories
                                             if (str_ret.Split(";")[id] != "")
                                             {
                                                 str_ret_aux += cmbUpd[id].id_app + ":" + str_ret.Split(";")[id] + ";";
+                                            }
+                                        }
+                                        str_ret_fim += str_ret_aux;
+                                    }
+                                }
+                                dyn_ret = str_ret_fim;
+
+                                break;
+
+                            case "ProdutoLista":
+                                List<ProdutoListaApp> prdLApp = new List<ProdutoListaApp>();
+                                prdLApp = JsonConvert.DeserializeObject<List<ProdutoListaApp>>(data.Dados.ToString().Replace("','", "\",\"").Replace("':'", "\":\"").Replace("':", "\":").Replace(",'", ",\"").Replace("{'", "{\"").Replace("'}", "\"}"));
+
+                                List<ProdutoLista> prdLInc = new List<ProdutoLista>();
+                                List<ProdutoLista> prdLUpd = new List<ProdutoLista>();
+
+                                for (int i = 0; i < prdLApp.Count; i++)
+                                {
+
+                                    dtt_reg.Clear();
+
+                                    if (prdLApp[i].id_server == 0)
+                                    {
+                                        //Verifica se o registro já existe
+                                        dtt_reg = repData.ConsultaGenericaDtt("[{ \"nome\":\"id\", \"valor\":\"0\", \"tipo\":\"Int64\"}," +
+                                                                    "{ \"nome\":\"id_empresa\", \"valor\":\"" + company.ToString() + "\", \"tipo\":\"Int64\"}," +
+                                                                    "{ \"nome\":\"download\", \"valor\":\"0\", \"tipo\":\"Int16\"}," +
+                                                                    "{ \"nome\":\"id_app\", \"valor\":\"" + prdLApp[i].id.ToString() + "\", \"tipo\":\"Int64\"}]", "ntv_p_sel_tbl_produto_lista", conn, tran);
+                                        if (dtt_reg == null || dtt_reg.Rows.Count == 0)
+                                        {
+                                            prdLInc.Add(new ProdutoLista
+                                            {
+                                                id = 0,
+                                                id_empresa = company,
+                                                str_nomelista = prdLApp[i].str_nomelista,
+                                                str_idprodutos = prdLApp[i].str_idprodutos,
+                                                id_app = prdLApp[i].id,
+                                                id_user_man = user
+                                            });
+                                        }
+                                        else
+                                        {
+                                            prdLUpd.Add(new ProdutoLista
+                                            {
+                                                id = Convert.ToInt64(dtt_reg.Rows[0]["id"]),
+                                                id_empresa = company,
+                                                str_nomelista = prdLApp[i].str_nomelista,
+                                                str_idprodutos = prdLApp[i].str_idprodutos,
+                                                id_app = prdLApp[i].id,
+                                                id_user_man = user
+                                            });
+
+                                        }
+                                    }
+                                    else
+                                    {
+                                        prdLUpd.Add(new ProdutoLista
+                                        {
+                                            id = prdLApp[i].id_server,
+                                            id_empresa = company,
+                                            str_nomelista = prdLApp[i].str_nomelista,
+                                            str_idprodutos = prdLApp[i].str_idprodutos,
+                                            id_app = prdLApp[i].id,
+                                            id_user_man = user
+                                        });
+
+                                    }
+                                }
+
+                                //Inclusões
+                                if (prdLInc.Count > 0)
+                                {
+                                    str_ret = repData.ManutencaoTabela<ProdutoLista>("I", prdLInc, "ntv_tbl_produto_lista", conn, tran);
+                                    if (str_ret.Split(";").Count() > 0)
+                                    {
+                                        for (int id = 0; id < str_ret.Split(";").Count(); id++)
+                                        {
+                                            if (str_ret.Split(";")[id] != "")
+                                            {
+                                                str_ret_aux += prdLInc[id].id_app + ":" + str_ret.Split(";")[id] + ";";
+                                            }
+                                        }
+                                        str_ret_fim += str_ret_aux;
+                                    }
+                                }
+
+                                //Alterações
+                                if (prdLUpd.Count() > 0)
+                                {
+                                    str_ret_aux = "";
+                                    str_ret = repData.ManutencaoTabela<ProdutoLista>("U", prdLUpd, "ntv_tbl_produto_lista", conn, tran);
+                                    if (str_ret.Split(";").Count() > 0)
+                                    {
+                                        for (int id = 0; id < str_ret.Split(";").Count(); id++)
+                                        {
+                                            if (str_ret.Split(";")[id] != "")
+                                            {
+                                                str_ret_aux += prdLUpd[id].id_app + ":" + str_ret.Split(";")[id] + ";";
                                             }
                                         }
                                         str_ret_fim += str_ret_aux;
@@ -1501,6 +1621,123 @@ namespace WebAppServer.Repositories
 
                                 break;
 
+                            case "PedidoItemCombo":
+                                List<PedidoItemComboApp> pedICmbApp = new List<PedidoItemComboApp>();
+                                pedICmbApp = JsonConvert.DeserializeObject<List<PedidoItemComboApp>>(data.Dados.ToString().Replace("','", "\",\"").Replace("':'", "\":\"").Replace("':", "\":").Replace(",'", ",\"").Replace("{'", "{\"").Replace("'}", "\"}"));
+                                List<PedidoItemCombo> pediCmbInc = new List<PedidoItemCombo>();
+                                List<PedidoItemCombo> pediCmbUpd = new List<PedidoItemCombo>();
+
+                                for (int i = 0; i < pedICmbApp.Count; i++)
+                                {
+
+                                    dtt_reg.Clear();
+
+                                    if (pedICmbApp[i].id_server == 0)
+                                    {
+
+                                        //Verifica se o registro já existe
+                                        dtt_reg = repData.ConsultaGenericaDtt("[{ \"nome\":\"id\", \"valor\":\"0\", \"tipo\":\"Int64\"}," +
+                                                                    "{ \"nome\":\"id_empresa\", \"valor\":\"" + company.ToString() + "\", \"tipo\":\"Int64\"}," +
+                                                                    "{ \"nome\":\"dtm_ini\", \"valor\":\"2001-01-01\", \"tipo\":\"DateTime\"}," +
+                                                                    "{ \"nome\":\"dtm_fim\", \"valor\":\"2001-01-01\", \"tipo\":\"DateTime\"}," +
+                                                                    "{ \"nome\":\"id_usuario\", \"valor\":\"" + pedICmbApp[i].id_usuario.ToString() + "\", \"tipo\":\"Int64\"}," +
+                                                                    "{ \"nome\":\"situacao\", \"valor\":\"0\", \"tipo\":\"Int16\"}," +
+                                                                    "{ \"nome\":\"download\", \"valor\":\"0\", \"tipo\":\"Int16\"}," +
+                                                                    "{ \"nome\":\"id_app\", \"valor\":\"" + pedICmbApp[i].id.ToString() + "\", \"tipo\":\"Int64\"}]", "ntv_p_sel_tbl_pedidoitemcombo", conn, tran);
+                                        if (dtt_reg == null || dtt_reg.Rows.Count == 0)
+                                        {
+                                            pediCmbInc.Add(new PedidoItemCombo
+                                            {
+                                                id = 0,
+                                                id_empresa = company,
+                                                id_pedido = pedICmbApp[i].id_pedido,
+                                                id_ped_item = pedICmbApp[i].id_ped_item,
+                                                id_produto = pedICmbApp[i].id_produto,
+                                                id_prod_sel = pedICmbApp[i].id_prod_sel,
+                                                int_qtd_comp = pedICmbApp[i].int_qtd_comp,
+                                                id_usuario = pedICmbApp[i].id_usuario,
+                                                int_situacao = pedICmbApp[i].int_situacao,
+                                                id_app = pedICmbApp[i].id,
+                                                id_user_man = user
+                                            });
+                                        }
+                                        else
+                                        {
+                                            pediCmbUpd.Add(new PedidoItemCombo
+                                            {
+                                                id = Convert.ToInt64(dtt_reg.Rows[0]["id"]),
+                                                id_empresa = company,
+                                                id_pedido = pedICmbApp[i].id_pedido,
+                                                id_ped_item = pedICmbApp[i].id_ped_item,
+                                                id_produto = pedICmbApp[i].id_produto,
+                                                id_prod_sel = pedICmbApp[i].id_prod_sel,
+                                                int_qtd_comp = pedICmbApp[i].int_qtd_comp,
+                                                int_situacao = pedICmbApp[i].int_situacao,
+                                                id_usuario = pedICmbApp[i].id_usuario,
+                                                id_app = pedICmbApp[i].id,
+                                                id_user_man = user
+                                            });
+
+                                        }
+                                    }
+                                    else
+                                    {
+                                        pediCmbUpd.Add(new PedidoItemCombo
+                                        {
+                                            id = pedICmbApp[i].id_server,
+                                            id_empresa = company,
+                                            id_pedido = pedICmbApp[i].id_pedido,
+                                            id_ped_item = pedICmbApp[i].id_ped_item,
+                                            id_produto = pedICmbApp[i].id_produto,
+                                            id_prod_sel = pedICmbApp[i].id_prod_sel,
+                                            int_qtd_comp = pedICmbApp[i].int_qtd_comp,
+                                            id_usuario = pedICmbApp[i].id_usuario,
+                                            int_situacao = pedICmbApp[i].int_situacao,
+                                            id_app = pedICmbApp[i].id,
+                                            id_user_man = user
+                                        });
+
+                                    }
+                                }
+
+                                //Inclusões
+                                if (pediCmbInc.Count > 0)
+                                {
+                                    str_ret = repData.ManutencaoTabela<PedidoItemCombo>("I", pediCmbInc, "ntv_tbl_pedidoitemcombo", conn, tran);
+                                    if (str_ret.Split(";").Count() > 0)
+                                    {
+                                        for (int id = 0; id < str_ret.Split(";").Count(); id++)
+                                        {
+                                            if (str_ret.Split(";")[id] != "")
+                                            {
+                                                str_ret_aux += pediCmbInc[id].id_app + ":" + str_ret.Split(";")[id] + ";";
+                                            }
+                                        }
+                                        str_ret_fim += str_ret_aux;
+                                    }
+                                }
+
+                                //Alterações
+                                if (pediCmbUpd.Count() > 0)
+                                {
+                                    str_ret_aux = "";
+                                    str_ret = repData.ManutencaoTabela<PedidoItemCombo>("U", pediCmbUpd, "ntv_tbl_pedidoitemcombo", conn, tran);
+                                    if (str_ret.Split(";").Count() > 0)
+                                    {
+                                        for (int id = 0; id < str_ret.Split(";").Count(); id++)
+                                        {
+                                            if (str_ret.Split(";")[id] != "")
+                                            {
+                                                str_ret_aux += pediCmbUpd[id].id_app + ":" + str_ret.Split(";")[id] + ";";
+                                            }
+                                        }
+                                        str_ret_fim += str_ret_aux;
+                                    }
+                                }
+                                dyn_ret = str_ret_fim;
+
+                                break;
+
                             case "LocalCliPag":
                                 List<LocalCliPagApp> cliPApp = new List<LocalCliPagApp>();
                                 cliPApp = JsonConvert.DeserializeObject<List<LocalCliPagApp>>(data.Dados.ToString().Replace("','", "\",\"").Replace("':'", "\":\"").Replace("':", "\":").Replace(",'", ",\"").Replace("{'", "{\"").Replace("'}", "\"}"));
@@ -1533,6 +1770,8 @@ namespace WebAppServer.Repositories
                                                 dtm_cancel = cliPApp[i].dtm_cancel,
                                                 dbl_val_pgto = cliPApp[i].dbl_val_pgto,
                                                 dbl_desconto = cliPApp[i].dbl_desconto,
+                                                dbl_gorjeta = cliPApp[i].dbl_gorjeta,
+                                                dbl_acrescimo = cliPApp[i].dbl_acrescimo,
                                                 id_usuario = cliPApp[i].id_usuario,
                                                 id_app = cliPApp[i].id,
                                                 id_user_man = user
@@ -1550,6 +1789,8 @@ namespace WebAppServer.Repositories
                                                 dtm_cancel = cliPApp[i].dtm_cancel,
                                                 dbl_val_pgto = cliPApp[i].dbl_val_pgto,
                                                 dbl_desconto = cliPApp[i].dbl_desconto,
+                                                dbl_gorjeta = cliPApp[i].dbl_gorjeta,
+                                                dbl_acrescimo = cliPApp[i].dbl_acrescimo,
                                                 id_usuario = cliPApp[i].id_usuario,
                                                 id_app = cliPApp[i].id,
                                                 id_user_man = user
@@ -1569,6 +1810,8 @@ namespace WebAppServer.Repositories
                                             dtm_cancel = cliPApp[i].dtm_cancel,
                                             dbl_val_pgto = cliPApp[i].dbl_val_pgto,
                                             dbl_desconto = cliPApp[i].dbl_desconto,
+                                            dbl_gorjeta = cliPApp[i].dbl_gorjeta,
+                                            dbl_acrescimo = cliPApp[i].dbl_acrescimo,
                                             id_usuario = cliPApp[i].id_usuario,
                                             id_app = cliPApp[i].id,
                                             id_user_man = user
@@ -1612,8 +1855,8 @@ namespace WebAppServer.Repositories
                                     }
                                 }
                                 dyn_ret = str_ret_fim;
-
                                 break;
+
                             case "Entrada":
                                 List<EntradaApp> entApp = new List<EntradaApp>();
                                 entApp = JsonConvert.DeserializeObject<List<EntradaApp>>(data.Dados.ToString().Replace("','", "\",\"").Replace("':'", "\":\"").Replace("':", "\":").Replace(",'", ",\"").Replace("{'", "{\"").Replace("'}", "\"}"));

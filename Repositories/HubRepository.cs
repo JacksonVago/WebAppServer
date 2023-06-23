@@ -448,6 +448,7 @@ namespace WebAppServer.Repositories
                                     dbl_desconto = itemApp[i].dbl_desconto,
                                     dbl_tot_liq = itemApp[i].dbl_tot_liq,
                                     int_situacao = itemApp[i].int_situacao,
+                                    str_combo = itemApp[i].str_combo,
                                     id_usuario = itemApp[i].id_usuario,
                                     id_app = itemApp[i].id,
                                     id_user_man = 0
@@ -467,6 +468,7 @@ namespace WebAppServer.Repositories
                                     dbl_desconto = itemApp[i].dbl_desconto,
                                     dbl_tot_liq = itemApp[i].dbl_tot_liq,
                                     int_situacao = itemApp[i].int_situacao, // 0 - Não entregue / 1 - Entregue / 9 - Cancelado
+                                    str_combo = itemApp[i].str_combo,
                                     id_usuario = itemApp[i].id_usuario,
                                     id_app = itemApp[i].id,
                                     id_user_man = 0
@@ -488,6 +490,7 @@ namespace WebAppServer.Repositories
                                 dbl_desconto = itemApp[i].dbl_desconto,
                                 dbl_tot_liq = itemApp[i].dbl_tot_liq,
                                 int_situacao = itemApp[i].int_situacao, // 0 - Não entregue / 1 - Entregue / 9 - Cancelado
+                                str_combo = itemApp[i].str_combo,
                                 id_usuario = itemApp[i].id_usuario,
                                 id_app = itemApp[i].id,
                                 id_user_man = 0
@@ -532,6 +535,159 @@ namespace WebAppServer.Repositories
                                             if (str_ret.Split(";")[id] != "")
                                             {
                                                 PedidoItemApp item = (from reg in itemApp where reg.id == itensUpd[id].id_app select reg).FirstOrDefault();
+                                                item.int_sinc = 1;
+                                                item.id_server = Convert.ToInt64(str_ret.Split(";")[id]);
+                                                itemApp_ret.Add(item);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                tran.Rollback();
+                                throw ex;
+                            }
+                            tran.Commit();
+                        }
+                    }
+                    conn.Close();
+
+                }
+
+
+                str_ret = JsonConvert.SerializeObject(itemApp_ret);
+            }
+
+            return str_ret;
+        }
+
+        public async Task<string> GravarPedidoItemCombo(Int64 empresa, string dados)
+        {
+            DataTable dtt_reg = new DataTable();
+            string str_ret = "";
+            string str_id = "";
+            string str_operacao = "";
+
+            List<PedidoItemComboApp> itemApp = new List<PedidoItemComboApp>();
+            List<PedidoItemComboApp> itemApp_ret = new List<PedidoItemComboApp>();
+
+            List<PedidoItemCombo> itens = new List<PedidoItemCombo>();
+            List<PedidoItemCombo> itensUpd = new List<PedidoItemCombo>();
+            List<PedidoItemCombo> itensIns = new List<PedidoItemCombo>();
+
+            itemApp = JsonConvert.DeserializeObject<List<PedidoItemComboApp>>((dados.Contains("[") ? dados : "[" + dados + "]"));
+
+
+            if (itemApp != null && itemApp.Count > 0)
+            {
+                string str_conn = configDB.ConnectString;
+
+                using (SqlConnection conn = new SqlConnection(str_conn))
+                {
+                    conn.Open();
+                    for (int i = 0; i < itemApp.Count; i++)
+                    {
+                        if (itemApp[i].id_server == 0)
+                        {
+                            //Verifica se o registro já existe
+                            dtt_reg = repData.ConsultaGenericaDtt("[{ \"nome\":\"id\", \"valor\":\"0\", \"tipo\":\"Int64\"}," +
+                                                        "{ \"nome\":\"id_empresa\", \"valor\":\"" + empresa.ToString() + "\", \"tipo\":\"Int64\"}," +
+                                                        "{ \"nome\":\"dtm_ini\", \"valor\":\"2001-01-01\", \"tipo\":\"DateTime\"}," +
+                                                        "{ \"nome\":\"dtm_fim\", \"valor\":\"2001-01-01\", \"tipo\":\"DateTime\"}," +
+                                                        "{ \"nome\":\"id_usuario\", \"valor\":\"" + itemApp[i].id_usuario.ToString() + "\", \"tipo\":\"Int64\"}," +
+                                                        "{ \"nome\":\"situacao\", \"valor\":\"0\", \"tipo\":\"Int16\"}," +
+                                                        "{ \"nome\":\"download\", \"valor\":\"0\", \"tipo\":\"Int16\"}," +
+                                                        "{ \"nome\":\"id_app\", \"valor\":\"" + itemApp[i].id.ToString() + "\", \"tipo\":\"Int64\"}]", "ntv_p_sel_tbl_pedidoitemcombo", conn);
+                            if (dtt_reg == null || dtt_reg.Rows.Count == 0)
+                            {
+                                itensIns.Add(new PedidoItemCombo
+                                {
+                                    id = 0,
+                                    id_empresa = empresa,
+                                    id_pedido = itemApp[i].id_pedido,
+                                    id_ped_item = itemApp[i].id_ped_item,
+                                    id_produto = itemApp[i].id_produto,
+                                    id_prod_sel = itemApp[i].id_prod_sel,
+                                    int_qtd_comp = itemApp[i].int_qtd_comp,
+                                    id_usuario = itemApp[i].id_usuario,
+                                    id_app = itemApp[i].id,
+                                    id_user_man = 0
+                                });
+                            }
+                            else
+                            {
+                                itensUpd.Add(new PedidoItemCombo
+                                {
+                                    id = Convert.ToInt64(dtt_reg.Rows[0]["id"]),
+                                    id_empresa = empresa,
+                                    id_pedido = itemApp[i].id_pedido,
+                                    id_ped_item = itemApp[i].id_ped_item,
+                                    id_produto = itemApp[i].id_produto,
+                                    id_prod_sel = itemApp[i].id_prod_sel,
+                                    int_qtd_comp = itemApp[i].int_qtd_comp,
+                                    id_usuario = itemApp[i].id_usuario,
+                                    id_app = itemApp[i].id,
+                                    id_user_man = 0
+                                });
+
+                            }
+                        }
+                        else
+                        {
+                            itensUpd.Add(new PedidoItemCombo
+                            {
+                                id = itemApp[i].id_server,
+                                id_empresa = empresa,
+                                id_pedido = itemApp[i].id_pedido,
+                                id_ped_item = itemApp[i].id_ped_item,
+                                id_produto = itemApp[i].id_produto,
+                                id_prod_sel = itemApp[i].id_prod_sel,
+                                int_qtd_comp = itemApp[i].int_qtd_comp,
+                                id_usuario = itemApp[i].id_usuario,
+                                id_app = itemApp[i].id,
+                                id_user_man = 0
+                            });
+                        }
+                    }
+
+                    if (itensIns.Count > 0 || itensUpd.Count > 0)
+                    {
+                        using (SqlTransaction tran = conn.BeginTransaction())
+                        {
+                            try
+                            {
+                                //Inclusões
+                                if (itensIns.Count > 0)
+                                {
+                                    str_ret = repData.ManutencaoTabela<PedidoItemCombo>("I", itensIns, "ntv_tbl_pedidoitemcombo", conn, tran);
+                                    if (str_ret.Split(";").Count() > 0)
+                                    {
+                                        for (int id = 0; id < str_ret.Split(";").Count(); id++)
+                                        {
+                                            if (str_ret.Split(";")[id] != "")
+                                            {
+                                                PedidoItemComboApp item = (from reg in itemApp where reg.id == itensIns[id].id_app select reg).FirstOrDefault();
+                                                item.int_sinc = 1;
+                                                item.id_server = Convert.ToInt64(str_ret.Split(";")[id]);
+                                                itemApp_ret.Add(item);
+
+                                            }
+                                        }
+                                    }
+                                }
+
+                                //Alterações
+                                if (itensUpd.Count() > 0)
+                                {
+                                    str_ret += repData.ManutencaoTabela<PedidoItemCombo>("U", itensUpd, "ntv_tbl_pedidoitemcombo", conn, tran);
+                                    if (str_ret.Split(";").Count() > 0)
+                                    {
+                                        for (int id = 0; id < str_ret.Split(";").Count(); id++)
+                                        {
+                                            if (str_ret.Split(";")[id] != "")
+                                            {
+                                                PedidoItemComboApp item = (from reg in itemApp where reg.id == itensUpd[id].id_app select reg).FirstOrDefault();
                                                 item.int_sinc = 1;
                                                 item.id_server = Convert.ToInt64(str_ret.Split(";")[id]);
                                                 itemApp_ret.Add(item);

@@ -55,6 +55,45 @@ namespace WebAppServer.Repositories
             return false;
         }
 
+        public bool SqlUpdate(dynamic param, string procedure, SqlConnection conn, SqlTransaction tran)
+        {
+
+            string str_param = "";
+            if (param.GetType() != typeof(string))
+            {
+                str_param = JsonConvert.SerializeObject(param);
+            }
+            else
+            {
+                str_param = param;
+            }
+            DataTable dtt_filtros = JsonConvert.DeserializeObject<DataTable>(str_param);
+
+            try
+            {
+                SqlCommand command = new SqlCommand(procedure, conn);
+
+                if (tran != null)
+                {
+                    command.Transaction = tran;
+                }
+                command.CommandType = System.Data.CommandType.StoredProcedure;
+                for (int r = 0; r < dtt_filtros.Rows.Count; r++)
+                {
+                    command.Parameters.Add(new SqlParameter("@" + dtt_filtros.Rows[r][0].ToString(), (dtt_filtros.Rows[r][2].ToString() == "DateTime" ? Convert.ToDateTime(dtt_filtros.Rows[r][1]).ToString("yyyy-MM-dd hh:mm:dd") : dtt_filtros.Rows[r][1])));
+                }
+
+                command.ExecuteNonQuery();
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            return false;
+        }
+
         public bool ProcedureInsertRet(dynamic param, string procedure, SqlConnection conn, SqlTransaction tran)
         {
 
