@@ -263,6 +263,110 @@ namespace WebAppServer.Repositories
             return str_ret;
         }
 
+        public async Task<string> AtualizaEstoqueProduto(Int64 empresa, string dados)
+        {
+            string str_ret = "";
+
+            ProdutoApp produto = new ProdutoApp();
+            List<EstoqueProduto> produtos = new List<EstoqueProduto>();
+
+            produtos = JsonConvert.DeserializeObject<List<EstoqueProduto>>((dados.Contains("[") ? dados : "[" + dados + "]"));
+
+            if (produtos != null)
+            {
+                if (produtos.Count() > 0)
+                {
+                    string str_conn = configDB.ConnectString;
+
+                    using (SqlConnection conn = new SqlConnection(str_conn))
+                    {
+                        conn.Open();
+
+                        using (SqlTransaction tran = conn.BeginTransaction())
+                        {
+                            try
+                            {
+                                foreach (var item in produtos)
+                                {
+
+                                    //Atualiza estoque do produto
+                                    bool bol_estoque = repData.SqlUpdate("[{ \"nome\":\"id\", \"valor\":\"" + item.id_produto.ToString() + "\", \"tipo\":\"Int64\"}," +
+                                                                         "{ \"nome\":\"id_empresa\", \"valor\":\"" + empresa.ToString() + "\", \"tipo\":\"Int64\"}," +
+                                                                         "{ \"nome\":\"int_qtd_est\", \"valor\":\"" + item.int_qtd_est.ToString() + "\", \"tipo\":\"Int64\"}]",
+                                                                         "ntv_p_atu_estoque_produto", conn, tran);
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                tran.Rollback();
+                                conn.Close();
+                                throw ex;
+                            }
+
+                            tran.Commit();
+                        }
+                        conn.Close();
+                    }
+
+                }
+
+            }
+
+            return str_ret;
+        }
+
+        public async Task<string> CarregaEstoque(Int64 empresa)
+        {
+            string str_ret = "";
+
+            List<Produto> produtos = new List<Produto>();
+            List<EstoqueProduto> estoque = new List<EstoqueProduto>();
+
+            string str_conn = configDB.ConnectString;
+
+            using (SqlConnection conn = new SqlConnection(str_conn))
+            {
+                conn.Open();
+
+                try
+                {
+                    str_ret = repData.ConsultaGenerica("[{ \"nome\":\"id\", \"valor\":\0\", \"tipo\":\"Int64\"}," +
+                                                                "{ \"nome\":\"id_empresa\", \"valor\":\"" + empresa.ToString() + "\", \"tipo\":\"Int64\"}," +
+                                                                "{ \"nome\":\"situacao\", \"valor\":\"0\", \"tipo\":\"Int64\"}," +
+                                                                "{ \"nome\":\"download\", \"valor\":\"1\", \"tipo\":\"Int64\"}," +
+                                                                "{ \"nome\":\"id_app\", \"valor\":\"0\", \"tipo\":\"Int64\"}]", "ntv_p_sel_tbl_produto", conn);
+                    produtos = JsonConvert.DeserializeObject<List<Produto>>(str_ret);
+
+                    //Pega os produtos que atualizam estoque
+                    foreach (Produto item in produtos.Where(x=> x.str_estoque.Equals("S")))
+                    {
+                        estoque.Add(new EstoqueProduto
+                        {
+                            id_produto = item.id,
+                            int_qtd_est = (double)item.int_qtd_est
+                        });
+                    }
+
+                    if (estoque.Count() > 0)
+                    {
+                        str_ret = JsonConvert.SerializeObject(estoque);
+                    }
+                    else
+                    {
+                        str_ret = "";
+                    }
+                }
+                catch (Exception ex)
+                {
+                    conn.Close();
+                    throw ex;
+                }
+                conn.Close();
+            }
+
+            return str_ret;
+        }
+
         public async Task<string> GravarPrdEstoque(Int64 empresa, string dados)
         {
             string str_ret = "";
@@ -715,6 +819,249 @@ namespace WebAppServer.Repositories
             return str_ret;
         }
 
+        public async Task<string> GravarEntrada(Int64 empresa, string dados)
+        {
+            string str_ret = "";
+            string str_operacao = "";
+            Int64 id_entrada = 0;
+            EntradaApp entrada = new EntradaApp();
+            List<Entrada> entradas = new List<Entrada>();
+
+            entrada = JsonConvert.DeserializeObject<EntradaApp>(dados);
+
+            if (entrada != null)
+            {
+                if (entrada.id_server == 0)
+                {
+                    str_operacao = "I";
+                }
+                else
+                {
+                    str_operacao = "U";
+                }
+
+                entradas.Add(new Entrada
+                {
+                    id = entrada.id_server,
+                    id_empresa = empresa,
+                    dtm_entrada = entrada.dtm_entrada,
+                    int_nota = entrada.int_nota,
+                    int_fornecedor = entrada.int_fornecedor,
+                    str_serie = entrada.str_serie,
+                    id_tipo = entrada.id_tipo,
+                    dtm_nota = entrada.dtm_nota,
+                    dbl_tot_nf = entrada.dbl_tot_nf,
+                    int_qtd_item = entrada.int_qtd_item,
+                    dbl_tot_item = entrada.dbl_tot_item,
+                    dbl_tot_desc = entrada.dbl_tot_desc,
+                    dbl_tot_liq = entrada.dbl_tot_liq,
+                    str_obs = entrada.str_obs,
+                    int_situacao = entrada.int_situacao, // 0 - Digitada / 1 - Conferida / 9 - Cancelado
+                    id_usuario = entrada.id_usuario,
+                    id_app = entrada.id,
+                    id_user_man = entrada.id_usuario
+                });
+
+                string str_conn = configDB.ConnectString;
+
+                using (SqlConnection conn = new SqlConnection(str_conn))
+                {
+                    conn.Open();
+
+                    using (SqlTransaction tran = conn.BeginTransaction())
+                    {
+                        try
+                        {
+                            id_entrada = Convert.ToInt64(repData.ManutencaoTabela<Entrada>(str_operacao, entradas, "ntv_tbl_entrada", conn, tran).Split(";")[0]);
+                            entrada.id_server = id_entrada;
+                            str_ret = JsonConvert.SerializeObject(entrada);
+                        }
+                        catch (Exception ex)
+                        {
+                            tran.Rollback();
+                            conn.Close();
+                            throw ex;
+                        }
+
+                        tran.Commit();
+                    }
+                    conn.Close();
+                }
+            }
+
+            return str_ret;
+        }
+
+        public async Task<string> GravarEntradaItem(Int64 empresa, string dados_ent, string dados)
+        {
+            DataTable dtt_reg = new DataTable();
+            string str_ret = "";
+            string str_id = "";
+            string str_operacao = "";
+
+            List<EntradaItemApp> itemApp = new List<EntradaItemApp>();
+            List<EntradaItemApp> itemApp_ret = new List<EntradaItemApp>();
+            EntradaApp entrada = new EntradaApp();
+
+            entrada = JsonConvert.DeserializeObject<EntradaApp>(dados_ent);
+
+            List<EntradaItem> itens = new List<EntradaItem>();
+            List<EntradaItem> itensUpd = new List<EntradaItem>();
+            List<EntradaItem> itensIns = new List<EntradaItem>();
+
+            itemApp = JsonConvert.DeserializeObject<List<EntradaItemApp>>((dados.Contains("[") ? dados : "[" + dados + "]"));
+
+            double dbl_qtd_estoque = 0;
+
+            if (itemApp != null && itemApp.Count > 0)
+            {
+                string str_conn = configDB.ConnectString;
+
+                using (SqlConnection conn = new SqlConnection(str_conn))
+                {
+                    conn.Open();
+                    for (int i = 0; i < itemApp.Count; i++)
+                    {
+                        if (itemApp[i].id_server == 0)
+                        {
+                            //Verifica se o registro já existe
+                            dtt_reg = repData.ConsultaGenericaDtt("[{ \"nome\":\"id\", \"valor\":\"0\", \"tipo\":\"Int64\"}," +
+                                                        "{ \"nome\":\"id_empresa\", \"valor\":\"" + empresa.ToString() + "\", \"tipo\":\"Int64\"}," +
+                                                        "{ \"nome\":\"dtm_ini\", \"valor\":\"2001-01-01\", \"tipo\":\"DateTime\"}," +
+                                                        "{ \"nome\":\"dtm_fim\", \"valor\":\"2001-01-01\", \"tipo\":\"DateTime\"}," +
+                                                        "{ \"nome\":\"situacao\", \"valor\":\"0\", \"tipo\":\"Int16\"}," +
+                                                        "{ \"nome\":\"download\", \"valor\":\"0\", \"tipo\":\"Int16\"}," +
+                                                        "{ \"nome\":\"id_app\", \"valor\":\"" + itemApp[i].id.ToString() + "\", \"tipo\":\"Int64\"}]", "ntv_p_sel_tbl_entrada_item", conn);
+                            if (dtt_reg == null || dtt_reg.Rows.Count == 0)
+                            {
+                                itensIns.Add(new EntradaItem
+                                {
+                                    id = 0,
+                                    id_empresa = empresa,
+                                    id_entrada = itemApp[i].id_entrada,
+                                    id_produto = itemApp[i].id_produto,
+                                    dbl_precounit = itemApp[i].dbl_precounit,
+                                    int_qtd_comp = itemApp[i].int_qtd_comp,
+                                    dbl_tot_item = itemApp[i].dbl_tot_item,
+                                    dbl_desconto = itemApp[i].dbl_desconto,
+                                    dbl_tot_liq = itemApp[i].dbl_tot_liq,
+                                    int_situacao = itemApp[i].int_situacao,
+                                    id_app = itemApp[i].id,
+                                    id_user_man = 0
+                                });
+                            }
+                            else
+                            {
+                                itensUpd.Add(new EntradaItem
+                                {
+                                    id = Convert.ToInt64(dtt_reg.Rows[0]["id"]),
+                                    id_empresa = empresa,
+                                    id_entrada = itemApp[i].id_entrada,
+                                    id_produto = itemApp[i].id_produto,
+                                    dbl_precounit = itemApp[i].dbl_precounit,
+                                    int_qtd_comp = itemApp[i].int_qtd_comp,
+                                    dbl_tot_item = itemApp[i].dbl_tot_item,
+                                    dbl_desconto = itemApp[i].dbl_desconto,
+                                    dbl_tot_liq = itemApp[i].dbl_tot_liq,
+                                    int_situacao = itemApp[i].int_situacao, // 0 - Não entregue / 1 - Entregue / 9 - Cancelado
+                                    id_app = itemApp[i].id,
+                                    id_user_man = 0
+                                });
+
+                            }
+                        }
+                        else
+                        {
+                            itensUpd.Add(new EntradaItem
+                            {
+                                id = itemApp[i].id_server,
+                                id_empresa = empresa,
+                                id_entrada = itemApp[i].id_entrada,
+                                id_produto = itemApp[i].id_produto,
+                                dbl_precounit = itemApp[i].dbl_precounit,
+                                int_qtd_comp = itemApp[i].int_qtd_comp,
+                                dbl_tot_item = itemApp[i].dbl_tot_item,
+                                dbl_desconto = itemApp[i].dbl_desconto,
+                                dbl_tot_liq = itemApp[i].dbl_tot_liq,
+                                int_situacao = itemApp[i].int_situacao, // 0 - Não entregue / 1 - Entregue / 9 - Cancelado
+                                id_app = itemApp[i].id,
+                                id_user_man = 0
+                            });
+                        }
+                    }
+
+                    if (itensIns.Count > 0 || itensUpd.Count > 0)
+                    {
+                        using (SqlTransaction tran = conn.BeginTransaction())
+                        {
+                            try
+                            {
+                                //Inclusões
+                                if (itensIns.Count > 0)
+                                {
+                                    str_ret = repData.ManutencaoTabela<EntradaItem>("I", itensIns, "ntv_tbl_entrada_item", conn, tran);
+                                    if (str_ret.Split(";").Count() > 0)
+                                    {
+                                        for (int id = 0; id < str_ret.Split(";").Count(); id++)
+                                        {
+                                            if (str_ret.Split(";")[id] != "")
+                                            {
+                                                EntradaItemApp item = (from reg in itemApp where reg.id == itensIns[id].id_app select reg).FirstOrDefault();
+                                                item.int_sinc = 1;
+                                                item.id_server = Convert.ToInt64(str_ret.Split(";")[id]);
+                                                itemApp_ret.Add(item);
+
+                                                //Atualiza estoque do produto
+                                                /*
+                                                dbl_qtd_estoque = (entrada.id_tipo == 1 ? item.int_qtd_comp : item.int_qtd_comp * -1);
+                                                bool bol_estoque = repData.SqlUpdate("[{ \"nome\":\"id\", \"valor\":\"" + item.id_produto.ToString() + "\", \"tipo\":\"Int64\"}," +
+                                                                                     "{ \"nome\":\"id_empresa\", \"valor\":\"" + empresa.ToString() + "\", \"tipo\":\"Int64\"}," +
+                                                                                     "{ \"nome\":\"int_qtd_est\", \"valor\":\"" + dbl_qtd_estoque.ToString() + "\", \"tipo\":\"Int64\"}]",
+                                                                                     "ntv_p_atu_estoque_produto", conn, tran);
+                                                */
+                                            }
+                                        }
+                                    }
+                                }
+
+                                //Alterações
+                                if (itensUpd.Count() > 0)
+                                {
+                                    str_ret += repData.ManutencaoTabela<EntradaItem>("U", itensUpd, "ntv_tbl_entrada_item", conn, tran);
+                                    if (str_ret.Split(";").Count() > 0)
+                                    {
+                                        for (int id = 0; id < str_ret.Split(";").Count(); id++)
+                                        {
+                                            if (str_ret.Split(";")[id] != "")
+                                            {
+                                                EntradaItemApp item = (from reg in itemApp where reg.id == itensUpd[id].id_app select reg).FirstOrDefault();
+                                                item.int_sinc = 1;
+                                                item.id_server = Convert.ToInt64(str_ret.Split(";")[id]);
+                                                itemApp_ret.Add(item);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                tran.Rollback();
+                                throw ex;
+                            }
+                            tran.Commit();
+                        }
+                    }
+                    conn.Close();
+
+                }
+
+
+                str_ret = JsonConvert.SerializeObject(itemApp_ret);
+            }
+
+            return str_ret;
+        }
+
         public async Task<string> GravarLocal(Int64 empresa, string dados)
         {
             string str_ret = "";
@@ -999,172 +1346,6 @@ namespace WebAppServer.Repositories
             }
             return str_ret;
         }
-        /*
-                 public async Task<string> GravarPedido(Int64 empresa, string dados)
-        {
-            string str_ret = "";
-            string str_operacao = "";
-            Int64 id_pedido = 0;
-            PedidoApp pedido = new PedidoApp();
-            List<PedidoApp> lst_pedApp = new List<PedidoApp>();
-            List<Pedido> pedidosUpd = new List<Pedido>();
-            List<Pedido> pedidosIns = new List<Pedido>();
-
-            if (dados.IndexOf("[") > -1)
-            {
-                lst_pedApp = JsonConvert.DeserializeObject<List<PedidoApp>>(dados);
-            }
-            else
-            {
-                pedido = JsonConvert.DeserializeObject<PedidoApp>(dados);
-            }
-            
-
-            if (pedido != null)
-            {
-                if (pedido.id_server == 0)
-                {
-                    pedidosIns.Add(new Pedido
-                    {
-                        id = pedido.id_server,
-                        id_empresa = empresa,
-                        id_localcli = pedido.id_localcli,
-                        dtm_pedido = pedido.dtm_pedido,
-                        dtm_pagto = pedido.dtm_pagto,
-                        dtm_cancel = pedido.dtm_cancel,
-                        int_qtd_item = pedido.int_qtd_item,
-                        dbl_val_tot = pedido.dbl_val_tot,
-                        dbl_val_desc = pedido.dbl_val_desc,
-                        dbl_val_liq = pedido.dbl_val_liq,
-                        dbl_val_pag = pedido.dbl_val_pag,
-                        str_obs = pedido.str_obervacao,
-                        int_situacao = pedido.int_situacao, //0 - Aberto / 1 - Confirmado / 2 - Entregue Parcial / 3 - Entregue total / 4 - Pago parcialmente / 5 - Pago total / 9 - Cancelado
-                        id_usuario = pedido.id_usuario,
-                        id_app = pedido.id,
-                        id_user_man = pedido.id_usuario
-                    });
-                }
-                else
-                {
-                    pedidosUpd.Add(new Pedido
-                    {
-                        id = pedido.id_server,
-                        id_empresa = empresa,
-                        id_localcli = pedido.id_localcli,
-                        dtm_pedido = pedido.dtm_pedido,
-                        dtm_pagto = pedido.dtm_pagto,
-                        dtm_cancel = pedido.dtm_cancel,
-                        int_qtd_item = pedido.int_qtd_item,
-                        dbl_val_tot = pedido.dbl_val_tot,
-                        dbl_val_desc = pedido.dbl_val_desc,
-                        dbl_val_liq = pedido.dbl_val_liq,
-                        dbl_val_pag = pedido.dbl_val_pag,
-                        str_obs = pedido.str_obervacao,
-                        int_situacao = pedido.int_situacao, //0 - Aberto / 1 - Confirmado / 2 - Entregue Parcial / 3 - Entregue total / 4 - Pago parcialmente / 5 - Pago total / 9 - Cancelado
-                        id_usuario = pedido.id_usuario,
-                        id_app = pedido.id,
-                        id_user_man = pedido.id_usuario
-                    });
-                }
-            }
-            else
-            {
-                if (lst_pedApp.Count > 0)
-                {
-                    foreach(var item in lst_pedApp)
-                    {
-                        if (item.id_server == 0)
-                        {
-                            pedidosIns.Add(new Pedido
-                            {
-                                id = item.id_server,
-                                id_empresa = empresa,
-                                id_localcli = item.id_localcli,
-                                dtm_pedido = item.dtm_pedido,
-                                dtm_pagto = item.dtm_pagto,
-                                dtm_cancel = item.dtm_cancel,
-                                int_qtd_item = item.int_qtd_item,
-                                dbl_val_tot = item.dbl_val_tot,
-                                dbl_val_desc = item.dbl_val_desc,
-                                dbl_val_liq = item.dbl_val_liq,
-                                dbl_val_pag = item.dbl_val_pag,
-                                str_obs = item.str_obervacao,
-                                int_situacao = item.int_situacao, //0 - Aberto / 1 - Confirmado / 2 - Iniciado / 3 - Finalizado / 4 - Entregue Parcial / 5 - Entregue total / 6 - Pago parcialmente / 7 - Pago total / 9 - Cancelado
-                                id_usuario = item.id_usuario,
-                                id_app = item.id,
-                                id_user_man = item.id_usuario
-                            });
-                        }
-                        else
-                        {
-                            pedidosUpd.Add(new Pedido
-                            {
-                                id = item.id_server,
-                                id_empresa = empresa,
-                                id_localcli = item.id_localcli,
-                                dtm_pedido = item.dtm_pedido,
-                                dtm_pagto = item.dtm_pagto,
-                                dtm_cancel = item.dtm_cancel,
-                                int_qtd_item = item.int_qtd_item,
-                                dbl_val_tot = item.dbl_val_tot,
-                                dbl_val_desc = item.dbl_val_desc,
-                                dbl_val_liq = item.dbl_val_liq,
-                                dbl_val_pag = item.dbl_val_pag,
-                                str_obs = item.str_obervacao,
-                                int_situacao = item.int_situacao, //0 - Aberto / 1 - Confirmado / 2 - Iniciado / 3 - Finalizado / 4 - Entregue Parcial / 5 - Entregue total / 6 - Pago parcialmente / 7 - Pago total / 9 - Cancelado
-                                id_usuario = item.id_usuario,
-                                id_app = item.id,
-                                id_user_man = item.id_usuario
-                            });
-                        }
-
-                    }
-                }
-            }
-
-            if (pedidosIns.Count > 0 || pedidosUpd.Count > 0)
-            {
-                string str_conn = configDB.ConnectString;
-
-                using (SqlConnection conn = new SqlConnection(str_conn))
-                {
-                    conn.Open();
-
-                    using (SqlTransaction tran = conn.BeginTransaction())
-                    {
-                        try
-                        {
-                            //Inclusões
-                            if (pedidosIns.Count > 0)
-                            {
-                                id_pedido = Convert.ToInt64(repData.ManutencaoTabela<Pedido>("I", pedidosIns, "ntv_tbl_pedido", conn, tran).Split(";")[0]);
-                                pedido.id_server = id_pedido;
-                                str_ret = JsonConvert.SerializeObject(pedido);
-                            }
-
-                        }
-                        catch (Exception ex)
-                        {
-                            tran.Rollback();
-                            conn.Close();
-                            throw ex;
-                        }
-
-                        tran.Commit();
-                    }
-                    conn.Close();
-                }
-
-
-
-            }
-
-
-            return str_ret;
-        }
-
-         */
-
         public string GravarNotificacoes(Int64 empresa, Int64 usu_orig, Int64 usu_dest, string tabela, string dados)
         {
             string str_notific = "";

@@ -94,6 +94,27 @@ namespace WebAppServer.Hubs
             string str_notific = _repHub.GravarNotificacoes(Convert.ToInt64(empresa), Convert.ToInt64(user), str_notifica);
         }
 
+        public async Task SendEntrada(string empresa, string userID, string userIDapp, string str_entrada, string str_itens)
+        {
+            string str_notEnt = "";
+            string str_notItens = "";
+
+            //Grava a entrada no servidor e retorna com o ID
+            str_entrada = await _repHub.GravarEntrada(Convert.ToInt64(empresa), str_entrada);
+            str_itens = await _repHub.GravarEntradaItem(Convert.ToInt64(empresa), str_entrada, str_itens);
+
+
+            //Precisa gravar as notificações para quem chamou para saber se recebeu a confirmação da gravação do retorno.
+            str_notEnt = _repHub.GravarNotificacoes(Convert.ToInt64(empresa), Convert.ToInt64(userID), Convert.ToInt64(userID), "ntv_tbl_entrada", str_entrada);
+            str_notItens = _repHub.GravarNotificacoes(Convert.ToInt64(empresa), Convert.ToInt64(userID), Convert.ToInt64(userID), "ntv_tbl_entrada_item", str_itens);
+
+            //Envia para o usuário que chamou
+            await Clients.Caller.SendAsync("ReceiveEntrada", userIDapp, str_entrada, str_itens, str_notEnt, str_notItens);
+
+
+            //Notificar os usuário off-line
+        }
+
         public async Task SendPedido(string empresa, string userID, string destinatario, string str_pedido, string str_itens, string str_itensCmb)
         {
             string str_notPed = "";
@@ -155,6 +176,26 @@ namespace WebAppServer.Hubs
             string str_notItens = "";
             string str_notItensCmb = "";
             UsuarioHub dest = JsonConvert.DeserializeObject<UsuarioHub>(destinatario);
+
+        }
+
+        public async Task SendEstoque(string empresa, string str_produto)
+        {
+            string str_ret = "";
+
+            if (str_produto.Length > 0)
+            {
+                //Grava o pedido no servidor e retorna com o ID
+                str_ret = await _repHub.AtualizaEstoqueProduto(Convert.ToInt64(empresa), str_produto);
+            }
+            else
+            {
+                //Caso não tenha enviado produto será um download do estoque
+                str_produto = await _repHub.CarregaEstoque(Convert.ToInt64(empresa));
+            }
+
+            //Envia para todos os usuário
+            await Clients.OthersInGroup(empresa).SendAsync("ReceiveEstoque", str_produto);
 
         }
 
