@@ -59,6 +59,10 @@ namespace WebAppServer.Repositories
                                             str_tabela = "Empresa";
                                             break;
 
+                                        case "ntv_tbl_empresa_config":
+                                            str_tabela = "EmpresaConfig";
+                                            break;
+
                                         case "ntv_tbl_formapag":
                                             str_tabela = "FormaPag";
                                             break;
@@ -203,6 +207,10 @@ namespace WebAppServer.Repositories
                         {
                             case "Empresa":
                                 str_proc = "ntv_p_sel_tbl_empresa";
+                                break;
+
+                            case "EmpresaConfig":
+                                str_proc = "ntv_p_sel_tbl_empresa_config";
                                 break;
 
                             case "FormaPag":
@@ -381,10 +389,6 @@ namespace WebAppServer.Repositories
 
             DataTable dtt_reg = new DataTable();
 
-            List<EmpresaApp> empApp = new List<EmpresaApp>();
-            //List<Empresa> empU = new List<Empresa>();
-            //List<Empresa> empI = new List<Empresa>();            
-
             using (SqlConnection conn = new SqlConnection(configDB.ConnectString))
             {
                 conn.Open();
@@ -395,6 +399,7 @@ namespace WebAppServer.Repositories
                         switch (entity)
                         {
                             case "Empresa":
+                                List<EmpresaApp> empApp = new List<EmpresaApp>();
                                 empApp = JsonConvert.DeserializeObject<List<EmpresaApp>>(data.Dados.ToString().Replace("','", "\",\"").Replace("':'", "\":\"").Replace("':", "\":").Replace(",'", ",\"").Replace("{'", "{\"").Replace("'}", "\"}"));
 
                                 str_operacao = (empApp[0].id_server > 0 ? "U":"I");
@@ -421,6 +426,45 @@ namespace WebAppServer.Repositories
                                     });
                                 }
                                 str_ret = repData.ManutencaoTabela<Empresa>(str_operacao, emp, "ntv_tbl_empresa", conn, tran);
+                                dyn_ret = str_ret;
+                                break;
+
+                            case "EmpresaConfig":
+                                List<EmpresaConfigApp> empAppC = new List<EmpresaConfigApp>();
+                                empAppC = JsonConvert.DeserializeObject<List<EmpresaConfigApp>>(data.Dados.ToString().Replace("','", "\",\"").Replace("':'", "\":\"").Replace("':", "\":").Replace(",'", ",\"").Replace("{'", "{\"").Replace("'}", "\"}"));
+
+                                //Verifica se o registro já existe
+                                dtt_reg = repData.ConsultaGenericaDtt("[{ \"nome\":\"id\", \"valor\":\"" + empAppC[0].id_server.ToString() + "\", \"tipo\":\"Int64\"}," +
+                                                            "{ \"nome\":\"download\", \"valor\":\"0\", \"tipo\":\"Int16\"}]"
+                                                            , "ntv_p_sel_tbl_empresa_config", conn, tran);
+                                if (dtt_reg == null || dtt_reg.Rows.Count == 0)
+                                {
+                                    str_operacao = "I";
+                                }
+                                else
+                                {
+                                    str_operacao = "U";
+                                }
+
+                                List<EmpresaConfig> empC = new List<EmpresaConfig>();
+
+                                foreach (EmpresaConfigApp e in empAppC)
+                                {
+                                    empC.Add(new EmpresaConfig
+                                    {
+                                        id_empresa = e.id_server,
+                                        str_impressora = e.str_impressora,
+                                        str_imp_ped = e.str_imp_ped,
+                                        str_imp_conta = e.str_imp_conta,
+                                        str_conf_rec = e.str_conf_rec,
+                                        str_conf_pronto = e.str_conf_pronto,
+                                        str_conf_ent = e.str_conf_ent,
+                                        dbl_perc_serv = e.dbl_perc_serv,
+                                        id_app = e.id_empresa,
+                                        id_user_man = user
+                                    });
+                                }
+                                str_ret = repData.ManutencaoTabela<EmpresaConfig>(str_operacao, empC, "ntv_tbl_empresa_config", conn, tran);
                                 dyn_ret = str_ret;
                                 break;
 
@@ -1263,6 +1307,8 @@ namespace WebAppServer.Repositories
                                                 int_qtditem = locCliApp[i].int_qtditem,
                                                 dbl_val_tot = locCliApp[i].dbl_val_tot,
                                                 dbl_val_desc = locCliApp[i].dbl_val_desc,
+                                                dbl_val_acres = locCliApp[i].dbl_val_acres,
+                                                dbl_val_taxa = locCliApp[i].dbl_val_taxa,
                                                 dbl_val_liq = locCliApp[i].dbl_val_liq,
                                                 dbl_val_pag = locCliApp[i].dbl_val_pag,
                                                 dtm_inclusao = locCliApp[i].dtm_inclusao,
@@ -1288,6 +1334,8 @@ namespace WebAppServer.Repositories
                                                 int_qtditem = locCliApp[i].int_qtditem,
                                                 dbl_val_tot = locCliApp[i].dbl_val_tot,
                                                 dbl_val_desc = locCliApp[i].dbl_val_desc,
+                                                dbl_val_acres = locCliApp[i].dbl_val_acres,
+                                                dbl_val_taxa = locCliApp[i].dbl_val_taxa,
                                                 dbl_val_liq = locCliApp[i].dbl_val_liq,
                                                 dbl_val_pag = locCliApp[i].dbl_val_pag,
                                                 dtm_inclusao = locCliApp[i].dtm_inclusao,
@@ -1314,6 +1362,8 @@ namespace WebAppServer.Repositories
                                             int_qtditem = locCliApp[i].int_qtditem,
                                             dbl_val_tot = locCliApp[i].dbl_val_tot,
                                             dbl_val_desc = locCliApp[i].dbl_val_desc,
+                                            dbl_val_acres = locCliApp[i].dbl_val_acres,
+                                            dbl_val_taxa = locCliApp[i].dbl_val_taxa,
                                             dbl_val_liq = locCliApp[i].dbl_val_liq,
                                             dbl_val_pag = locCliApp[i].dbl_val_pag,
                                             dtm_inclusao = locCliApp[i].dtm_inclusao,

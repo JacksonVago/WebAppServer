@@ -15,6 +15,8 @@ namespace WebAppServer.Models
         public Int16 int_qtditem { get; set; }
         public double dbl_val_tot { get; set; }
         public double dbl_val_desc { get; set; }
+        public double dbl_val_acres { get; set; }
+        public double dbl_val_taxa { get; set; }
         public double dbl_val_liq { get; set; }
         public double dbl_val_pag { get; set; }
         public DateTime dtm_inclusao { get; set; }
