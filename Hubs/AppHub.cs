@@ -115,17 +115,19 @@ namespace WebAppServer.Hubs
             //Notificar os usuário off-line
         }
 
-        public async Task SendPedido(string empresa, string userID, string destinatario, string str_pedido, string str_itens, string str_itensCmb)
+        public async Task SendPedido(string empresa, string userID, string destinatario, string str_pedido, string str_itens, string str_itensCmb, string str_itensAdic)
         {
             string str_notPed = "";
             string str_notItens = "";
             string str_notItensCmb = "";
+            string str_notItensAdic = "";
             UsuarioHub dest = JsonConvert.DeserializeObject<UsuarioHub>(destinatario);
 
             //Grava o pedido no servidor e retorna com o ID
             str_pedido = await _repHub.GravarPedido(Convert.ToInt64(empresa), str_pedido);
             str_itens = await _repHub.GravarPedidoItem(Convert.ToInt64(empresa), str_itens);
             str_itensCmb = await _repHub.GravarPedidoItemCombo(Convert.ToInt64(empresa), str_itensCmb);
+            str_itensAdic = await _repHub.GravarPedidoItemAdic(Convert.ToInt64(empresa), str_itensAdic);
 
             //Precisa gravar as notificações para poder aguardar a confirmação de recebimento pelo administrador/destinatário
             if (Convert.ToInt64(userID) == dest.id_usu_dest) //Administrador confirmando o pedido pois o USERID é o adm
@@ -133,6 +135,7 @@ namespace WebAppServer.Hubs
                 str_notPed = _repHub.GravarNotificacoes(Convert.ToInt64(empresa), Convert.ToInt64(userID), dest.id_usu_orig, "ntv_tbl_pedido", str_pedido);
                 str_notItens = _repHub.GravarNotificacoes(Convert.ToInt64(empresa), Convert.ToInt64(userID), dest.id_usu_orig, "ntv_tbl_pedidoitem", str_itens);
                 str_notItensCmb = _repHub.GravarNotificacoes(Convert.ToInt64(empresa), Convert.ToInt64(userID), dest.id_usu_orig, "ntv_tbl_pedidoitemcombo", str_itensCmb);
+                str_notItensAdic = _repHub.GravarNotificacoes(Convert.ToInt64(empresa), Convert.ToInt64(userID), dest.id_usu_orig, "ntv_tbl_pedidoitemadic", str_itensAdic);
             }
             else
             {
@@ -151,20 +154,22 @@ namespace WebAppServer.Hubs
                 str_notPed = _repHub.GravarNotificacoes(Convert.ToInt64(empresa), Convert.ToInt64(userID), dest.id_usu_dest, "ntv_tbl_pedido", str_pedido);
                 str_notItens = _repHub.GravarNotificacoes(Convert.ToInt64(empresa), Convert.ToInt64(userID), dest.id_usu_dest, "ntv_tbl_pedidoitem", str_itens);
                 str_notItensCmb = _repHub.GravarNotificacoes(Convert.ToInt64(empresa), Convert.ToInt64(userID), dest.id_usu_orig, "ntv_tbl_pedidoitemcombo", str_itensCmb);
+                str_notItensAdic = _repHub.GravarNotificacoes(Convert.ToInt64(empresa), Convert.ToInt64(userID), dest.id_usu_orig, "ntv_tbl_pedidoitemadic", str_itensAdic);
             }
 
             //Envia para o administrador
             //await Clients.Client(dest.str_idconnect).SendAsync("ReceivePedido", destinatario, str_pedido, str_itens, str_itensCmb, str_notPed, str_notItens, str_notItensCmb);
             //Envia para todos os usuário
-            await Clients.OthersInGroup(empresa).SendAsync("ReceivePedido", destinatario, str_pedido, str_itens, str_itensCmb, str_notPed, str_notItens, str_notItensCmb);
+            await Clients.OthersInGroup(empresa).SendAsync("ReceivePedido", destinatario, str_pedido + "|||" + str_itens + "|||" + str_itensCmb + "|||" + str_itensAdic, str_notPed + "|||" + str_notItens + "|||" + str_notItensCmb + "|||" + str_notItensAdic);
 
             //Precisa gravar as notificações para quem chamou para saber se recebeu a confirmação da gravação do retorno.
             str_notPed = _repHub.GravarNotificacoes(Convert.ToInt64(empresa), Convert.ToInt64(userID), Convert.ToInt64(userID), "ntv_tbl_pedido", str_pedido);
             str_notItens = _repHub.GravarNotificacoes(Convert.ToInt64(empresa), Convert.ToInt64(userID), Convert.ToInt64(userID), "ntv_tbl_pedidoitem", str_itens);
             str_notItensCmb = _repHub.GravarNotificacoes(Convert.ToInt64(empresa), Convert.ToInt64(userID), dest.id_usu_orig, "ntv_tbl_pedidoitemcombo", str_itensCmb);
+            str_notItensAdic = _repHub.GravarNotificacoes(Convert.ToInt64(empresa), Convert.ToInt64(userID), dest.id_usu_orig, "ntv_tbl_pedidoitemadic", str_itensAdic);
 
             //Envia para o usuário que chamou
-            await Clients.Caller.SendAsync("ReceivePedido", destinatario, str_pedido, str_itens, str_itensCmb, str_notPed, str_notItens, str_notItensCmb);
+            await Clients.Caller.SendAsync("ReceivePedido", destinatario, str_pedido + "|||" + str_itens + "|||" + str_itensCmb + "|||" + str_itensAdic, str_notPed + "|||" + str_notItens + "|||" + str_notItensCmb + "|||" + str_notItensAdic);
 
 
             //Notificar os usuário off-line

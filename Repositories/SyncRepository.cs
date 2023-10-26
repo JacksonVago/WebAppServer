@@ -75,6 +75,10 @@ namespace WebAppServer.Repositories
                                             str_tabela = "ItemCombo";
                                             break;
 
+                                        case "ntv_tbl_itemadicional":
+                                            str_tabela = "ItemAdicional";
+                                            break;
+
                                         case "ntv_tbl_local":
                                             str_tabela = "Local";
                                             break;
@@ -97,6 +101,10 @@ namespace WebAppServer.Repositories
 
                                         case "ntv_tbl_pedidoitemcombo":
                                             str_tabela = "PedidoItemCombo";
+                                            break;
+
+                                        case "ntv_tbl_pedidoitemcomboadic":
+                                            str_tabela = "PedidoItemAdic";
                                             break;
 
                                         case "ntv_tbl_produto":
@@ -225,6 +233,10 @@ namespace WebAppServer.Repositories
                                 str_proc = "ntv_p_sel_tbl_itemcombo";
                                 break;
 
+                            case "ItemAdicional":
+                                str_proc = "ntv_p_sel_tbl_itemadicional";
+                                break;
+
                             case "Local":
                                 str_proc = "ntv_p_sel_tbl_local";
                                 break;
@@ -247,6 +259,10 @@ namespace WebAppServer.Repositories
 
                             case "PedidoItemCombo":
                                 str_proc = "ntv_p_sel_tbl_pedidoitemcombo";
+                                break;
+
+                            case "PedidoItemAdic":
+                                str_proc = "ntv_p_sel_tbl_pedidoitemadic";
                                 break;
 
                             case "Produto":
@@ -840,6 +856,108 @@ namespace WebAppServer.Repositories
                                             if (str_ret.Split(";")[id] != "")
                                             {
                                                 str_ret_aux += cmbUpd[id].id_app + ":" + str_ret.Split(";")[id] + ";";
+                                            }
+                                        }
+                                        str_ret_fim += str_ret_aux;
+                                    }
+                                }
+                                dyn_ret = str_ret_fim;
+
+                                break;
+
+                            case "ItemAdicional":
+                                List<ItemAdicionalApp> iAdicApp = new List<ItemAdicionalApp>();
+                                iAdicApp = JsonConvert.DeserializeObject<List<ItemAdicionalApp>>(data.Dados.ToString().Replace("','", "\",\"").Replace("':'", "\":\"").Replace("':", "\":").Replace(",'", ",\"").Replace("{'", "{\"").Replace("'}", "\"}"));
+
+                                List<ItemAdicional> AdicInc = new List<ItemAdicional>();
+                                List<ItemAdicional> AdicUpd = new List<ItemAdicional>();
+
+                                for (int i = 0; i < iAdicApp.Count; i++)
+                                {
+
+                                    dtt_reg.Clear();
+
+                                    if (iAdicApp[i].id_server == 0)
+                                    {
+                                        //Verifica se o registro já existe
+                                        dtt_reg = repData.ConsultaGenericaDtt("[{ \"nome\":\"id\", \"valor\":\"0\", \"tipo\":\"Int64\"}," +
+                                                                    "{ \"nome\":\"id_empresa\", \"valor\":\"" + company.ToString() + "\", \"tipo\":\"Int64\"}," +
+                                                                    "{ \"nome\":\"situacao\", \"valor\":\"0\", \"tipo\":\"Int16\"}," +
+                                                                    "{ \"nome\":\"download\", \"valor\":\"0\", \"tipo\":\"Int16\"}," +
+                                                                    "{ \"nome\":\"id_app\", \"valor\":\"" + iAdicApp[i].id.ToString() + "\", \"tipo\":\"Int64\"}]", "ntv_p_sel_tbl_itemadicional", conn, tran);
+                                        if (dtt_reg == null || dtt_reg.Rows.Count == 0)
+                                        {
+                                            AdicInc.Add(new ItemAdicional
+                                            {
+                                                id = 0,
+                                                id_empresa = company,
+                                                id_produto = iAdicApp[i].id_produto,
+                                                id_prd_adicional = iAdicApp[i].id_prd_adicional,
+                                                dbl_precounit = iAdicApp[i].dbl_precounit,
+                                                id_app = iAdicApp[i].id,
+                                                id_user_man = user
+                                            });
+                                        }
+                                        else
+                                        {
+                                            AdicUpd.Add(new ItemAdicional
+                                            {
+                                                id = Convert.ToInt64(dtt_reg.Rows[0]["id"]),
+                                                id_empresa = company,
+                                                id_produto = iAdicApp[i].id_produto,
+                                                id_prd_adicional = iAdicApp[i].id_prd_adicional,
+                                                dbl_precounit = iAdicApp[i].dbl_precounit,
+                                                id_app = iAdicApp[i].id,
+                                                id_user_man = user
+                                            });
+
+                                        }
+                                    }
+                                    else
+                                    {
+                                        AdicUpd.Add(new ItemAdicional
+                                        {
+                                            id = iAdicApp[i].id_server,
+                                            id_empresa = company,
+                                            id_produto = iAdicApp[i].id_produto,
+                                            id_prd_adicional = iAdicApp[i].id_prd_adicional,
+                                            dbl_precounit = iAdicApp[i].dbl_precounit,
+                                            id_app = iAdicApp[i].id,
+                                            id_user_man = user
+                                        });
+
+                                    }
+                                }
+
+                                //Inclusões
+                                if (AdicInc.Count > 0)
+                                {
+                                    str_ret = repData.ManutencaoTabela<ItemAdicional>("I", AdicInc, "ntv_tbl_itemadicional", conn, tran);
+                                    if (str_ret.Split(";").Count() > 0)
+                                    {
+                                        for (int id = 0; id < str_ret.Split(";").Count(); id++)
+                                        {
+                                            if (str_ret.Split(";")[id] != "")
+                                            {
+                                                str_ret_aux += AdicInc[id].id_app + ":" + str_ret.Split(";")[id] + ";";
+                                            }
+                                        }
+                                        str_ret_fim += str_ret_aux;
+                                    }
+                                }
+
+                                //Alterações
+                                if (AdicUpd.Count() > 0)
+                                {
+                                    str_ret_aux = "";
+                                    str_ret = repData.ManutencaoTabela<ItemAdicional>("U", AdicUpd, "ntv_tbl_itemadicional", conn, tran);
+                                    if (str_ret.Split(";").Count() > 0)
+                                    {
+                                        for (int id = 0; id < str_ret.Split(";").Count(); id++)
+                                        {
+                                            if (str_ret.Split(";")[id] != "")
+                                            {
+                                                str_ret_aux += AdicUpd[id].id_app + ":" + str_ret.Split(";")[id] + ";";
                                             }
                                         }
                                         str_ret_fim += str_ret_aux;
@@ -1585,6 +1703,8 @@ namespace WebAppServer.Repositories
                                                 dbl_desconto = pedIApp[i].dbl_desconto,
                                                 dbl_tot_liq = pedIApp[i].dbl_tot_liq,
                                                 int_situacao = pedIApp[i].int_situacao,
+                                                str_combo = pedIApp[i].str_combo,
+                                                str_obs = pedIApp[i].str_obs,
                                                 id_usuario = pedIApp[i].id_usuario,
                                                 id_app = pedIApp[i].id,
                                                 id_user_man = user
@@ -1604,6 +1724,8 @@ namespace WebAppServer.Repositories
                                                 dbl_desconto = pedIApp[i].dbl_desconto,
                                                 dbl_tot_liq = pedIApp[i].dbl_tot_liq,
                                                 int_situacao = pedIApp[i].int_situacao,
+                                                str_combo = pedIApp[i].str_combo,
+                                                str_obs = pedIApp[i].str_obs,
                                                 id_usuario = pedIApp[i].id_usuario,
                                                 id_app = pedIApp[i].id,
                                                 id_user_man = user
@@ -1625,6 +1747,8 @@ namespace WebAppServer.Repositories
                                             dbl_desconto = pedIApp[i].dbl_desconto,
                                             dbl_tot_liq = pedIApp[i].dbl_tot_liq,
                                             int_situacao = pedIApp[i].int_situacao,
+                                            str_combo = pedIApp[i].str_combo,
+                                            str_obs = pedIApp[i].str_obs,
                                             id_usuario = pedIApp[i].id_usuario,
                                             id_app = pedIApp[i].id,
                                             id_user_man = user
@@ -1779,6 +1903,122 @@ namespace WebAppServer.Repositories
                                             if (str_ret.Split(";")[id] != "")
                                             {
                                                 str_ret_aux += pediCmbUpd[id].id_app + ":" + str_ret.Split(";")[id] + ";";
+                                            }
+                                        }
+                                        str_ret_fim += str_ret_aux;
+                                    }
+                                }
+                                dyn_ret = str_ret_fim;
+
+                                break;
+
+                            case "PedidoItemAdic":
+                                List<PedidoItemAdicApp> pedIAddApp = new List<PedidoItemAdicApp>();
+                                pedIAddApp = JsonConvert.DeserializeObject<List<PedidoItemAdicApp>>(data.Dados.ToString().Replace("','", "\",\"").Replace("':'", "\":\"").Replace("':", "\":").Replace(",'", ",\"").Replace("{'", "{\"").Replace("'}", "\"}"));
+                                List<PedidoItemAdic> pediAddInc = new List<PedidoItemAdic>();
+                                List<PedidoItemAdic> pediAddUpd = new List<PedidoItemAdic>();
+
+                                for (int i = 0; i < pedIAddApp.Count; i++)
+                                {
+
+                                    dtt_reg.Clear();
+
+                                    if (pedIAddApp[i].id_server == 0)
+                                    {
+
+                                        //Verifica se o registro já existe
+                                        dtt_reg = repData.ConsultaGenericaDtt("[{ \"nome\":\"id\", \"valor\":\"0\", \"tipo\":\"Int64\"}," +
+                                                                    "{ \"nome\":\"id_empresa\", \"valor\":\"" + company.ToString() + "\", \"tipo\":\"Int64\"}," +
+                                                                    "{ \"nome\":\"dtm_ini\", \"valor\":\"2001-01-01\", \"tipo\":\"DateTime\"}," +
+                                                                    "{ \"nome\":\"dtm_fim\", \"valor\":\"2001-01-01\", \"tipo\":\"DateTime\"}," +
+                                                                    "{ \"nome\":\"id_usuario\", \"valor\":\"" + pedIAddApp[i].id_usuario.ToString() + "\", \"tipo\":\"Int64\"}," +
+                                                                    "{ \"nome\":\"download\", \"valor\":\"0\", \"tipo\":\"Int16\"}," +
+                                                                    "{ \"nome\":\"id_app\", \"valor\":\"" + pedIAddApp[i].id.ToString() + "\", \"tipo\":\"Int64\"}]", "ntv_p_sel_tbl_pedidoitemadic", conn, tran);
+                                        if (dtt_reg == null || dtt_reg.Rows.Count == 0)
+                                        {
+                                            pediAddInc.Add(new PedidoItemAdic
+                                            {
+                                                id = 0,
+                                                id_empresa = company,
+                                                id_pedido = pedIAddApp[i].id_pedido,
+                                                id_ped_item = pedIAddApp[i].id_ped_item,
+                                                id_produto = pedIAddApp[i].id_produto,
+                                                id_prod_adic = pedIAddApp[i].id_prod_adic,
+                                                int_qtd_comp = pedIAddApp[i].int_qtd_comp,
+                                                dbl_val_unit = pedIAddApp[i].dbl_val_unit,
+                                                id_usuario = pedIAddApp[i].id_usuario,
+                                                id_app = pedIAddApp[i].id,
+                                                id_user_man = user
+                                            });
+                                        }
+                                        else
+                                        {
+                                            pediAddUpd.Add(new PedidoItemAdic
+                                            {
+                                                id = Convert.ToInt64(dtt_reg.Rows[0]["id"]),
+                                                id_empresa = company,
+                                                id_pedido = pedIAddApp[i].id_pedido,
+                                                id_ped_item = pedIAddApp[i].id_ped_item,
+                                                id_produto = pedIAddApp[i].id_produto,
+                                                id_prod_adic = pedIAddApp[i].id_prod_adic,
+                                                int_qtd_comp = pedIAddApp[i].int_qtd_comp,
+                                                dbl_val_unit = pedIAddApp[i].dbl_val_unit,
+                                                id_usuario = pedIAddApp[i].id_usuario,
+                                                id_app = pedIAddApp[i].id,
+                                                id_user_man = user
+                                            });
+
+                                        }
+                                    }
+                                    else
+                                    {
+                                        pediAddUpd.Add(new PedidoItemAdic
+                                        {
+                                            id = pedIAddApp[i].id_server,
+                                            id_empresa = company,
+                                            id_pedido = pedIAddApp[i].id_pedido,
+                                            id_ped_item = pedIAddApp[i].id_ped_item,
+                                            id_produto = pedIAddApp[i].id_produto,
+                                            id_prod_adic = pedIAddApp[i].id_prod_adic,
+                                            int_qtd_comp = pedIAddApp[i].int_qtd_comp,
+                                            dbl_val_unit = pedIAddApp[i].dbl_val_unit,
+                                            id_usuario = pedIAddApp[i].id_usuario,
+                                            id_app = pedIAddApp[i].id,
+                                            id_user_man = user
+                                        });
+
+                                    }
+                                }
+
+                                //Inclusões
+                                if (pediAddInc.Count > 0)
+                                {
+                                    str_ret = repData.ManutencaoTabela<PedidoItemAdic>("I", pediAddInc, "ntv_tbl_pedidoitemadic", conn, tran);
+                                    if (str_ret.Split(";").Count() > 0)
+                                    {
+                                        for (int id = 0; id < str_ret.Split(";").Count(); id++)
+                                        {
+                                            if (str_ret.Split(";")[id] != "")
+                                            {
+                                                str_ret_aux += pediAddInc[id].id_app + ":" + str_ret.Split(";")[id] + ";";
+                                            }
+                                        }
+                                        str_ret_fim += str_ret_aux;
+                                    }
+                                }
+
+                                //Alterações
+                                if (pediAddUpd.Count() > 0)
+                                {
+                                    str_ret_aux = "";
+                                    str_ret = repData.ManutencaoTabela<PedidoItemAdic>("U", pediAddUpd, "ntv_tbl_pedidoitemadic", conn, tran);
+                                    if (str_ret.Split(";").Count() > 0)
+                                    {
+                                        for (int id = 0; id < str_ret.Split(";").Count(); id++)
+                                        {
+                                            if (str_ret.Split(";")[id] != "")
+                                            {
+                                                str_ret_aux += pediAddUpd[id].id_app + ":" + str_ret.Split(";")[id] + ";";
                                             }
                                         }
                                         str_ret_fim += str_ret_aux;

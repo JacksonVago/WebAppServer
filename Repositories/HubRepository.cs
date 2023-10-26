@@ -819,6 +819,161 @@ namespace WebAppServer.Repositories
             return str_ret;
         }
 
+        public async Task<string> GravarPedidoItemAdic(Int64 empresa, string dados)
+        {
+            DataTable dtt_reg = new DataTable();
+            string str_ret = "";
+            string str_id = "";
+            string str_operacao = "";
+
+            List<PedidoItemAdicApp> itemApp = new List<PedidoItemAdicApp>();
+            List<PedidoItemAdicApp> itemApp_ret = new List<PedidoItemAdicApp>();
+
+            List<PedidoItemAdic> itens = new List<PedidoItemAdic>();
+            List<PedidoItemAdic> itensUpd = new List<PedidoItemAdic>();
+            List<PedidoItemAdic> itensIns = new List<PedidoItemAdic>();
+
+            itemApp = JsonConvert.DeserializeObject<List<PedidoItemAdicApp>>((dados.Contains("[") ? dados : "[" + dados + "]"));
+
+
+            if (itemApp != null && itemApp.Count > 0)
+            {
+                string str_conn = configDB.ConnectString;
+
+                using (SqlConnection conn = new SqlConnection(str_conn))
+                {
+                    conn.Open();
+                    for (int i = 0; i < itemApp.Count; i++)
+                    {
+                        if (itemApp[i].id_server == 0)
+                        {
+                            //Verifica se o registro já existe
+                            dtt_reg = repData.ConsultaGenericaDtt("[{ \"nome\":\"id\", \"valor\":\"0\", \"tipo\":\"Int64\"}," +
+                                                        "{ \"nome\":\"id_empresa\", \"valor\":\"" + empresa.ToString() + "\", \"tipo\":\"Int64\"}," +
+                                                        "{ \"nome\":\"dtm_ini\", \"valor\":\"2001-01-01\", \"tipo\":\"DateTime\"}," +
+                                                        "{ \"nome\":\"dtm_fim\", \"valor\":\"2001-01-01\", \"tipo\":\"DateTime\"}," +
+                                                        "{ \"nome\":\"id_usuario\", \"valor\":\"" + itemApp[i].id_usuario.ToString() + "\", \"tipo\":\"Int64\"}," +
+                                                        "{ \"nome\":\"download\", \"valor\":\"0\", \"tipo\":\"Int16\"}," +
+                                                        "{ \"nome\":\"id_app\", \"valor\":\"" + itemApp[i].id.ToString() + "\", \"tipo\":\"Int64\"}]", "ntv_p_sel_tbl_pedidoitemadic", conn);
+                            if (dtt_reg == null || dtt_reg.Rows.Count == 0)
+                            {
+                                itensIns.Add(new PedidoItemAdic
+                                {
+                                    id = 0,
+                                    id_empresa = empresa,
+                                    id_pedido = itemApp[i].id_pedido,
+                                    id_ped_item = itemApp[i].id_ped_item,
+                                    id_produto = itemApp[i].id_produto,
+                                    id_prod_adic = itemApp[i].id_prod_adic,
+                                    int_qtd_comp = itemApp[i].int_qtd_comp,
+                                    dbl_val_unit = itemApp[i].dbl_val_unit,
+                                    id_usuario = itemApp[i].id_usuario,
+                                    id_app = itemApp[i].id,
+                                    id_user_man = 0
+                                });
+                            }
+                            else
+                            {
+                                itensUpd.Add(new PedidoItemAdic
+                                {
+                                    id = Convert.ToInt64(dtt_reg.Rows[0]["id"]),
+                                    id_empresa = empresa,
+                                    id_pedido = itemApp[i].id_pedido,
+                                    id_ped_item = itemApp[i].id_ped_item,
+                                    id_produto = itemApp[i].id_produto,
+                                    id_prod_adic = itemApp[i].id_prod_adic,
+                                    int_qtd_comp = itemApp[i].int_qtd_comp,
+                                    dbl_val_unit = itemApp[i].dbl_val_unit,
+                                    id_usuario = itemApp[i].id_usuario,
+                                    id_app = itemApp[i].id,
+                                    id_user_man = 0
+                                });
+
+                            }
+                        }
+                        else
+                        {
+                            itensUpd.Add(new PedidoItemAdic
+                            {
+                                id = itemApp[i].id_server,
+                                id_empresa = empresa,
+                                id_pedido = itemApp[i].id_pedido,
+                                id_ped_item = itemApp[i].id_ped_item,
+                                id_produto = itemApp[i].id_produto,
+                                id_prod_adic = itemApp[i].id_prod_adic,
+                                int_qtd_comp = itemApp[i].int_qtd_comp,
+                                dbl_val_unit = itemApp[i].dbl_val_unit,
+                                id_usuario = itemApp[i].id_usuario,
+                                id_app = itemApp[i].id,
+                                id_user_man = 0
+                            });
+                        }
+                    }
+
+                    if (itensIns.Count > 0 || itensUpd.Count > 0)
+                    {
+                        using (SqlTransaction tran = conn.BeginTransaction())
+                        {
+                            try
+                            {
+                                //Inclusões
+                                if (itensIns.Count > 0)
+                                {
+                                    str_ret = repData.ManutencaoTabela<PedidoItemAdic>("I", itensIns, "ntv_tbl_pedidoitemadic", conn, tran);
+                                    if (str_ret.Split(";").Count() > 0)
+                                    {
+                                        for (int id = 0; id < str_ret.Split(";").Count(); id++)
+                                        {
+                                            if (str_ret.Split(";")[id] != "")
+                                            {
+                                                PedidoItemAdicApp item = (from reg in itemApp where reg.id == itensIns[id].id_app select reg).FirstOrDefault();
+                                                item.int_sinc = 1;
+                                                item.id_server = Convert.ToInt64(str_ret.Split(";")[id]);
+                                                itemApp_ret.Add(item);
+
+                                            }
+                                        }
+                                    }
+                                }
+
+                                //Alterações
+                                if (itensUpd.Count() > 0)
+                                {
+                                    str_ret += repData.ManutencaoTabela<PedidoItemAdic>("U", itensUpd, "ntv_tbl_pedidoitemadic", conn, tran);
+                                    if (str_ret.Split(";").Count() > 0)
+                                    {
+                                        for (int id = 0; id < str_ret.Split(";").Count(); id++)
+                                        {
+                                            if (str_ret.Split(";")[id] != "")
+                                            {
+                                                PedidoItemAdicApp item = (from reg in itemApp where reg.id == itensUpd[id].id_app select reg).FirstOrDefault();
+                                                item.int_sinc = 1;
+                                                item.id_server = Convert.ToInt64(str_ret.Split(";")[id]);
+                                                itemApp_ret.Add(item);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                tran.Rollback();
+                                throw ex;
+                            }
+                            tran.Commit();
+                        }
+                    }
+                    conn.Close();
+
+                }
+
+
+                str_ret = JsonConvert.SerializeObject(itemApp_ret);
+            }
+
+            return str_ret;
+        }
+
         public async Task<string> GravarEntrada(Int64 empresa, string dados)
         {
             string str_ret = "";
