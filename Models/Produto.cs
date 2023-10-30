@@ -25,6 +25,7 @@ namespace WebAppServer.Models
         public Int16 int_unid_med { get; set; } // Unidade de medida 1 - Unidade / 2 - Kilograma / 3 - Litro 
         public string str_venda { get; set; }
         public string str_estoque { get; set; } //Controla estoque
+        public string str_nec_prep { get; set; } //Necessita preparo sim ou não (para direcionar o pedido para a preparação
         public DateTime dtm_inclusao { get; set; }
         public DateTime? dtm_alteracao { get; set; }
         public Int16 int_situacao { get; set; }

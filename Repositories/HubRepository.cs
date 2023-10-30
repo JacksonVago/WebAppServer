@@ -225,6 +225,7 @@ namespace WebAppServer.Repositories
                     int_unid_med = produto.int_unid_med,
                     str_venda = produto.str_venda,
                     str_estoque = produto.str_estoque,
+                    str_nec_prep = produto.str_nec_prep,
                     dtm_inclusao = produto.dtm_inclusao,
                     dtm_alteracao = produto.dtm_alteracao,
                     int_situacao = produto.int_situacao,
