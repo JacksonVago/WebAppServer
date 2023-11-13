@@ -185,7 +185,7 @@ namespace WebAppServer.Repositories
             return str_ret;
         }
 
-        public async Task<string> GravarProduto(Int64 empresa, string dados)
+        public async Task<string> GravarProduto(Int64 empresa, Int64 usuario, string dados)
         {
             string str_ret = "";
             string str_operacao = "";
@@ -230,7 +230,7 @@ namespace WebAppServer.Repositories
                     dtm_alteracao = produto.dtm_alteracao,
                     int_situacao = produto.int_situacao,
                     id_app = produto.id,
-                    id_user_man = 1
+                    id_user_man = usuario
 
                 });
 
@@ -368,7 +368,7 @@ namespace WebAppServer.Repositories
             return str_ret;
         }
 
-        public async Task<string> GravarPrdEstoque(Int64 empresa, string dados)
+        public async Task<string> GravarPrdEstoque(Int64 empresa, Int64 usuario, string dados)
         {
             string str_ret = "";
             string str_operacao = "";
@@ -397,7 +397,7 @@ namespace WebAppServer.Repositories
                     int_qtd_est = produto.int_qtd_est,
                     dtm_estoque = produto.dtm_estoque,
                     id_app = produto.id,
-                    id_user_man = 1
+                    id_user_man = usuario
 
                 });
 

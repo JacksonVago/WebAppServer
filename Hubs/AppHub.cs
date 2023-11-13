@@ -115,6 +115,7 @@ namespace WebAppServer.Hubs
             //Notificar os usuário off-line
         }
 
+        //Guarda pedido no servidor e envia para o administrador (cozinha) e grava notificações caso o usuario não esteja on-line
         public async Task SendPedido(string empresa, string userID, string destinatario, string str_pedido, string str_itens, string str_itensCmb, string str_itensAdic)
         {
             string str_notPed = "";
@@ -175,6 +176,7 @@ namespace WebAppServer.Hubs
             //Notificar os usuário off-line
         }
 
+        //COnfirma recebimento do pedido
         public async Task ConfRecPedido(string empresa, string userID, string destinatario, string str_pedido, string str_itens, string str_itensCmb)
         {
             string str_notPed = "";
@@ -184,6 +186,8 @@ namespace WebAppServer.Hubs
 
         }
 
+
+        //Atualiza apenas o campo de estoque dos produtos
         public async Task SendEstoque(string empresa, string str_produto)
         {
             string str_ret = "";
@@ -209,19 +213,19 @@ namespace WebAppServer.Hubs
             string str_notProd = "";
 
             //Grava o pedido no servidor e retorna com o ID
-            str_produto = await _repHub.GravarProduto(Convert.ToInt64(empresa), str_produto);
+            str_produto = await _repHub.GravarProduto(Convert.ToInt64(empresa), Convert.ToInt64(userOrig), str_produto);
 
             //Envia para todos os usuário
             await Clients.OthersInGroup(empresa).SendAsync("ReceiveProduto", str_produto);
 
         }
 
-        public async Task SendPrdEstoque(string empresa, string str_produto)
+        public async Task SendPrdEstoque(string empresa, string userOrig, string str_produto)
         {
             string str_notProd = "";
 
             //Grava o pedido no servidor e retorna com o ID
-            str_produto = await _repHub.GravarPrdEstoque(Convert.ToInt64(empresa), str_produto);
+            str_produto = await _repHub.GravarPrdEstoque(Convert.ToInt64(empresa), Convert.ToInt64(userOrig), str_produto);
 
             //Envia para todos os usuário
             await Clients.OthersInGroup(empresa).SendAsync("ReceivePrdEstoque", str_produto);
