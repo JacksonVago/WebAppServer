@@ -63,20 +63,32 @@ namespace WebAppServer.Repositories
                                             str_tabela = "EmpresaConfig";
                                             break;
 
+                                        case "ntv_tbl_entrada":
+                                            str_tabela = "Entrada";
+                                            break;
+
+                                        case "ntv_tbl_entrada_item":
+                                            str_tabela = "EntradaItem";
+                                            break;
+
                                         case "ntv_tbl_formapag":
                                             str_tabela = "FormaPag";
+                                            break;
+
+                                        case "ntv_tbl_foto_estoque":
+                                            str_tabela = "FotoEst";
                                             break;
 
                                         case "ntv_tbl_grupo":
                                             str_tabela = "Grupo";
                                             break;
 
-                                        case "ntv_tbl_itemcombo":
-                                            str_tabela = "ItemCombo";
-                                            break;
-
                                         case "ntv_tbl_itemadicional":
                                             str_tabela = "ItemAdicional";
+                                            break;
+
+                                        case "ntv_tbl_itemcombo":
+                                            str_tabela = "ItemCombo";
                                             break;
 
                                         case "ntv_tbl_local":
@@ -99,16 +111,20 @@ namespace WebAppServer.Repositories
                                             str_tabela = "PedidoItem";
                                             break;
 
-                                        case "ntv_tbl_pedidoitemcombo":
-                                            str_tabela = "PedidoItemCombo";
-                                            break;
-
                                         case "ntv_tbl_pedidoitemcomboadic":
                                             str_tabela = "PedidoItemAdic";
                                             break;
 
+                                        case "ntv_tbl_pedidoitemcombo":
+                                            str_tabela = "PedidoItemCombo";
+                                            break;
+
                                         case "ntv_tbl_produto":
                                             str_tabela = "Produto";
+                                            break;
+
+                                        case "ntv_tbl_produto_estoque":
+                                            str_tabela = "ProdutoEst";
                                             break;
 
                                         case "ntv_tbl_produto_lista":
@@ -133,14 +149,6 @@ namespace WebAppServer.Repositories
 
                                         case "UsuarioHub":
                                             str_tabela = "";
-                                            break;
-
-                                        case "ntv_tbl_entrada":
-                                            str_tabela = "Entrada";
-                                            break;
-
-                                        case "ntv_tbl_entrada_item":
-                                            str_tabela = "EntradaItem";
                                             break;
 
                                         default:
@@ -221,8 +229,20 @@ namespace WebAppServer.Repositories
                                 str_proc = "ntv_p_sel_tbl_empresa_config";
                                 break;
 
+                            case "Entrada":
+                                str_proc = "ntv_p_sel_tbl_entrada";
+                                break;
+
+                            case "EntradaItem":
+                                str_proc = "ntv_p_sel_tbl_entrada_item";
+                                break;
+
                             case "FormaPag":
                                 str_proc = "ntv_p_sel_tbl_formapag";
+                                break;
+
+                            case "FotoEst":
+                                str_proc = "ntv_p_sel_tbl_foto_estoque";
                                 break;
 
                             case "Grupo":
@@ -273,6 +293,10 @@ namespace WebAppServer.Repositories
                                 str_proc = "ntv_p_sel_tbl_produto_lista";
                                 break;
 
+                            case "ProdutoEst":
+                                str_proc = "ntv_p_sel_tbl_produto_estoque";
+                                break;
+
                             case "Sala":
                                 str_proc = "ntv_p_sel_tbl_sala";
                                 break;
@@ -291,14 +315,6 @@ namespace WebAppServer.Repositories
 
                             case "UsuarioHub":
                                 str_proc = "";
-                                break;
-
-                            case "Entrada":
-                                str_proc = "ntv_p_sel_tbl_entrada";
-                                break;
-
-                            case "EntradaItem":
-                                str_proc = "ntv_p_sel_tbl_entrada_item";
                                 break;
 
                             default:
@@ -642,7 +658,6 @@ namespace WebAppServer.Repositories
                                                 id_grupo = prdApp[i].id_grupo,
                                                 str_descricao = prdApp[i].str_descricao,
                                                 str_obs = prdApp[i].str_obs,
-                                                int_qtd_est = prdApp[i].int_qtd_est,
                                                 int_qtd_estmin = prdApp[i].int_qtd_estmin,
                                                 int_qtd_combo = prdApp[i].int_qtd_combo,
                                                 dbl_val_unit = prdApp[i].dbl_val_unit,
@@ -672,7 +687,6 @@ namespace WebAppServer.Repositories
                                                 id_grupo = prdApp[i].id_grupo,
                                                 str_descricao = prdApp[i].str_descricao,
                                                 str_obs = prdApp[i].str_obs,
-                                                int_qtd_est = prdApp[i].int_qtd_est,
                                                 int_qtd_estmin = prdApp[i].int_qtd_estmin,
                                                 int_qtd_combo = prdApp[i].int_qtd_combo,
                                                 dbl_val_unit = prdApp[i].dbl_val_unit,
@@ -704,7 +718,6 @@ namespace WebAppServer.Repositories
                                             id_grupo = prdApp[i].id_grupo,
                                             str_descricao = prdApp[i].str_descricao,
                                             str_obs = prdApp[i].str_obs,
-                                            int_qtd_est = prdApp[i].int_qtd_est,
                                             int_qtd_estmin = prdApp[i].int_qtd_estmin,
                                             int_qtd_combo = prdApp[i].int_qtd_combo,
                                             dbl_val_unit = prdApp[i].dbl_val_unit,
@@ -964,6 +977,107 @@ namespace WebAppServer.Repositories
                                             if (str_ret.Split(";")[id] != "")
                                             {
                                                 str_ret_aux += AdicUpd[id].id_app + ":" + str_ret.Split(";")[id] + ";";
+                                            }
+                                        }
+                                        str_ret_fim += str_ret_aux;
+                                    }
+                                }
+                                dyn_ret = str_ret_fim;
+
+                                break;
+
+                            case "ProdutoEst":
+                                List<ProdutoEstApp> prdEApp = new List<ProdutoEstApp>();
+                                prdEApp = JsonConvert.DeserializeObject<List<ProdutoEstApp>>(data.Dados.ToString().Replace("','", "\",\"").Replace("':'", "\":\"").Replace("':", "\":").Replace(",'", ",\"").Replace("{'", "{\"").Replace("'}", "\"}"));
+
+                                List<ProdutoEst> prdEInc = new List<ProdutoEst>();
+                                List<ProdutoEst> prdEUpd = new List<ProdutoEst>();
+
+                                for (int i = 0; i < prdEApp.Count; i++)
+                                {
+
+                                    dtt_reg.Clear();
+
+                                    if (prdEApp[i].id_server == 0)
+                                    {
+                                        //Verifica se o registro já existe
+                                        dtt_reg = repData.ConsultaGenericaDtt("[{ \"nome\":\"id\", \"valor\":\"0\", \"tipo\":\"Int64\"}," +
+                                                                    "{ \"nome\":\"id_empresa\", \"valor\":\"" + company.ToString() + "\", \"tipo\":\"Int64\"}," +
+                                                                    "{ \"nome\":\"download\", \"valor\":\"0\", \"tipo\":\"Int16\"}," +
+                                                                    "{ \"nome\":\"id_app\", \"valor\":\"" + prdEApp[i].id.ToString() + "\", \"tipo\":\"Int64\"}]", "ntv_p_sel_tbl_produto_estoque", conn, tran);
+                                        if (dtt_reg == null || dtt_reg.Rows.Count == 0)
+                                        {
+                                            prdEInc.Add(new ProdutoEst
+                                            {
+                                                id = 0,
+                                                id_empresa = company,
+                                                id_produto = prdEApp[i].id_produto,
+                                                int_qtd_fis = prdEApp[i].int_qtd_fis,
+                                                int_qtd_res = prdEApp[i].int_qtd_res,
+                                                id_app = prdEApp[i].id,
+                                                id_user_man = user
+                                            });
+                                        }
+                                        else
+                                        {
+                                            prdEUpd.Add(new ProdutoEst
+                                            {
+                                                id = Convert.ToInt64(dtt_reg.Rows[0]["id"]),
+                                                id_empresa = company,
+                                                id_produto = prdEApp[i].id_produto,
+                                                int_qtd_fis = prdEApp[i].int_qtd_fis,
+                                                int_qtd_res = prdEApp[i].int_qtd_res,
+                                                id_app = prdEApp[i].id,
+                                                id_user_man = user
+                                            });
+
+                                        }
+                                    }
+                                    else
+                                    {
+                                        prdEUpd.Add(new ProdutoEst
+                                        {
+                                            id = prdEApp[i].id_server,
+                                            id_empresa = company,
+                                            id_produto = prdEApp[i].id_produto,
+                                            int_qtd_fis = prdEApp[i].int_qtd_fis,
+                                            int_qtd_res = prdEApp[i].int_qtd_res,
+                                            id_app = prdEApp[i].id,
+                                            id_user_man = user
+                                        });
+
+                                    }
+                                }
+
+                                //Inclusões
+                                if (prdEInc.Count > 0)
+                                {
+                                    str_ret = repData.ManutencaoTabela<ProdutoEst>("I", prdEInc, "ntv_tbl_produto_estoque", conn, tran);
+                                    if (str_ret.Split(";").Count() > 0)
+                                    {
+                                        for (int id = 0; id < str_ret.Split(";").Count(); id++)
+                                        {
+                                            if (str_ret.Split(";")[id] != "")
+                                            {
+                                                str_ret_aux += prdEInc[id].id_app + ":" + str_ret.Split(";")[id] + ";";
+                                            }
+                                        }
+                                        str_ret_fim += str_ret_aux;
+                                    }
+                                }
+
+                                //Alterações
+                                if (prdEUpd.Count() > 0)
+                                {
+                                    str_ret_aux = "";
+                                    str_ret = repData.ManutencaoTabela<ProdutoEst>("U", prdEUpd, "ntv_tbl_produto_estoque", conn, tran);
+                                    if (str_ret.Split(";").Count() > 0)
+                                    {
+                                        for (int id = 0; id < str_ret.Split(";").Count(); id++)
+                                        {
+                                            if (str_ret.Split(";")[id] != "")
+                                            {
+                                                str_ret_aux += prdEUpd[id].id_app + ":" + str_ret.Split(";")[id] + ";";
                                             }
                                         }
                                         str_ret_fim += str_ret_aux;
@@ -2407,48 +2521,50 @@ namespace WebAppServer.Repositories
 
                                 break;
 
-                            case "PrdEstoque":
-                                List<PrdEstoqueApp> prdEApp = new List<PrdEstoqueApp>();
-                                prdEApp = JsonConvert.DeserializeObject<List<PrdEstoqueApp>>(data.Dados.ToString().Replace("','", "\",\"").Replace("':'", "\":\"").Replace("':", "\":").Replace(",'", ",\"").Replace("{'", "{\"").Replace("'}", "\"}"));
-                                List<PrdEstoque> prdEInc = new List<PrdEstoque>();
-                                List<PrdEstoque> prdEUpd = new List<PrdEstoque>();
+                            case "FotEst":
+                                List<FotoEstApp> prdFApp = new List<FotoEstApp>();
+                                prdFApp = JsonConvert.DeserializeObject<List<FotoEstApp>>(data.Dados.ToString().Replace("','", "\",\"").Replace("':'", "\":\"").Replace("':", "\":").Replace(",'", ",\"").Replace("{'", "{\"").Replace("'}", "\"}"));
+                                List<FotoEst> prdFInc = new List<FotoEst>();
+                                List<FotoEst> prdFUpd = new List<FotoEst>();
 
-                                for (int i = 0; i < prdEApp.Count; i++)
+                                for (int i = 0; i < prdFApp.Count; i++)
                                 {
 
                                     dtt_reg.Clear();
 
-                                    if (prdEApp[i].id_server == 0)
+                                    if (prdFApp[i].id_server == 0)
                                     {
 
                                         //Verifica se o registro já existe
                                         dtt_reg = repData.ConsultaGenericaDtt("[{ \"nome\":\"id\", \"valor\":\"0\", \"tipo\":\"Int64\"}," +
                                                                     "{ \"nome\":\"id_empresa\", \"valor\":\"" + company.ToString() + "\", \"tipo\":\"Int64\"}," +
                                                                     "{ \"nome\":\"download\", \"valor\":\"0\", \"tipo\":\"Int16\"}," +
-                                                                    "{ \"nome\":\"id_app\", \"valor\":\"" + prdEApp[i].id.ToString() + "\", \"tipo\":\"Int64\"}]", "ntv_p_sel_tbl_produto_estoque", conn, tran);
+                                                                    "{ \"nome\":\"id_app\", \"valor\":\"" + prdFApp[i].id.ToString() + "\", \"tipo\":\"Int64\"}]", "ntv_p_sel_tbl_foto_estoque", conn, tran);
                                         if (dtt_reg == null || dtt_reg.Rows.Count == 0)
                                         {
-                                            prdEInc.Add(new PrdEstoque
+                                            prdFInc.Add(new FotoEst
                                             {
                                                 id = 0,
                                                 id_empresa = company,
-                                                id_produto = prdEApp[i].id_produto,
-                                                int_qtd_est = prdEApp[i].int_qtd_est,
-                                                dtm_estoque = prdEApp[i].dtm_estoque,
-                                                id_app = prdEApp[i].id,
+                                                id_produto = prdFApp[i].id_produto,
+                                                int_qtd_fis = prdFApp[i].int_qtd_fis,
+                                                int_qtd_res = prdFApp[i].int_qtd_res,
+                                                dtm_estoque = prdFApp[i].dtm_estoque,
+                                                id_app = prdFApp[i].id,
                                                 id_user_man = user
                                             });
                                         }
                                         else
                                         {
-                                            prdEUpd.Add(new PrdEstoque
+                                            prdFUpd.Add(new FotoEst
                                             {
                                                 id = Convert.ToInt64(dtt_reg.Rows[0]["id"]),
                                                 id_empresa = company,
-                                                id_produto = prdEApp[i].id_produto,
-                                                int_qtd_est = prdEApp[i].int_qtd_est,
-                                                dtm_estoque = prdEApp[i].dtm_estoque,
-                                                id_app = prdEApp[i].id,
+                                                id_produto = prdFApp[i].id_produto,
+                                                int_qtd_fis = prdFApp[i].int_qtd_fis,
+                                                int_qtd_res = prdFApp[i].int_qtd_res,
+                                                dtm_estoque = prdFApp[i].dtm_estoque,
+                                                id_app = prdFApp[i].id,
                                                 id_user_man = user
                                             });
 
@@ -2456,14 +2572,15 @@ namespace WebAppServer.Repositories
                                     }
                                     else
                                     {
-                                        prdEUpd.Add(new PrdEstoque
+                                        prdFUpd.Add(new FotoEst
                                         {
-                                            id = prdEApp[i].id_server,
+                                            id = prdFApp[i].id_server,
                                             id_empresa = company,
-                                            id_produto = prdEApp[i].id_produto,
-                                            int_qtd_est = prdEApp[i].int_qtd_est,
-                                            dtm_estoque = prdEApp[i].dtm_estoque,
-                                            id_app = prdEApp[i].id,
+                                            id_produto = prdFApp[i].id_produto,
+                                            int_qtd_fis = prdFApp[i].int_qtd_fis,
+                                            int_qtd_res = prdFApp[i].int_qtd_res,
+                                            dtm_estoque = prdFApp[i].dtm_estoque,
+                                            id_app = prdFApp[i].id,
                                             id_user_man = user
                                         });
 
@@ -2471,16 +2588,16 @@ namespace WebAppServer.Repositories
                                 }
 
                                 //Inclusões
-                                if (prdEInc.Count > 0)
+                                if (prdFInc.Count > 0)
                                 {
-                                    str_ret = repData.ManutencaoTabela<PrdEstoque>("I", prdEInc, "ntv_tbl_produto_estoque", conn, tran);
+                                    str_ret = repData.ManutencaoTabela<FotoEst>("I", prdFInc, "ntv_tbl_foto_estoque", conn, tran);
                                     if (str_ret.Split(";").Count() > 0)
                                     {
                                         for (int id = 0; id < str_ret.Split(";").Count(); id++)
                                         {
                                             if (str_ret.Split(";")[id] != "")
                                             {
-                                                str_ret_aux += prdEInc[id].id_app + ":" + str_ret.Split(";")[id] + ";";
+                                                str_ret_aux += prdFInc[id].id_app + ":" + str_ret.Split(";")[id] + ";";
                                             }
                                         }
                                         str_ret_fim += str_ret_aux;
@@ -2488,17 +2605,17 @@ namespace WebAppServer.Repositories
                                 }
 
                                 //Alterações
-                                if (prdEUpd.Count() > 0)
+                                if (prdFUpd.Count() > 0)
                                 {
                                     str_ret_aux = "";
-                                    str_ret = repData.ManutencaoTabela<PrdEstoque>("U", prdEUpd, "ntv_tbl_produto_estoque", conn, tran);
+                                    str_ret = repData.ManutencaoTabela<FotoEst>("U", prdFUpd, "ntv_tbl_foto_estoque", conn, tran);
                                     if (str_ret.Split(";").Count() > 0)
                                     {
                                         for (int id = 0; id < str_ret.Split(";").Count(); id++)
                                         {
                                             if (str_ret.Split(";")[id] != "")
                                             {
-                                                str_ret_aux += prdEUpd[id].id_app + ":" + str_ret.Split(";")[id] + ";";
+                                                str_ret_aux += prdFUpd[id].id_app + ":" + str_ret.Split(";")[id] + ";";
                                             }
                                         }
                                         str_ret_fim += str_ret_aux;
@@ -2513,6 +2630,7 @@ namespace WebAppServer.Repositories
                     }
                     catch (Exception ex)
                     {
+                        string str_tabela = entity.ToString();
                         tran.Rollback();
                         conn.Close();
                         throw ex;

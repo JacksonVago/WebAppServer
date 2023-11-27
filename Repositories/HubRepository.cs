@@ -213,7 +213,6 @@ namespace WebAppServer.Repositories
                     id_grupo = produto.id_grupo,
                     str_descricao = produto.str_descricao,
                     str_obs = produto.str_obs,
-                    int_qtd_est = produto.int_qtd_est,
                     int_qtd_combo = produto.int_qtd_combo,
                     dbl_val_comp = produto.dbl_val_comp,
                     dbl_val_unit = produto.dbl_val_unit,
@@ -264,64 +263,128 @@ namespace WebAppServer.Repositories
             return str_ret;
         }
 
-        public async Task<string> AtualizaEstoqueProduto(Int64 empresa, string dados)
+        //Gravação do estoque do produto, pode ser uma atualização de um pedido 
+        public async Task<string> GravarProdutoEstoque(Int64 empresa, Int64 usuario, string dados)
         {
             string str_ret = "";
+            string str_id = "";
+            string str_operacao = "";
+            Int64 id_prdest = 0;
 
-            ProdutoApp produto = new ProdutoApp();
-            List<EstoqueProduto> produtos = new List<EstoqueProduto>();
+            List<ProdutoEstApp> itemApp = new List<ProdutoEstApp>();
+            List<ProdutoEst> itens = new List<ProdutoEst>();
 
-            produtos = JsonConvert.DeserializeObject<List<EstoqueProduto>>((dados.Contains("[") ? dados : "[" + dados + "]"));
+            List<ProdutoEst> EstInc = new List<ProdutoEst>();
+            List<ProdutoEst> EstUpd = new List<ProdutoEst>();
 
-            if (produtos != null)
+            DataTable dtt_reg = new DataTable();
+
+            itemApp = JsonConvert.DeserializeObject<List<ProdutoEstApp>>((dados.Contains("[") ? dados : "[" + dados + "]"));
+
+            if (itemApp != null && itemApp.Count > 0)
             {
-                if (produtos.Count() > 0)
+                string str_conn = configDB.ConnectString;
+
+                using (SqlConnection conn = new SqlConnection(str_conn))
                 {
-                    string str_conn = configDB.ConnectString;
+                    conn.Open();
 
-                    using (SqlConnection conn = new SqlConnection(str_conn))
+                    using (SqlTransaction tran = conn.BeginTransaction())
                     {
-                        conn.Open();
-
-                        using (SqlTransaction tran = conn.BeginTransaction())
+                        try
                         {
-                            try
+                            for (int i = 0; i < itemApp.Count; i++)
                             {
-                                foreach (var item in produtos)
+
+                                if (itemApp[i].id_server == 0)
                                 {
+                                    dtt_reg = repData.ConsultaGenericaDtt("[{ \"nome\":\"id\", \"valor\":\"0\", \"tipo\":\"Int64\"}," +
+                                        "{ \"nome\":\"id_empresa\", \"valor\":\"" + empresa.ToString() + "\", \"tipo\":\"Int64\"}," +
+                                        "{ \"nome\":\"download\", \"valor\":\"0\", \"tipo\":\"Int16\"}," +
+                                        "{ \"nome\":\"id_app\", \"valor\":\"" + itemApp[i].id.ToString() + "\", \"tipo\":\"Int64\"}]", "ntv_p_sel_tbl_produto_estoque", conn, tran);
+                                    if (dtt_reg == null || dtt_reg.Rows.Count == 0)
+                                    {
+                                        EstInc.Add(new ProdutoEst
+                                        {
+                                            id = 0,
+                                            id_empresa = empresa,
+                                            id_produto = itemApp[i].id_produto,
+                                            int_qtd_fis = itemApp[i].int_qtd_fis,
+                                            int_qtd_res = itemApp[i].int_qtd_res,
+                                            id_app = itemApp[i].id,
+                                            id_user_man = usuario
+                                        });
+                                    }
+                                    else
+                                    {
+                                        EstUpd.Add(new ProdutoEst
+                                        {
+                                            id = Convert.ToInt64(dtt_reg.Rows[0]["id"]),
+                                            id_empresa = empresa,
+                                            id_produto = itemApp[i].id_produto,
+                                            int_qtd_fis = itemApp[i].int_qtd_fis,
+                                            int_qtd_res = itemApp[i].int_qtd_res,
+                                            id_app = itemApp[i].id,
+                                            id_user_man = usuario
+                                        });
 
-                                    //Atualiza estoque do produto
-                                    bool bol_estoque = repData.SqlUpdate("[{ \"nome\":\"id\", \"valor\":\"" + item.id_produto.ToString() + "\", \"tipo\":\"Int64\"}," +
-                                                                         "{ \"nome\":\"id_empresa\", \"valor\":\"" + empresa.ToString() + "\", \"tipo\":\"Int64\"}," +
-                                                                         "{ \"nome\":\"int_qtd_est\", \"valor\":\"" + item.int_qtd_est.ToString() + "\", \"tipo\":\"Int64\"}]",
-                                                                         "ntv_p_atu_estoque_produto", conn, tran);
+                                    }
                                 }
+                                else
+                                {
+                                    EstUpd.Add(new ProdutoEst
+                                    {
+                                        id = itemApp[i].id_server,
+                                        id_empresa = empresa,
+                                        id_produto = itemApp[i].id_produto,
+                                        int_qtd_fis = itemApp[i].int_qtd_fis,
+                                        int_qtd_res = itemApp[i].int_qtd_res,
+                                        id_app = itemApp[i].id,
+                                        id_user_man = usuario
+                                    });
+
+                                }
+
                             }
-                            catch (Exception ex)
+                            //Inclusões
+                            if (EstInc.Count > 0)
                             {
-                                tran.Rollback();
-                                conn.Close();
-                                throw ex;
+                                id_prdest = Convert.ToInt64(repData.ManutencaoTabela<ProdutoEst>("I", EstInc, "ntv_tbl_produto_estoque", conn, tran).Split(";")[0]);
+
+                                itemApp[0].id_server = id_prdest;
                             }
 
-                            tran.Commit();
+                            //Alterações
+                            if (EstUpd.Count() > 0)
+                            {
+                                str_ret += repData.ManutencaoTabela<ProdutoEst>("U", EstUpd, "ntv_tbl_produto_estoque", conn, tran);
+                            }
+
+                            str_ret = JsonConvert.SerializeObject(itemApp);
+
                         }
-                        conn.Close();
+                        catch (Exception ex)
+                        {
+                            tran.Rollback();
+                            conn.Close();
+                            throw ex;
+                        }
+
+                        tran.Commit();
                     }
-
+                    conn.Close();
                 }
-
             }
 
             return str_ret;
         }
 
+
         public async Task<string> CarregaEstoque(Int64 empresa)
         {
             string str_ret = "";
 
-            List<Produto> produtos = new List<Produto>();
-            List<EstoqueProduto> estoque = new List<EstoqueProduto>();
+            List<ProdutoEst> produtos = new List<ProdutoEst>();
 
             string str_conn = configDB.ConnectString;
 
@@ -333,24 +396,14 @@ namespace WebAppServer.Repositories
                 {
                     str_ret = repData.ConsultaGenerica("[{ \"nome\":\"id\", \"valor\":\0\", \"tipo\":\"Int64\"}," +
                                                                 "{ \"nome\":\"id_empresa\", \"valor\":\"" + empresa.ToString() + "\", \"tipo\":\"Int64\"}," +
-                                                                "{ \"nome\":\"situacao\", \"valor\":\"0\", \"tipo\":\"Int64\"}," +
                                                                 "{ \"nome\":\"download\", \"valor\":\"1\", \"tipo\":\"Int64\"}," +
-                                                                "{ \"nome\":\"id_app\", \"valor\":\"0\", \"tipo\":\"Int64\"}]", "ntv_p_sel_tbl_produto", conn);
-                    produtos = JsonConvert.DeserializeObject<List<Produto>>(str_ret);
+                                                                "{ \"nome\":\"id_app\", \"valor\":\"0\", \"tipo\":\"Int64\"}]", "ntv_p_sel_tbl_produto_estoque", conn);
+                    produtos = JsonConvert.DeserializeObject<List<ProdutoEst>>(str_ret);
 
-                    //Pega os produtos que atualizam estoque
-                    foreach (Produto item in produtos.Where(x=> x.str_estoque.Equals("S")))
-                    {
-                        estoque.Add(new EstoqueProduto
-                        {
-                            id_produto = item.id,
-                            int_qtd_est = (double)item.int_qtd_est
-                        });
-                    }
 
-                    if (estoque.Count() > 0)
+                    if (produtos.Count() > 0)
                     {
-                        str_ret = JsonConvert.SerializeObject(estoque);
+                        str_ret = JsonConvert.SerializeObject(produtos);
                     }
                     else
                     {
@@ -368,15 +421,15 @@ namespace WebAppServer.Repositories
             return str_ret;
         }
 
-        public async Task<string> GravarPrdEstoque(Int64 empresa, Int64 usuario, string dados)
+        public async Task<string> GravarFotoEstoque(Int64 empresa, Int64 usuario, string dados)
         {
             string str_ret = "";
             string str_operacao = "";
             Int64 id_produto = 0;
-            PrdEstoqueApp produto = new PrdEstoqueApp();
-            List<PrdEstoque> produtos = new List<PrdEstoque>();
+            FotoEstApp produto = new FotoEstApp();
+            List<FotoEst> produtos = new List<FotoEst>();
 
-            produto = JsonConvert.DeserializeObject<PrdEstoqueApp>(dados);
+            produto = JsonConvert.DeserializeObject<FotoEstApp>(dados);
 
             if (produto != null)
             {
@@ -389,12 +442,13 @@ namespace WebAppServer.Repositories
                     str_operacao = "U";
                 }
 
-                produtos.Add(new PrdEstoque
+                produtos.Add(new FotoEst
                 {
                     id = produto.id_server,
                     id_empresa = empresa,
                     id_produto = produto.id_produto,
-                    int_qtd_est = produto.int_qtd_est,
+                    int_qtd_fis = produto.int_qtd_fis,
+                    int_qtd_res = produto.int_qtd_res,
                     dtm_estoque = produto.dtm_estoque,
                     id_app = produto.id,
                     id_user_man = usuario
@@ -411,7 +465,7 @@ namespace WebAppServer.Repositories
                     {
                         try
                         {
-                            id_produto = Convert.ToInt64(repData.ManutencaoTabela<PrdEstoque>(str_operacao, produtos, "ntv_tbl_produto_estoque", conn, tran).Split(";")[0]);
+                            id_produto = Convert.ToInt64(repData.ManutencaoTabela<FotoEst>(str_operacao, produtos, "ntv_tbl_produto_estoque", conn, tran).Split(";")[0]);
                             produto.id_server = id_produto;
                             str_ret = JsonConvert.SerializeObject(produto);
                         }

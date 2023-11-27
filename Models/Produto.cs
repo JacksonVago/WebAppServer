@@ -12,7 +12,6 @@ namespace WebAppServer.Models
         public Int64 id_grupo { get; set; }
         public string str_descricao { get; set; }
         public string str_obs { get; set; }
-        public Double? int_qtd_est { get; set; }
         public Double? int_qtd_estmin { get; set; }
         public Int32? int_qtd_combo { get; set; }
         public Double dbl_val_comp { get; set; }

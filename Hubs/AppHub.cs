@@ -160,7 +160,7 @@ namespace WebAppServer.Hubs
 
             //Envia para o administrador
             //await Clients.Client(dest.str_idconnect).SendAsync("ReceivePedido", destinatario, str_pedido, str_itens, str_itensCmb, str_notPed, str_notItens, str_notItensCmb);
-            //Envia para todos os usuário
+            //Envia para todos os outros usuário
             await Clients.OthersInGroup(empresa).SendAsync("ReceivePedido", destinatario, str_pedido + "|||" + str_itens + "|||" + str_itensCmb + "|||" + str_itensAdic, str_notPed + "|||" + str_notItens + "|||" + str_notItensCmb + "|||" + str_notItensAdic);
 
             //Precisa gravar as notificações para quem chamou para saber se recebeu a confirmação da gravação do retorno.
@@ -187,15 +187,15 @@ namespace WebAppServer.Hubs
         }
 
 
-        //Atualiza apenas o campo de estoque dos produtos
-        public async Task SendEstoque(string empresa, string str_produto)
+        //Atualiza Tabela de estoque do produto
+        public async Task SendProdutoEstoque(string empresa, string userOrig, string str_produto)
         {
             string str_ret = "";
 
             if (str_produto.Length > 0)
             {
                 //Grava o pedido no servidor e retorna com o ID
-                str_ret = await _repHub.AtualizaEstoqueProduto(Convert.ToInt64(empresa), str_produto);
+                str_ret = await _repHub.GravarProdutoEstoque(Convert.ToInt64(empresa), Convert.ToInt64(userOrig), str_produto);
             }
             else
             {
@@ -216,19 +216,8 @@ namespace WebAppServer.Hubs
             str_produto = await _repHub.GravarProduto(Convert.ToInt64(empresa), Convert.ToInt64(userOrig), str_produto);
 
             //Envia para todos os usuário
-            await Clients.OthersInGroup(empresa).SendAsync("ReceiveProduto", str_produto);
-
-        }
-
-        public async Task SendPrdEstoque(string empresa, string userOrig, string str_produto)
-        {
-            string str_notProd = "";
-
-            //Grava o pedido no servidor e retorna com o ID
-            str_produto = await _repHub.GravarPrdEstoque(Convert.ToInt64(empresa), Convert.ToInt64(userOrig), str_produto);
-
-            //Envia para todos os usuário
-            await Clients.OthersInGroup(empresa).SendAsync("ReceivePrdEstoque", str_produto);
+            //await Clients.OthersInGroup(empresa).SendAsync("ReceiveProduto", str_produto);
+            await Clients.Group(empresa).SendAsync("ReceiveProduto", str_produto);
 
         }
 
