@@ -1004,7 +1004,8 @@ namespace WebAppServer.Repositories
                                         dtt_reg = repData.ConsultaGenericaDtt("[{ \"nome\":\"id\", \"valor\":\"0\", \"tipo\":\"Int64\"}," +
                                                                     "{ \"nome\":\"id_empresa\", \"valor\":\"" + company.ToString() + "\", \"tipo\":\"Int64\"}," +
                                                                     "{ \"nome\":\"download\", \"valor\":\"0\", \"tipo\":\"Int16\"}," +
-                                                                    "{ \"nome\":\"id_app\", \"valor\":\"" + prdEApp[i].id.ToString() + "\", \"tipo\":\"Int64\"}]", "ntv_p_sel_tbl_produto_estoque", conn, tran);
+                                                                    "{ \"nome\":\"id_produto\", \"valor\":\"" + prdEApp[i].id_produto.ToString() + "\", \"tipo\":\"Int16\"}," +
+                                                                    "{ \"nome\":\"id_app\", \"valor\":\"0\", \"tipo\":\"Int64\"}]", "ntv_p_sel_tbl_produto_estoque", conn, tran);
                                         if (dtt_reg == null || dtt_reg.Rows.Count == 0)
                                         {
                                             prdEInc.Add(new ProdutoEst

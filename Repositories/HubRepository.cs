@@ -213,6 +213,7 @@ namespace WebAppServer.Repositories
                     id_grupo = produto.id_grupo,
                     str_descricao = produto.str_descricao,
                     str_obs = produto.str_obs,
+                    int_qtd_estmin = produto.int_qtd_estmin,
                     int_qtd_combo = produto.int_qtd_combo,
                     dbl_val_comp = produto.dbl_val_comp,
                     dbl_val_unit = produto.dbl_val_unit,
@@ -225,6 +226,7 @@ namespace WebAppServer.Repositories
                     str_venda = produto.str_venda,
                     str_estoque = produto.str_estoque,
                     str_nec_prep = produto.str_nec_prep,
+                    int_qtd_adic = produto.int_qtd_adic,
                     dtm_inclusao = produto.dtm_inclusao,
                     dtm_alteracao = produto.dtm_alteracao,
                     int_situacao = produto.int_situacao,
@@ -301,7 +303,8 @@ namespace WebAppServer.Repositories
                                     dtt_reg = repData.ConsultaGenericaDtt("[{ \"nome\":\"id\", \"valor\":\"0\", \"tipo\":\"Int64\"}," +
                                         "{ \"nome\":\"id_empresa\", \"valor\":\"" + empresa.ToString() + "\", \"tipo\":\"Int64\"}," +
                                         "{ \"nome\":\"download\", \"valor\":\"0\", \"tipo\":\"Int16\"}," +
-                                        "{ \"nome\":\"id_app\", \"valor\":\"" + itemApp[i].id.ToString() + "\", \"tipo\":\"Int64\"}]", "ntv_p_sel_tbl_produto_estoque", conn, tran);
+                                        "{ \"nome\":\"id_produto\", \"valor\":\"" + itemApp[i].id_produto.ToString() + "\", \"tipo\":\"Int16\"}," +
+                                        "{ \"nome\":\"id_app\", \"valor\":\"0\", \"tipo\":\"Int64\"}]", "ntv_p_sel_tbl_produto_estoque", conn, tran);
                                     if (dtt_reg == null || dtt_reg.Rows.Count == 0)
                                     {
                                         EstInc.Add(new ProdutoEst
@@ -322,8 +325,8 @@ namespace WebAppServer.Repositories
                                             id = Convert.ToInt64(dtt_reg.Rows[0]["id"]),
                                             id_empresa = empresa,
                                             id_produto = itemApp[i].id_produto,
-                                            int_qtd_fis = itemApp[i].int_qtd_fis,
-                                            int_qtd_res = itemApp[i].int_qtd_res,
+                                            int_qtd_fis = Convert.ToDouble(dtt_reg.Rows[0]["int_qtd_fis"].ToString().Replace(",", ".")) + itemApp[i].int_qtd_fis,
+                                            int_qtd_res = Convert.ToDouble(dtt_reg.Rows[0]["int_qtd_res"].ToString().Replace(",", ".")) + itemApp[i].int_qtd_res,
                                             id_app = itemApp[i].id,
                                             id_user_man = usuario
                                         });
@@ -332,16 +335,25 @@ namespace WebAppServer.Repositories
                                 }
                                 else
                                 {
-                                    EstUpd.Add(new ProdutoEst
+                                    dtt_reg = repData.ConsultaGenericaDtt("[{ \"nome\":\"id\", \"valor\":\"" + itemApp[i].id_server.ToString() + "\", \"tipo\":\"Int64\"}," +
+                                        "{ \"nome\":\"id_empresa\", \"valor\":\"" + empresa.ToString() + "\", \"tipo\":\"Int64\"}," +
+                                        "{ \"nome\":\"download\", \"valor\":\"0\", \"tipo\":\"Int16\"}," +
+                                        "{ \"nome\":\"id_produto\", \"valor\":\"0\", \"tipo\":\"Int16\"}," +
+                                        "{ \"nome\":\"id_app\", \"valor\":\"0\", \"tipo\":\"Int64\"}]", "ntv_p_sel_tbl_produto_estoque", conn, tran);
+
+                                    if (dtt_reg != null && dtt_reg.Rows.Count > 0)
                                     {
-                                        id = itemApp[i].id_server,
-                                        id_empresa = empresa,
-                                        id_produto = itemApp[i].id_produto,
-                                        int_qtd_fis = itemApp[i].int_qtd_fis,
-                                        int_qtd_res = itemApp[i].int_qtd_res,
-                                        id_app = itemApp[i].id,
-                                        id_user_man = usuario
-                                    });
+                                        EstUpd.Add(new ProdutoEst
+                                        {
+                                            id = itemApp[i].id_server,
+                                            id_empresa = empresa,
+                                            id_produto = itemApp[i].id_produto,
+                                            int_qtd_fis = Convert.ToDouble(dtt_reg.Rows[0]["int_qtd_fis"].ToString().Replace(",", ".")) + itemApp[i].int_qtd_fis,
+                                            int_qtd_res = Convert.ToDouble(dtt_reg.Rows[0]["int_qtd_res"].ToString().Replace(",", ".")) + itemApp[i].int_qtd_res,
+                                            id_app = itemApp[i].id,
+                                            id_user_man = usuario
+                                        });
+                                    }
 
                                 }
 
@@ -397,6 +409,7 @@ namespace WebAppServer.Repositories
                     str_ret = repData.ConsultaGenerica("[{ \"nome\":\"id\", \"valor\":\0\", \"tipo\":\"Int64\"}," +
                                                                 "{ \"nome\":\"id_empresa\", \"valor\":\"" + empresa.ToString() + "\", \"tipo\":\"Int64\"}," +
                                                                 "{ \"nome\":\"download\", \"valor\":\"1\", \"tipo\":\"Int64\"}," +
+                                                                "{ \"nome\":\"id_produto\", \"valor\":\"0\", \"tipo\":\"Int16\"}," +
                                                                 "{ \"nome\":\"id_app\", \"valor\":\"0\", \"tipo\":\"Int64\"}]", "ntv_p_sel_tbl_produto_estoque", conn);
                     produtos = JsonConvert.DeserializeObject<List<ProdutoEst>>(str_ret);
 
