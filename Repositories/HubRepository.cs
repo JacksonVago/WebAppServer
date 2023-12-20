@@ -297,6 +297,8 @@ namespace WebAppServer.Repositories
                         {
                             for (int i = 0; i < itemApp.Count; i++)
                             {
+                                EstInc.Clear();
+                                EstUpd.Clear();
 
                                 if (itemApp[i].id_server == 0)
                                 {
@@ -357,19 +359,22 @@ namespace WebAppServer.Repositories
 
                                 }
 
-                            }
-                            //Inclusões
-                            if (EstInc.Count > 0)
-                            {
-                                id_prdest = Convert.ToInt64(repData.ManutencaoTabela<ProdutoEst>("I", EstInc, "ntv_tbl_produto_estoque", conn, tran).Split(";")[0]);
+                                //Inclusões
+                                if (EstInc.Count > 0)
+                                {
+                                    id_prdest = Convert.ToInt64(repData.ManutencaoTabela<ProdutoEst>("I", EstInc, "ntv_tbl_produto_estoque", conn, tran).Split(";")[0]);
 
-                                itemApp[0].id_server = id_prdest;
-                            }
+                                    itemApp[i].id_server = id_prdest;
+                                }
 
-                            //Alterações
-                            if (EstUpd.Count() > 0)
-                            {
-                                str_ret += repData.ManutencaoTabela<ProdutoEst>("U", EstUpd, "ntv_tbl_produto_estoque", conn, tran);
+                                //Alterações
+                                if (EstUpd.Count() > 0)
+                                {
+                                    str_ret += repData.ManutencaoTabela<ProdutoEst>("U", EstUpd, "ntv_tbl_produto_estoque", conn, tran);
+                                }
+
+
+
                             }
 
                             str_ret = JsonConvert.SerializeObject(itemApp);
@@ -1578,29 +1583,77 @@ namespace WebAppServer.Repositories
         public string GravarNotificacoes(Int64 empresa, Int64 usu_orig, Int64 usu_dest, string tabela, string dados)
         {
             string str_notific = "";
-            DataTable dtt_entity = JsonConvert.DeserializeObject<DataTable>((dados.IndexOf("[") > -1 ? dados : "[" + dados + "]"));
+            DataTable dtt_notific = JsonConvert.DeserializeObject<DataTable>((dados.IndexOf("[") > -1 ? dados : "[" + dados + "]"));
             Notificacoes notific = new Notificacoes();
+            List<Notificacoes> lst_notific = new List<Notificacoes>();
+            List<Usuario> lst_user = new List<Usuario>();
 
-            if (dtt_entity != null && dtt_entity.Rows.Count > 0)
+            //Quando usuário de destino = 0 deverá ser enviado as notificações para todos os usuários
+            string str_conn = configDB.ConnectString;
+
+            using (SqlConnection conn = new SqlConnection(str_conn))
             {
-                for (int i = 0; i < dtt_entity.Rows.Count; i++)
-                {
-                    notific.id = 0;
-                    notific.id_empresa = empresa;
-                    notific.id_usu_orig = usu_orig;
-                    notific.id_usu_dest = usu_dest;
-                    notific.str_tabela = tabela;
-                    notific.id_registro = Convert.ToInt64(dtt_entity.Rows[i]["id_server"]);
-                    notific.dtm_inclusao = DateTime.Now;
-                    notific.int_situacao = 0; //0 - Não notificado / 1 - Notificado
+                conn.Open();
 
-                    str_notific = _repNotif.GravarNotificacoes(JsonConvert.SerializeObject(notific));
+                try
+                {
+                    dynamic dynaux = repData.ConsultaGenerica("[{ \"nome\":\"id\", \"valor\":\"" + usu_dest.ToString() + "\", \"tipo\":\"Int64\"}," +
+                                    "{ \"nome\":\"id_empresa\", \"valor\":\"" + empresa.ToString() + "\", \"tipo\":\"Int64\"}," +
+                                    "{ \"nome\":\"login\", \"valor\":\"0\", \"tipo\":\"Int64\"}," +
+                                    "{ \"nome\":\"email\", \"valor\":\"\", \"tipo\":\"string\"}," +
+                                    "{ \"nome\":\"situacao\", \"valor\":\"1\", \"tipo\":\"Int16\"}," +
+                                    "{ \"nome\":\"download\", \"valor\":\"0\", \"tipo\":\"Int16\"}," +
+                                    "{ \"nome\":\"id_app\", \"valor\":\"0\", \"tipo\":\"Int64\"}]", "ntv_p_sel_tbl_usuario", conn);
+                    string str_aux = (string)dynaux;
+                    lst_user = JsonConvert.DeserializeObject<List<Usuario>>(str_aux);
+                }
+                catch (Exception ex)
+                {
+                    str_notific = ex.Message.ToString();
+                }
+                conn.Close();
+            }
+
+            if (dtt_notific != null && dtt_notific.Rows.Count > 0)
+            {
+                for (int i = 0; i < dtt_notific.Rows.Count; i++)
+                {
+                    foreach (var item in lst_user)
+                    {
+                        if (item.id != usu_orig || usu_orig == usu_dest)
+                        {
+                            notific.id = 0;
+                            notific.id_empresa = empresa;
+                            notific.id_usu_orig = usu_orig;
+                            notific.id_usu_dest = item.id;
+                            notific.str_tabela = tabela;
+                            notific.id_registro = Convert.ToInt64(dtt_notific.Rows[i]["id_server"]);
+                            notific.dtm_inclusao = DateTime.Now;
+                            notific.int_situacao = 0; //0 - Não notificado / 1 - Notificado
+
+                            str_notific = _repNotif.GravarNotificacoes(JsonConvert.SerializeObject(notific));
+                            notific = JsonConvert.DeserializeObject<Notificacoes>(str_notific);
+
+                            lst_notific.Add(new Notificacoes
+                            {
+                                id = notific.id,
+                                id_empresa = notific.id_empresa,
+                                id_usu_orig = notific.id_usu_orig,
+                                id_usu_dest = notific.id_usu_dest,
+                                str_tabela = notific.str_tabela,
+                                id_registro = notific.id_registro,
+                                dtm_inclusao = notific.dtm_inclusao,
+                                int_situacao = notific.int_situacao
+                            });
+                        }
+                    }
                 }
             }
 
-            return str_notific;
+            return JsonConvert.SerializeObject(lst_notific);
         }
-        public string GravarNotificacoes(Int64 empresa, Int64 usu_orig, string dados)
+
+        public string AtualizarNotificacoes(string dados)
         {
             string str_notific = "";
             List<Notificacoes> lst_notific = new List<Notificacoes>();

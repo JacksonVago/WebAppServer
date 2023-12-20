@@ -46,7 +46,6 @@ namespace WebAppServer.Repositories
                     {
                         try
                         {
-                            //dtt_usuario = ConsultaUsuarios(usuario, conn, tran);
                             dtt_usuario = repData.ConsultaGenericaDtt("[{ \"nome\":\"UserID\", \"valor\":\"" + usuario + "\", \"tipo\":\"string\"},{ \"nome\":\"Senha\", \"valor\":\"1\", \"tipo\":\"string\"}]", "ntv_p_sel_tbl_usuarios", conn, tran);
                             //str_ret = repData.ConsultaGenerica("[{ \"UserID\":\"" + usuario + "\", \"Senha\":\"1\"}]", "ntv_p_sel_tbl_usuarios", conn, tran);
 
@@ -161,25 +160,6 @@ namespace WebAppServer.Repositories
             }
 
             return bol_ret;
-        }
-        public DataTable ConsultaUsuarios(string Login, SqlConnection conn, SqlTransaction tran)
-        {
-            SqlCommand command = new SqlCommand("ntv_p_sel_tbl_usuarios", conn);
-            command.Transaction = tran;
-            command.CommandType = System.Data.CommandType.StoredProcedure;
-            command.Parameters.Add(new SqlParameter("@UserID", Login));
-            command.Parameters.Add(new SqlParameter("@Senha", 1));
-
-
-            DataTable dtt_retorno = new DataTable();
-
-            using (var reader = command.ExecuteReader())
-            {
-                dtt_retorno.Load(reader);
-            }
-
-            return dtt_retorno;
-
         }
 
         public DataTable ConsultaUsuarioPermissao(string formulario, Int64 id_operacao, Int64 id_usuario, SqlConnection conn, SqlTransaction tran)
