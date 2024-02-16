@@ -327,8 +327,8 @@ namespace WebAppServer.Repositories
                                             id = Convert.ToInt64(dtt_reg.Rows[0]["id"]),
                                             id_empresa = empresa,
                                             id_produto = itemApp[i].id_produto,
-                                            int_qtd_fis = Convert.ToDouble(dtt_reg.Rows[0]["int_qtd_fis"].ToString().Replace(",", ".")) + itemApp[i].int_qtd_fis,
-                                            int_qtd_res = Convert.ToDouble(dtt_reg.Rows[0]["int_qtd_res"].ToString().Replace(",", ".")) + itemApp[i].int_qtd_res,
+                                            int_qtd_fis = Convert.ToDouble(dtt_reg.Rows[0]["int_qtd_fis"].ToString().Replace(".", ",")) + itemApp[i].int_qtd_fis,
+                                            int_qtd_res = Convert.ToDouble(dtt_reg.Rows[0]["int_qtd_res"].ToString().Replace(".", ",")) + itemApp[i].int_qtd_res,
                                             id_app = itemApp[i].id,
                                             id_user_man = usuario
                                         });
@@ -350,8 +350,8 @@ namespace WebAppServer.Repositories
                                             id = itemApp[i].id_server,
                                             id_empresa = empresa,
                                             id_produto = itemApp[i].id_produto,
-                                            int_qtd_fis = Convert.ToDouble(dtt_reg.Rows[0]["int_qtd_fis"].ToString().Replace(",", ".")) + itemApp[i].int_qtd_fis,
-                                            int_qtd_res = Convert.ToDouble(dtt_reg.Rows[0]["int_qtd_res"].ToString().Replace(",", ".")) + itemApp[i].int_qtd_res,
+                                            int_qtd_fis = Convert.ToDouble(dtt_reg.Rows[0]["int_qtd_fis"].ToString().Replace(".", ",")) + itemApp[i].int_qtd_fis,
+                                            int_qtd_res = Convert.ToDouble(dtt_reg.Rows[0]["int_qtd_res"].ToString().Replace(".", ",")) + itemApp[i].int_qtd_res,
                                             id_app = itemApp[i].id,
                                             id_user_man = usuario
                                         });

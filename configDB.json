@@ -1,6 +1,11 @@
 {
   "ConnectionStrings1": {
     "DeafultConnectionStrings": "Server=192.168.56.1;Database=dbAppPraia;Persist Security Info=True;TrustServerCertificate=true;User ID=natividade;Password="
+    //"DeafultConnectionStrings": "Server=192.168.56.1;Database=dbAppPraia;Persist Security Info=True;User ID=natividade;Password="
+    //"DeafultConnectionStrings": "Server=192.168.56.1,1433;Database=dbAppPraia;Persist Security Info=True;User ID=natividade;Password="
+    //"DeafultConnectionStrings": "Server=10.0.2.2;Database=dbAppPraia;Persist Security Info=True;TrustServerCertificate=true;User ID=natividade;Password="
+    //"DeafultConnectionStrings": "Server=192.168.56.1,1433;Database=dbAppPraia;Integrated Security=False;User ID=sa;Password="
+    //"DeafultConnectionStrings": "Server=192.168.56.1;Database=dbAppPraia;Integrated Security=False;TrustServerCertificate=true;User ID=natividade;Password="
   },
   "ConnectionStrings": {
     "DeafultConnectionStrings": "Server=ntvcloud.database.windows.net;Database=dbAppPraia;Persist Security Info=True;User ID=natividade;Password="

@@ -141,10 +141,11 @@ namespace WebAppServer.Repositories
             dynamic dyn_ret = null;
 
             using (SqlConnection conn = new SqlConnection(configDB.ConnectString))
-            {
-                conn.Open();
+            {                
                 try
                 {
+                    conn.Open();
+
                     //Verifica se o é primeiro acesso
                     str_ret = repData.ConsultaGenerica("[{ \"nome\":\"id\", \"valor\":\"0\", \"tipo\":\"Int64\"}," +
                                                         "{ \"nome\":\"id_empresa\", \"valor\":\"0\", \"tipo\":\"Int64\"}," +

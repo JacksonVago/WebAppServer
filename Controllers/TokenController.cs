@@ -147,7 +147,17 @@ namespace WebAppServer.Controllers
         [HttpGet("v1/ok")]
         public async Task<string> ok()
         {
-            return "Acessei";
+            string _strHrInicioVnd;
+            _strHrInicioVnd = "00:00:01";
+            if (Convert.ToDateTime(_strHrInicioVnd) < DateTime.Now)
+            {
+                    dynamic ret = await _repAcesso.VerificaUsuario("jackson@natividadesolucoes.com.br");
+                return "Verdadeiro";
+            }
+            else
+            {
+                return "False";
+            }
         }
     }
 }
