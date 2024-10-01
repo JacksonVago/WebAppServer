@@ -9,6 +9,7 @@
     //"DeafultConnectionStrings": "Server=192.168.56.1;Database=dbAppPraia;Integrated Security=False;TrustServerCertificate=true;User ID=natividade;Password="
   },
   "ConnectionStrings": {
-    "DeafultConnectionStrings": "Server=ntvcloud.database.windows.net;Database=dbAppPraia;Persist Security Info=True;User ID=natividade;Password="
+    //"DeafultConnectionStrings": "Server=ntvcloud.database.windows.net;Database=dbAppPraia;Persist Security Info=True;User ID=natividade;Password="
+    "DeafultConnectionStrings": "Server=dbpraia.ctzeq7p6rdxl.us-east-1.rds.amazonaws.com;Database=dbForFood;Persist Security Info=True;User ID=admin;Password="
   }
 }
