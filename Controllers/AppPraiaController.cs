@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -130,8 +131,15 @@ namespace WebAppServer.Controllers
             {
                 Assembly genModel = null;
 
-                //genModel = Assembly.LoadFrom(@".\WebAppSever.dll");
-                genModel = Assembly.LoadFrom(@"D:\Jackson\Natividade\APP\AppServer\WebAppServer\WebAppServer\bin\Debug\netcoreapp3.1\WebAppServer.dll");
+                if (System.IO.File.Exists(@".\WebAppSever.dll"))
+                {
+                    genModel = Assembly.LoadFrom(@".\WebAppSever.dll");
+                }
+                else
+                {
+                    genModel = Assembly.LoadFrom(@"D:\Jackson\Natividade\APP\AppServer\WebAppServer\WebAppServer\bin\Debug\netcoreapp3.1\WebAppServer.dll");
+                }
+                    
                 
                 Type ClasseImporta = genModel.GetType("WebAppServer." + genModels.classe);
                 object obj = Activator.CreateInstance(ClasseImporta);
