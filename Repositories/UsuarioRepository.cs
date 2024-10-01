@@ -246,7 +246,7 @@ namespace WebAppServer.Repositories
                 SqlCommand command = conn.CreateCommand();
                 SqlParameter param_id = new SqlParameter();
                 command.Transaction = tran;
-                command.CommandText = "p_man_tbl_token_acesso";
+                command.CommandText = "ntv_p_man_tbl_token_acesso";
                 command.CommandType = System.Data.CommandType.StoredProcedure;
 
                 command.Parameters.Add(new SqlParameter("@Tp_processo", "I"));
