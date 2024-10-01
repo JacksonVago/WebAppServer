@@ -49,7 +49,8 @@ namespace WebAppServer.Controllers
                             {
                                 return Ok(new
                                 {
-                                    token = token
+                                    token = token,
+                                    user = user_ret
 
                                 });
                             }
@@ -76,7 +77,56 @@ namespace WebAppServer.Controllers
 
             return BadRequest("Credenciais de usuário inválida.");
         }
-        
+
+
+        [HttpPost("newUserCreaterToken")]
+        public async Task<IActionResult> newUserCreaterTokenAsync([FromBody] Usuariotoken user)
+        {
+            UsuarioAcesso user_ret = new UsuarioAcesso();
+            user_ret.id = DateTime.Now.Year * -1;
+            user_ret.id_empresa = 0;
+            user_ret.int_tipo = 1;
+            user_ret.username = user.username;
+            user_ret.password = "123";
+            user_ret.validade = DateTime.Now.AddDays(1);
+
+            if (user_ret != null && user_ret.id == DateTime.Now.Year * -1)
+            {
+                try
+                {
+                    var token = TokenService.GeraToken(user_ret);
+                    if (token != null)
+                    {
+                        var ip = _httpContext.HttpContext.Connection.LocalIpAddress.ToString();
+                        var metodo = _httpContext.HttpContext.Request.Path.ToString();
+
+                        if (await _repository.GravarAcesso(user_ret, token.access_token, ip, metodo, JsonConvert.SerializeObject(user_ret)))
+                        {
+                            return Ok(new
+                            {
+                                token = token,
+                                user = user_ret
+
+                            });
+                        }
+                        else
+                        {
+                            return NotFound("Problemas na gravação do acesso.");
+                        }
+                    }
+                    else
+                    {
+                        return NotFound("Usuário não cadastrado em nosso sistema");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    return NotFound(new { message = ex.Message.ToString() });
+                }
+            }
+
+            return BadRequest("Credenciais de usuário inválida.");
+        }
 
         [HttpGet("v1/FirstAcess/{email}")]
         public async Task<dynamic> PrimeiroAcesso(string email)

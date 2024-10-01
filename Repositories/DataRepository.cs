@@ -158,7 +158,7 @@ namespace WebAppServer.Repositories
                 {
                     command.Transaction = tran;
                 }
-                command.CommandText = "ntv_p_man_" + Tabela.Replace("ntv_","");
+                command.CommandText = (Tabela.IndexOf("ntv_") > -1 ? "ntv_p_man_" + Tabela.Replace("ntv_","") : "p_man_" + Tabela);
                 command.CommandType = System.Data.CommandType.StoredProcedure;
                 command.Parameters.Add(new SqlParameter("@Tp_processo", Operacao));
                 command.Parameters.Add(new SqlParameter("@Dados", str_dadosXml));
@@ -178,6 +178,37 @@ namespace WebAppServer.Repositories
         {
 
             return ManutencaoTabela<T>(Operacao, dados, Tabela, conn, null);
+        }
+
+        public dynamic ConsultaSQL(string sql, SqlConnection conn, SqlTransaction tran)
+        {
+
+            //DataTable dtt_filtros = ToDataTable<dynamic>(filtros);
+            string str_param = "";
+
+            try
+            {
+                SqlCommand command = new SqlCommand(sql, conn);
+
+                if (tran != null)
+                {
+                    command.Transaction = tran;
+                }
+                command.CommandType = System.Data.CommandType.Text;
+                DataTable dtt_retorno = new DataTable();
+
+                using (var reader = command.ExecuteReader())
+                {
+                    dtt_retorno.Load(reader);
+                }
+
+                return JsonConvert.SerializeObject(dtt_retorno);
+
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
         }
 
         public dynamic ConsultaGenerica(dynamic filtros, string procedure, SqlConnection conn, SqlTransaction tran)

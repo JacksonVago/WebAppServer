@@ -1,4 +1,4 @@
-//using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -15,6 +15,7 @@ using System.Threading.Tasks;
 using WebAppServer.Models;
 using WebAppServer.Repositories;
 using WebAppServer.Hubs;
+using Microsoft.IdentityModel.Tokens;
 
 namespace WebAppServer
 {
@@ -32,6 +33,7 @@ namespace WebAppServer
         {
             var chave = Encoding.ASCII.GetBytes(Tokenchavehash.chave);
 
+            services.AddScoped<AppRepository>();
             services.AddScoped<UsuarioRepository>();
             services.AddScoped<UsuarioAcessoRepository>();
             services.AddScoped<SalaRepository>();
@@ -41,7 +43,7 @@ namespace WebAppServer
             services.AddScoped<EmailRepository>();
             services.AddScoped<NotificacoesRepository>();
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
-            /*services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
             {
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
@@ -53,7 +55,16 @@ namespace WebAppServer
                     IssuerSigningKey = new SymmetricSecurityKey(chave)
                 };
             }
-            );*/
+            );
+            services.AddCors(options => {
+                options.AddPolicy(name: "AllowSpecificOrigins",
+                                      policy =>
+                                      {
+                                          policy.WithOrigins("http://localhost:3000",
+                                                              "http://www.contoso.com");
+                                          policy.AllowAnyHeader();
+                                      });
+            });
             services.AddControllersWithViews();
             services.AddSignalR();
         }
@@ -71,25 +82,28 @@ namespace WebAppServer
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
+
+
+            
             app.UseHttpsRedirection();
             app.UseStaticFiles();
-
+            app.UseCors("AllowSpecificOrigins");
             app.UseRouting();
-
-            //app.UseAuthorization();
-
-
-            /*app.UseSignalR(routes =>
-            {
-                routes.MapHub<AppHub>("/Hubs/AppHub");
-            });*/
+            app.UseAuthentication();
+            app.UseAuthorization();            
             app.UseEndpoints(endpoints =>
-            {
+            {                
                 endpoints.MapControllerRoute(
                     name: "default",
                     pattern: "{controller=Home}/{action=Index}/{id?}");
                 endpoints.MapHub<AppHub>("AppHub");
             });
+
+            /*app.UseSignalR(routes =>
+            {
+                routes.MapHub<AppHub>("/Hubs/AppHub");
+            });*/
+
         }
     }
 }

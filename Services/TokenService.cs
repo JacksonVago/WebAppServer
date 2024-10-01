@@ -21,7 +21,7 @@ namespace WebAppServer.Services
         {
             var str_retorno = "ok";
             
-            /*try
+            try
             {
                 var chave = Encoding.ASCII.GetBytes(Tokenchavehash.chave);
                 var claims = new Claim[]
@@ -49,8 +49,7 @@ namespace WebAppServer.Services
             {
                 str_retorno = "mensagem:" + ex.Message.ToString();
                 throw ex;
-            }*/
-            return new Token { access_token = str_retorno, token_type = "Bearer", expires_in = 36000 };
+            }
         }
     }
 }

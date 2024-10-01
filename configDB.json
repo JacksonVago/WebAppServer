@@ -1,6 +1,7 @@
 {
   "ConnectionStrings1": {
-    "DeafultConnectionStrings": "Server=192.168.56.1;Database=dbAppPraia;Persist Security Info=True;TrustServerCertificate=true;User ID=natividade;Password="
+    "DeafultConnectionStrings": "Server=192.168.56.1;Database=dbForFood;Persist Security Info=True;TrustServerCertificate=true;User ID=natividade;Password=",
+    //"DeafultConnectionStrings": "Server=192.168.56.1;Database=dbAppPraia;Persist Security Info=True;TrustServerCertificate=true;User ID=natividade;Password="
     //"DeafultConnectionStrings": "Server=192.168.56.1;Database=dbAppPraia;Persist Security Info=True;User ID=natividade;Password="
     //"DeafultConnectionStrings": "Server=192.168.56.1,1433;Database=dbAppPraia;Persist Security Info=True;User ID=natividade;Password="
     //"DeafultConnectionStrings": "Server=10.0.2.2;Database=dbAppPraia;Persist Security Info=True;TrustServerCertificate=true;User ID=natividade;Password="

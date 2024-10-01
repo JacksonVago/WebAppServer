@@ -14,7 +14,8 @@
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
         "ASPNETCORE_HOSTINGSTARTUPASSEMBLIES": "Microsoft.Azure.SignalR"
-      }
+      },
+      "ancmHostingModel": "OutOfProcess"
     },
     "WebAppServer": {
       "commandName": "Project",

@@ -1,9 +1,11 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using WebAppServer.Models;
 using WebAppServer.Repositories;
@@ -11,18 +13,22 @@ using WebAppServer.Repositories;
 namespace WebAppServer.Controllers
 {
     [Route("api/[controller]")]
+    [ApiController]
+    [Authorize]
     public class AppPraiaController : Controller
     {
         private readonly SyncRepository _repSync;
         private readonly UsuarioRepository _repUser;
+        private readonly AppRepository _repApp;
 
         private readonly ILogger<AppPraiaController> _logger;
 
-        public AppPraiaController(ILogger<AppPraiaController> logger, SyncRepository repsync, UsuarioRepository repuser)
+        public AppPraiaController(ILogger<AppPraiaController> logger, SyncRepository repsync, UsuarioRepository repuser, AppRepository repapp)
         {
             _logger = logger;
             _repSync = repsync;
             _repUser = repuser;
+            _repApp = repapp;
         }
 
         [HttpPost("v1/SyncDataUpload")]
@@ -85,5 +91,64 @@ namespace WebAppServer.Controllers
             return 0;
         }
 
+        [HttpPost("v1/ExecutaProcessoGen")]
+        public async Task<ActionResult<dynamic>> ExecutaProcessoGen([FromBody] ParametrosEntrada paramEntrada)
+        {
+            dynamic dyn_retorno = null;
+            try
+            {
+                dyn_retorno = _repApp.ExecutaProcessoGen(paramEntrada);
+                return dyn_retorno;
+            }
+            catch (Exception ex)
+            {
+                return NotFound(new { mensagem = ex.Message.ToString() });
+            }
+
+        }
+
+        [HttpPost("v1/ExecutaSql")]
+        public async Task<ActionResult<dynamic>> ExecutaSql([FromBody] DadosSync sql)
+        {
+            dynamic dyn_retorno = null;
+            try
+            {
+                dyn_retorno = _repApp.ExecutaSql(sql.Dados.ToString().Replace("||", "'"));
+                return dyn_retorno;
+            }
+            catch (Exception ex)
+            {
+                return NotFound(new { mensagem = ex.Message.ToString() });
+            }
+
+        }
+        [HttpPost("v1/Maintenence")]
+        public async Task<ActionResult<dynamic>> ExecuteDynamicModel([FromBody] GenModels genModels)
+        {
+            dynamic dyn_retorno = null;
+            try
+            {
+                Assembly genModel = null;
+
+                //genModel = Assembly.LoadFrom(@".\WebAppSever.dll");
+                genModel = Assembly.LoadFrom(@"D:\Jackson\Natividade\APP\AppServer\WebAppServer\WebAppServer\bin\Debug\netcoreapp3.1\WebAppServer.dll");
+                
+                Type ClasseImporta = genModel.GetType("WebAppServer." + genModels.classe);
+                object obj = Activator.CreateInstance(ClasseImporta);
+                MethodInfo Metodo = ClasseImporta.GetMethod(genModels.metodo);
+                object[] paramMetodo = new object[2];
+                paramMetodo[0] = genModels.Operacao;
+                paramMetodo[1] = genModels.Dados.Replace("'", "\"");
+                dyn_retorno = Metodo.Invoke(obj, paramMetodo);
+                
+            }
+            catch (Exception ex)
+            {
+                return NotFound(new { mensagem = ex.Message.ToString() });
+            }
+
+            return dyn_retorno;
+
+        }
     }
 }

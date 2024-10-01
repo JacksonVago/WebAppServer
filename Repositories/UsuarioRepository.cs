@@ -8,6 +8,7 @@ using Microsoft.Extensions.Configuration;
 using System.Data;
 using Microsoft.Data.SqlClient;
 using Newtonsoft.Json;
+using static System.Net.WebRequestMethods;
 
 namespace WebAppServer.Repositories
 {
@@ -16,12 +17,14 @@ namespace WebAppServer.Repositories
     {
         private readonly ConfigDB configDB;
         private readonly EmailRepository _repEmail;
+        private DataRepository repData;
 
-        public UsuarioRepository(EmailRepository repMail)
+        public UsuarioRepository()
         {
             //_strConnect = config.GetConnectionString("DeafultConnectionStrings") + "@DTILGCF06FW";
             configDB = new ConfigDB();
-            _repEmail = repMail;
+            _repEmail = new EmailRepository();
+            repData = new DataRepository();
         }
 
         public async Task<UsuarioAcesso> ValidaUsuario(string usuario, string senha)
@@ -46,15 +49,35 @@ namespace WebAppServer.Repositories
                     {
                         try
                         {
-                            dtt_usuario = repData.ConsultaGenericaDtt("[{ \"nome\":\"UserID\", \"valor\":\"" + usuario + "\", \"tipo\":\"string\"},{ \"nome\":\"Senha\", \"valor\":\"1\", \"tipo\":\"string\"}]", "ntv_p_sel_tbl_usuarios", conn, tran);
+                            dtt_usuario = repData.ConsultaGenericaDtt("[{ \"nome\":\"id\", \"valor\":\"0\", \"tipo\":\"Int64\"}," +
+                            "{ \"nome\":\"id_empresa\", \"valor\":\"0\", \"tipo\":\"Int64\"}," +
+                            "{ \"nome\":\"login\", \"valor\":\"\", \"tipo\":\"Int64\"}," +
+                            "{ \"nome\":\"email\", \"valor\":\"" + usuario + "\", \"tipo\":\"string\"}," +
+                            "{ \"nome\":\"situacao\", \"valor\":\"0\", \"tipo\":\"Int16\"}," +
+                            "{ \"nome\":\"pagina\", \"valor\":\"0\", \"tipo\":\"Int16\"}," +
+                            "{ \"nome\":\"qtdregs\", \"valor\":\"0\", \"tipo\":\"Int16\"}," +
+                            "{ \"nome\":\"totpags\", \"valor\":\"0\", \"tipo\":\"Int64\"}]", "p_sel_usuario", conn, tran);
+
+
+                            //dtt_usuario = repData.ConsultaGenericaDtt("[{ \"nome\":\"UserID\", \"valor\":\"" + usuario + "\", \"tipo\":\"string\"},{ \"nome\":\"Senha\", \"valor\":\"1\", \"tipo\":\"string\"}]", "ntv_p_sel_tbl_usuarios", conn, tran);
                             //str_ret = repData.ConsultaGenerica("[{ \"UserID\":\"" + usuario + "\", \"Senha\":\"1\"}]", "ntv_p_sel_tbl_usuarios", conn, tran);
+                            //dtt_usuario = repData.ConsultaGenericaDtt("[{ \"nome\":\"UserID\", \"valor\":\"" + usuario + "\", \"tipo\":\"string\"},{ \"nome\":\"Senha\", \"valor\":\"1\", \"tipo\":\"string\"}]", "ntv_p_sel_tbl_usuarios", conn, tran);
 
                             if (dtt_usuario.Rows.Count > 0)
                             {
-                                if (senha.ToUpper() == Descriptografar(dtt_usuario.Rows[0]["str_senha"].ToString()).ToUpper())
+                                //if (senha.ToUpper() == Descriptografar(dtt_usuario.Rows[0]["str_senha"].ToString()).ToUpper())
+                                if (senha.ToUpper() == dtt_usuario.Rows[0]["str_senha"].ToString().ToUpper())
                                 {
 
+                                    user_ret.id = Convert.ToInt64(dtt_usuario.Rows[0]["id"]);
+                                    user_ret.id_empresa = Convert.ToInt64(dtt_usuario.Rows[0]["id_empresa"]);
+                                    user_ret.int_tipo = Convert.ToInt16(dtt_usuario.Rows[0]["int_tipo"]);
+                                    user_ret.username = dtt_usuario.Rows[0]["str_login"].ToString();
+                                    user_ret.password = dtt_usuario.Rows[0]["str_senha"].ToString();
+                                    user_ret.validade = DateTime.Now.AddMinutes(40);
+
                                     /*Carrega permissão do usuário*/
+                                    /*
                                     dtt_permissao = ConsultaUsuarioPermissao("APINatividade", 1, Convert.ToInt64(dtt_usuario.Rows[0]["id"]), conn, tran);
 
                                     if (dtt_permissao.Rows.Count > 0)
@@ -71,7 +94,7 @@ namespace WebAppServer.Repositories
                                         user_ret.password = "";
                                         user_ret.validade = DateTime.Now.AddMinutes(30);
 
-                                    }
+                                    }*/
 
                                     //luser_ret.Add(user_ret);
                                     //str_ret = repData.ManutencaoTabela<dynamic>("I", luser_ret, "ntv_tbl_usuario", conn, tran);
@@ -79,10 +102,21 @@ namespace WebAppServer.Repositories
                                 else
                                 {
                                     user_ret.id = 0;
+                                    user_ret.id_empresa = 0;
+                                    user_ret.int_tipo = 0;
                                     user_ret.username = "Senha inválida";
                                     user_ret.password = "";
                                     user_ret.validade = DateTime.Now.AddMinutes(30);
                                 }
+                            }
+                            else
+                            {
+                                user_ret.id = 0;
+                                user_ret.id_empresa = 0;
+                                user_ret.int_tipo = 0;
+                                user_ret.username = "Usuário não cadastrado.";
+                                user_ret.password = "";
+                                user_ret.validade = DateTime.Now.AddMinutes(40);
                             }
                             tran.Commit();
                         }
@@ -184,11 +218,12 @@ namespace WebAppServer.Repositories
 
         public DataTable ConsultaAcesso(Int64 id, SqlConnection conn, SqlTransaction tran)
         {
-            SqlCommand command = new SqlCommand("ntv_p_sel_tbl_token_acesso", conn);
+            SqlCommand command = new SqlCommand("p_sel_tbl_token_acesso", conn);
             command.Transaction = tran;
             command.CommandType = System.Data.CommandType.StoredProcedure;
             command.Parameters.Add(new SqlParameter("@id_usuario", id));
-            command.Parameters.Add(new SqlParameter("@str_usuario", ""));
+            //command.Parameters.Add(new SqlParameter("@str_usuario", ""));
+            command.Parameters.Add(new SqlParameter("@str_login", ""));
             command.Parameters.Add(new SqlParameter("@str_nome", ""));
 
 
@@ -211,7 +246,7 @@ namespace WebAppServer.Repositories
                 SqlCommand command = conn.CreateCommand();
                 SqlParameter param_id = new SqlParameter();
                 command.Transaction = tran;
-                command.CommandText = "ntv_p_man_tbl_token_acesso";
+                command.CommandText = "p_man_tbl_token_acesso";
                 command.CommandType = System.Data.CommandType.StoredProcedure;
 
                 command.Parameters.Add(new SqlParameter("@Tp_processo", "I"));
@@ -491,5 +526,61 @@ namespace WebAppServer.Repositories
 
         }
 
+        public async Task<string> GravarDados(string operacao, string dados)
+        {
+            string str_ret = "";
+            Int64 id_ret = 0;
+            Usuario usuario = new Usuario();
+            List<Usuario> listDados = new List<Usuario>();
+            string str_param = "";
+            if (dados.GetType() != typeof(string))
+            {
+                str_param = JsonConvert.SerializeObject(dados);
+            }
+            else
+            {
+                str_param = dados;
+            }
+            try
+            {
+                listDados = JsonConvert.DeserializeObject<List<Usuario>>(str_param.IndexOf("[") == -1 ? "[" + str_param + "]" : str_param);
+
+                if (listDados != null)
+                {
+                    string str_conn = configDB.ConnectString;
+
+                    using (SqlConnection conn = new SqlConnection(str_conn))
+                    {
+                        conn.Open();
+
+                        using (SqlTransaction tran = conn.BeginTransaction())
+                        {
+                            try
+                            {
+                                id_ret = Convert.ToInt64(repData.ManutencaoTabela<Usuario>(operacao, listDados, "ntv_tbl_usuario", conn, tran).Split(";")[0]);
+                                usuario = listDados[0];
+                                usuario.id = id_ret;
+                                str_ret = JsonConvert.SerializeObject(usuario);
+                            }
+                            catch (Exception ex)
+                            {
+                                tran.Rollback();
+                                conn.Close();
+                                throw ex;
+                            }
+
+                            tran.Commit();
+                        }
+                        conn.Close();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                str_ret = "Error : " + ex.Message.ToString();
+            }
+            return str_ret;
+
+        }
     }
 }
