@@ -131,9 +131,9 @@ namespace WebAppServer.Controllers
             {
                 Assembly genModel = null;
 
-                if (System.IO.File.Exists("/app/publish/WebAppSever.dll"))
+                if (System.IO.File.Exists("/publish/WebAppSever.dll"))
                 {
-                    genModel = Assembly.LoadFrom("/app/publish/WebAppSever.dll");
+                    genModel = Assembly.LoadFrom("/publish/WebAppSever.dll");
                 }
                 else
                 {
