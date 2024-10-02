@@ -20,11 +20,4 @@ FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
 
-# Copy your assemblies to the app directory
-COPY ./bin/Release/netcoreapp3.1 .
-
-# Copy the dynamic assembly
-COPY ./WebAppServer.dll /app/assemblies/
-
-
 ENTRYPOINT ["dotnet", "WebAppServer.dll"]
