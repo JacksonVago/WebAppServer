@@ -135,7 +135,7 @@ namespace WebAppServer.Controllers
                 //genModel = Assembly.LoadFrom("./app/publish/WebAppServer.dll");
 
                 string assemblyPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "WebAppServer.dll");
-                var assembly = Assembly.LoadFrom(assemblyPath);
+                genModel = Assembly.LoadFrom(assemblyPath);
                 /*
                 if (System.IO.File.Exists("/app/publish/WebAppServer.dll"))
                 {
