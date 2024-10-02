@@ -131,6 +131,8 @@ namespace WebAppServer.Controllers
             {
                 Assembly genModel = null;
 
+                genModel = Assembly.LoadFrom("/home/ubuntu/WebAppServer/WebAppServer.dll");
+                /*
                 if (System.IO.File.Exists("/app/publish/WebAppServer.dll"))
                 {
                     genModel = Assembly.LoadFrom("/app/publish/WebAppServer.dll");
@@ -138,7 +140,7 @@ namespace WebAppServer.Controllers
                 else
                 {
                     genModel = Assembly.LoadFrom(@"D:\Jackson\Natividade\APP\AppServer\WebAppServer\WebAppServer\bin\Debug\netcoreapp3.1\WebAppServer.dll");
-                }
+                }*/
                     
                 
                 Type ClasseImporta = genModel.GetType("WebAppServer." + genModels.classe);
