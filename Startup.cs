@@ -60,8 +60,9 @@ namespace WebAppServer
                 options.AddPolicy(name: "AllowSpecificOrigins",
                                       policy =>
                                       {
-                                          policy.WithOrigins("http://localhost:3000",
-                                                              "http://www.contoso.com");
+                                          policy.AllowAnyOrigin();
+                                          /*policy.WithOrigins("http://localhost:3000",
+                                                              "http://18.232.142.219");*/
                                           policy.AllowAnyHeader();
                                       });
             });
