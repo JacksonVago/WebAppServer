@@ -61,7 +61,7 @@ namespace WebAppServer
                                       policy =>
                                       {
                                           policy.WithOrigins("http://localhost:3000",
-                                                              "http://18.232.142.219");
+                                                              "http://52.23.246.229");
                                           policy.AllowAnyHeader();
                                       });
             });
