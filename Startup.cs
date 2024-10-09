@@ -60,8 +60,9 @@ namespace WebAppServer
                 options.AddPolicy(name: "AllowSpecificOrigins",
                                       policy =>
                                       {
-                                          policy.WithOrigins("http://localhost:3000",                                                              
-                                                              "http://35.174.17.110");
+                                          policy.WithOrigins("http://localhost:3000",
+                                                             "http://3.94.130.80",
+                                                             "http://35.174.17.110");
                                           policy.AllowAnyHeader();
                                       });
             });
