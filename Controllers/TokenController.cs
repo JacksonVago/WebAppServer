@@ -18,13 +18,14 @@ namespace WebAppServer.Controllers
         private readonly UsuarioRepository _repository;
         private readonly UsuarioAcessoRepository _repAcesso;
         private readonly IHttpContextAccessor _httpContext;
+        private readonly AppRepository _repApp;
 
-        public TokenController(UsuarioRepository repository, UsuarioAcessoRepository repAcess, IHttpContextAccessor contextAccessor)
+        public TokenController(UsuarioRepository repository, UsuarioAcessoRepository repAcess, IHttpContextAccessor contextAccessor, AppRepository repapp)
         {
             _repository = repository;
             _repAcesso = repAcess;
             _httpContext = contextAccessor;
-
+            _repApp = repapp;
         }
 
         
@@ -184,6 +185,22 @@ namespace WebAppServer.Controllers
             {
                 return NotFound(new { message = ex.Message.ToString() });
             }
+        }
+
+        [HttpPost("v1/LoginCardapio")]
+        public async Task<ActionResult<dynamic>> LoginCardapio([FromBody] ParametrosEntrada paramEntrada)
+        {
+            dynamic dyn_retorno = null;
+            try
+            {
+                dyn_retorno = _repApp.ExecutaProcessoGen(paramEntrada);
+                return dyn_retorno;
+            }
+            catch (Exception ex)
+            {
+                return NotFound(new { mensagem = ex.Message.ToString() });
+            }
+
         }
 
         [HttpPost("v1/UpdPrimAcess")]

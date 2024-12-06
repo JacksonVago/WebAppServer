@@ -15,7 +15,6 @@ namespace WebAppServer.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
     public class AppPraiaController : Controller
     {
         private readonly SyncRepository _repSync;
@@ -123,6 +122,7 @@ namespace WebAppServer.Controllers
             }
 
         }
+
         [HttpPost("v1/Maintenence")]
         public async Task<ActionResult<dynamic>> ExecuteDynamicModel([FromBody] GenModels genModels)
         {
@@ -131,18 +131,62 @@ namespace WebAppServer.Controllers
             {
                 Assembly genModel = null;
 
-                string assemblyPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "WebAppServer.dll");
-                genModel = Assembly.LoadFrom(assemblyPath);
-                //genModel = Assembly.LoadFrom(@"D:\Jackson\Natividade\APP\AppServer\WebAppServer\WebAppServer\bin\Debug\netcoreapp3.1\WebAppServer.dll");
+                //string assemblyPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "WebAppServer.dll");
+                //genModel = Assembly.LoadFrom(assemblyPath);
+                genModel = Assembly.LoadFrom(@"D:\Jackson\Natividade\APP\AppServer\WebAppServer\WebAppServer\bin\Debug\netcoreapp3.1\WebAppServer.dll");
 
 
                 Type ClasseImporta = genModel.GetType("WebAppServer." + genModels.classe);
                 object obj = Activator.CreateInstance(ClasseImporta);
                 MethodInfo Metodo = ClasseImporta.GetMethod(genModels.metodo);
-                object[] paramMetodo = new object[2];
-                paramMetodo[0] = genModels.Operacao;
-                paramMetodo[1] = genModels.Dados.Replace("'", "\"");
-                dyn_retorno = Metodo.Invoke(obj, paramMetodo);
+
+                if (genModels.parametros != null)
+                {
+                    object[] paramMetodo = new object[genModels.parametros.Count];
+                    for (int p = 0; p < genModels.parametros.Count; p++)
+                    {
+                        switch (genModels.parametros[p].tipo)
+                        {
+                            case "string":
+                            case "String":
+                                paramMetodo[p] = genModels.parametros[p].valor.Replace("'", "\"");
+                                break;
+
+                            case "Int16":
+                            case "int16":
+                                paramMetodo[p] = Convert.ToInt16(genModels.parametros[p].valor);
+                                break;
+
+                            case "int":
+                            case "Int32":
+                            case "int32":
+                                paramMetodo[p] = Convert.ToInt32(genModels.parametros[p].valor);
+                                break;
+
+                            case "Int64":
+                            case "int64":
+                                paramMetodo[p] = Convert.ToInt64(genModels.parametros[p].valor);
+                                break;
+
+                            case "DateTime":
+                            case "datetime":
+                                paramMetodo[p] = Convert.ToDateTime(genModels.parametros[p].valor);
+                                break;
+
+                            case "Double":
+                            case "double":
+                                paramMetodo[p] = Convert.ToDouble(genModels.parametros[p].valor);
+                                break;
+
+                        }
+
+                    }
+                    dyn_retorno = Metodo.Invoke(obj, paramMetodo);
+                }
+                else
+                {
+                    dyn_retorno = Metodo.Invoke(obj, null);
+                }
                 
             }
             catch (Exception ex)
@@ -153,5 +197,40 @@ namespace WebAppServer.Controllers
             return dyn_retorno;
 
         }
+
+        [HttpPost("v1/ConsultaPostgres")]
+        public async Task<ActionResult<dynamic>> ConsultaPostgres([FromBody] DadosPostgres dados)
+        {
+            dynamic dyn_retorno = null;
+            try
+            {
+                string sqlStr = "select * from f_sel_tbl_" + dados.tabela + "(" + dados.Dados + ")";
+                dyn_retorno = _repApp.ExecutaSqlPostgres(sqlStr);
+                return dyn_retorno;
+            }
+            catch (Exception ex)
+            {
+                return NotFound(new { mensagem = ex.Message.ToString() });
+            }
+
+        }
+
+        [HttpPost("v1/MaintenencePostgres")]
+        public async Task<ActionResult<dynamic>> MaintenencePostgres([FromBody] DadosPostgres dados)
+        {
+            dynamic dyn_retorno = null;
+            try
+            {
+                string sqlStr = "select * from f_man_tbl_" + dados.tabela + "('{\"dados\": " + dados.Dados + "}') as id";
+                dyn_retorno = _repApp.ExecutaSqlPostgres(sqlStr);
+                return dyn_retorno;
+            }
+            catch (Exception ex)
+            {
+                return NotFound(new { mensagem = ex.Message.ToString() });
+            }
+
+        }
+
     }
 }

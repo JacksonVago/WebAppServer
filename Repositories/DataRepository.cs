@@ -6,6 +6,7 @@ using System.Data;
 using Microsoft.Data.SqlClient;
 using System.IO;
 using System.Text;
+using Npgsql;
 
 namespace WebAppServer.Repositories
 {
@@ -619,6 +620,86 @@ namespace WebAppServer.Repositories
             }
             return table;
 
+        }
+
+        public dynamic ConsultaGenericaPostgres(string procedure, NpgsqlConnection conn, NpgsqlTransaction tran)
+        {
+
+            //DataTable dtt_filtros = ToDataTable<dynamic>(filtros);
+
+
+            try
+            {
+                NpgsqlCommand command = new NpgsqlCommand(procedure, conn);
+
+                if (tran != null)
+                {
+                    command.Transaction = tran;
+                }
+
+                DataTable dtt_retorno = new DataTable();
+
+                using (NpgsqlDataReader reader = command.ExecuteReader())
+                {
+                    dtt_retorno.Load(reader);
+                }
+
+                return JsonConvert.SerializeObject(dtt_retorno);
+
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+
+
+        public dynamic ConsultaTestePostgres(dynamic filtros, string procedure, NpgsqlConnection conn, NpgsqlTransaction tran)
+        {
+
+            //DataTable dtt_filtros = ToDataTable<dynamic>(filtros);
+            string str_param = "";
+            string str_sql = "select * from " + procedure;
+            if (filtros.GetType() != typeof(string))
+            {
+                str_param = JsonConvert.SerializeObject(filtros);
+            }
+            else
+            {
+                str_param = filtros;
+            }
+            DataTable dtt_filtros = JsonConvert.DeserializeObject<DataTable>(str_param);
+
+
+            try
+            {
+                NpgsqlCommand command = new NpgsqlCommand(str_sql, conn);
+
+                if (tran != null)
+                {
+                    command.Transaction = tran;
+                }
+                command.CommandType = System.Data.CommandType.StoredProcedure;
+                for (int r = 0; r < dtt_filtros.Rows.Count; r++)
+                {
+                    command.Parameters.Add(new SqlParameter("@" + dtt_filtros.Rows[r][0].ToString(), (dtt_filtros.Rows[r][2].ToString() == "DateTime" ? (dtt_filtros.Rows[r][1].ToString() != "" ? Convert.ToDateTime(dtt_filtros.Rows[r][1]).ToString("yyyy-MM-dd") : "2001-01-01") : dtt_filtros.Rows[r][1])));
+                }
+                //command.Parameters.Add(new SqlParameter("@EmissaoIni", DataIni.ToString("yyyy-MM-dd")));
+
+                DataTable dtt_retorno = new DataTable();
+
+                using (NpgsqlDataReader reader = command.ExecuteReader())
+                {
+                    dtt_retorno.Load(reader);
+                }
+
+                return JsonConvert.SerializeObject(dtt_retorno);
+
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
         }
 
     }

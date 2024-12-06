@@ -13,6 +13,7 @@ namespace WebAppServer.Models
         public string username { get; set; }
         public string password { get; set; }
         public DateTime validade { get; set; }
+        public Int16 int_local { get; set; }
     }
 }
 

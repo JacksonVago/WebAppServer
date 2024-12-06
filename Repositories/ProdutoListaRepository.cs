@@ -1,18 +1,19 @@
-﻿using System.Threading.Tasks;
-using System;
-using WebAppServer.Models;
-using Microsoft.Data.SqlClient;
+﻿using Microsoft.Data.SqlClient;
 using Newtonsoft.Json;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using System;
+using WebAppServer.Models;
 
 namespace WebAppServer.Repositories
 {
-    public class FormaPagRepository
+    public class ProdutoListaRepository
     {
         private readonly ConfigDB configDB;
         private DataRepository repData;
 
-        public FormaPagRepository()
+        public ProdutoListaRepository()
         {
             configDB = new ConfigDB();
             repData = new DataRepository();
@@ -21,9 +22,9 @@ namespace WebAppServer.Repositories
         public async Task<string> GravarDados(string operacao, string dados)
         {
             string str_ret = "";
-            Int64 id_forma = 0;
-            FormaPag formapag = new FormaPag();
-            List<FormaPag> listDados= new List<FormaPag>();
+            Int64 id_ret = 0;
+            ProdutoLista produtolista = new ProdutoLista();
+            List<ProdutoLista> listDados = new List<ProdutoLista>();
             string str_param = "";
             if (dados.GetType() != typeof(string))
             {
@@ -35,7 +36,7 @@ namespace WebAppServer.Repositories
             }
             try
             {
-                listDados = JsonConvert.DeserializeObject<List<FormaPag>>(str_param.IndexOf("[") == -1 ? "[" + str_param + "]" : str_param);
+                listDados = JsonConvert.DeserializeObject<List<ProdutoLista>>(str_param.IndexOf("[") == -1 ? "[" + str_param + "]" : str_param);
 
                 if (listDados != null)
                 {
@@ -49,9 +50,10 @@ namespace WebAppServer.Repositories
                         {
                             try
                             {
-                                id_forma = Convert.ToInt64(repData.ManutencaoTabela<FormaPag>(operacao, listDados, "ntv_tbl_formapag", conn, tran).Split(";")[0]);
-                                formapag.id = id_forma;
-                                str_ret = JsonConvert.SerializeObject(formapag);
+                                id_ret = Convert.ToInt64(repData.ManutencaoTabela<ProdutoLista>(operacao, listDados, "ntv_tbl_produto_lista", conn, tran).Split(";")[0]);
+                                produtolista = listDados[0];
+                                produtolista.id = id_ret;
+                                str_ret = JsonConvert.SerializeObject(produtolista);
                             }
                             catch (Exception ex)
                             {
@@ -68,7 +70,7 @@ namespace WebAppServer.Repositories
             }
             catch (Exception ex)
             {
-                str_ret = ex.Message.ToString();
+                str_ret = "Error : " + ex.Message.ToString();
             }
             return str_ret;
 

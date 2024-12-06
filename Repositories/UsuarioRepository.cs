@@ -51,8 +51,8 @@ namespace WebAppServer.Repositories
                         {
                             dtt_usuario = repData.ConsultaGenericaDtt("[{ \"nome\":\"id\", \"valor\":\"0\", \"tipo\":\"Int64\"}," +
                             "{ \"nome\":\"id_empresa\", \"valor\":\"0\", \"tipo\":\"Int64\"}," +
-                            "{ \"nome\":\"login\", \"valor\":\"\", \"tipo\":\"Int64\"}," +
-                            "{ \"nome\":\"email\", \"valor\":\"" + usuario + "\", \"tipo\":\"string\"}," +
+                            "{ \"nome\":\"login\", \"valor\":\"" + usuario + "\", \"tipo\":\"Int64\"}," +
+                            "{ \"nome\":\"email\", \"valor\":\"\", \"tipo\":\"string\"}," +
                             "{ \"nome\":\"situacao\", \"valor\":\"0\", \"tipo\":\"Int16\"}," +
                             "{ \"nome\":\"pagina\", \"valor\":\"0\", \"tipo\":\"Int16\"}," +
                             "{ \"nome\":\"qtdregs\", \"valor\":\"0\", \"tipo\":\"Int16\"}," +
@@ -74,7 +74,8 @@ namespace WebAppServer.Repositories
                                     user_ret.int_tipo = Convert.ToInt16(dtt_usuario.Rows[0]["int_tipo"]);
                                     user_ret.username = dtt_usuario.Rows[0]["str_login"].ToString();
                                     user_ret.password = dtt_usuario.Rows[0]["str_senha"].ToString();
-                                    user_ret.validade = DateTime.Now.AddMinutes(40);
+                                    user_ret.validade = DateTime.Now.AddDays(1);
+                                    user_ret.int_local = Convert.ToInt16(dtt_usuario.Rows[0]["int_local_atend"]);
 
                                     /*Carrega permissão do usuário*/
                                     /*
@@ -106,7 +107,8 @@ namespace WebAppServer.Repositories
                                     user_ret.int_tipo = 0;
                                     user_ret.username = "Senha inválida";
                                     user_ret.password = "";
-                                    user_ret.validade = DateTime.Now.AddMinutes(30);
+                                    user_ret.validade = DateTime.Now.AddDays(1);
+                                    user_ret.int_local = 1;
                                 }
                             }
                             else
@@ -116,7 +118,8 @@ namespace WebAppServer.Repositories
                                 user_ret.int_tipo = 0;
                                 user_ret.username = "Usuário não cadastrado.";
                                 user_ret.password = "";
-                                user_ret.validade = DateTime.Now.AddMinutes(40);
+                                user_ret.validade = DateTime.Now.AddDays(1);
+                                user_ret.int_local = 1;
                             }
                             tran.Commit();
                         }

@@ -1,4 +1,5 @@
 ﻿using Microsoft.Data.SqlClient;
+using Npgsql;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -69,6 +70,38 @@ namespace WebAppServer.Repositories
 
                     //Executa sql
                     dyn_ret = repData.ConsultaSQL(sql, conn, null);
+                }
+                catch (Exception ex)
+                {
+                    conn.Close();
+                    throw ex;
+                }
+                conn.Close();
+            }
+
+            return dyn_ret;
+
+
+        }
+
+        public dynamic ExecutaSqlPostgres(string sql)
+        {
+            DataRepository repData = new DataRepository();
+            bool bol_ret = true;
+            Int64 id_emp = 0;
+            Int64 id_prim = 0;
+            string str_ret = "";
+            string str_corpo = "";
+            dynamic dyn_ret = null;
+
+            using (NpgsqlConnection conn = new NpgsqlConnection(configDB.ConnectString))
+            {
+                try
+                {
+                    conn.Open();
+
+                    //Executa sql
+                    dyn_ret = repData.ConsultaGenericaPostgres(sql, conn, null);
                 }
                 catch (Exception ex)
                 {

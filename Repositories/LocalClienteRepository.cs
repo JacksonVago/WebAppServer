@@ -1,18 +1,18 @@
-﻿using System.Threading.Tasks;
-using System;
-using WebAppServer.Models;
-using Microsoft.Data.SqlClient;
+﻿using Microsoft.Data.SqlClient;
 using Newtonsoft.Json;
 using System.Collections.Generic;
+using System.Threading.Tasks;
+using System;
+using WebAppServer.Models;
 
 namespace WebAppServer.Repositories
 {
-    public class EmpresaRepository
+    public class LocalClienteRepository
     {
         private readonly ConfigDB configDB;
         private DataRepository repData;
 
-        public EmpresaRepository()
+        public LocalClienteRepository()
         {
             configDB = new ConfigDB();
             repData = new DataRepository();
@@ -22,8 +22,8 @@ namespace WebAppServer.Repositories
         {
             string str_ret = "";
             Int64 id_ret = 0;
-            Empresa empresa = new Empresa();
-            List<Empresa> listDados= new List<Empresa>();
+            LocalCliente local = new LocalCliente();
+            List<LocalCliente> listDados = new List<LocalCliente>();
             string str_param = "";
             if (dados.GetType() != typeof(string))
             {
@@ -35,7 +35,7 @@ namespace WebAppServer.Repositories
             }
             try
             {
-                listDados = JsonConvert.DeserializeObject<List<Empresa>>(str_param.IndexOf("[") == -1 ? "[" + str_param + "]" : str_param);
+                listDados = JsonConvert.DeserializeObject<List<LocalCliente>>(str_param.IndexOf("[") == -1 ? "[" + str_param + "]" : str_param);
 
                 if (listDados != null)
                 {
@@ -49,10 +49,10 @@ namespace WebAppServer.Repositories
                         {
                             try
                             {
-                                id_ret = Convert.ToInt64(repData.ManutencaoTabela<Empresa>(operacao, listDados, "ntv_tbl_empresa", conn, tran).Split(";")[0]);
-                                empresa = listDados[0];
-                                empresa.id = id_ret;
-                                str_ret = JsonConvert.SerializeObject(empresa);
+                                id_ret = Convert.ToInt64(repData.ManutencaoTabela<LocalCliente>(operacao, listDados, "ntv_tbl_localcliente", conn, tran).Split(";")[0]);
+                                local = listDados[0];
+                                local.id = id_ret;
+                                str_ret = JsonConvert.SerializeObject(local);
                             }
                             catch (Exception ex)
                             {
@@ -74,12 +74,12 @@ namespace WebAppServer.Repositories
             return str_ret;
 
         }
-        public async Task<string> GravarDadosConfig(string operacao, string dados)
+        public async Task<string> GravarDadosPagto(string operacao, string dados)
         {
             string str_ret = "";
             Int64 id_ret = 0;
-            EmpresaConfig empresa = new EmpresaConfig();
-            List<EmpresaConfig> listDados = new List<EmpresaConfig>();
+            LocalCliPag local = new LocalCliPag();
+            List<LocalCliPag> listDados = new List<LocalCliPag>();
             string str_param = "";
             if (dados.GetType() != typeof(string))
             {
@@ -91,7 +91,7 @@ namespace WebAppServer.Repositories
             }
             try
             {
-                listDados = JsonConvert.DeserializeObject<List<EmpresaConfig>>(str_param.IndexOf("[") == -1 ? "[" + str_param + "]" : str_param);
+                listDados = JsonConvert.DeserializeObject<List<LocalCliPag>>(str_param.IndexOf("[") == -1 ? "[" + str_param + "]" : str_param);
 
                 if (listDados != null)
                 {
@@ -105,10 +105,10 @@ namespace WebAppServer.Repositories
                         {
                             try
                             {
-                                id_ret = Convert.ToInt64(repData.ManutencaoTabela<EmpresaConfig>(operacao, listDados, "ntv_tbl_empresa_config", conn, tran).Split(";")[0]);
-                                empresa = listDados[0];
-                                empresa.id_empresa = id_ret;
-                                str_ret = JsonConvert.SerializeObject(empresa);
+                                id_ret = Convert.ToInt64(repData.ManutencaoTabela<LocalCliPag>(operacao, listDados, "ntv_tbl_localcliente", conn, tran).Split(";")[0]);
+                                local = listDados[0];
+                                local.id = id_ret;
+                                str_ret = JsonConvert.SerializeObject(local);
                             }
                             catch (Exception ex)
                             {

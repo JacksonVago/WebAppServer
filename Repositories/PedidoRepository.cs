@@ -19,121 +19,70 @@ namespace WebAppServer.Repositories
             repData = new DataRepository();
         }
 
-        public async Task<string> GravarPedido(Int64 empresa, string dados)
+        public async Task<string> GravarPedido(string operacao, string pedido, string item, string itemCombo, string itemAdic)
         {
             string str_ret = "";
+            string str_ids = "";
             string str_operacao = "";
             Int64 id_pedido = 0;
-            PedidoApp pedido = new PedidoApp();
+
+            Pedido ped_grv = new Pedido();
+
             List<Pedido> pedidos = new List<Pedido>();
+            List<PedidoItem> pedidoitem = new List<PedidoItem>();
+            List<PedidoItemCombo> pedidoitemCmb = new List<PedidoItemCombo>();
+            List<PedidoItemAdic> pedidoitemAdic = new List<PedidoItemAdic>();
 
-            pedido = JsonConvert.DeserializeObject<PedidoApp>(dados);
+            string str_param = "";
 
-            if (pedido != null)
+            try
             {
-                if (pedido.id_server == 0)
+                //Carrega dados produtos
+                if (pedido.GetType() != typeof(string))
                 {
-                    str_operacao = "I";
+                    str_param = JsonConvert.SerializeObject(pedido);
                 }
                 else
                 {
-                    str_operacao = "U";
+                    str_param = pedido;
                 }
+                pedidos = JsonConvert.DeserializeObject<List<Pedido>>(str_param.IndexOf("[") == -1 ? "[" + str_param + "]" : str_param);
 
-                pedidos.Add(new Pedido
+                if (pedidos != null)
                 {
-                    id = pedido.id_server,
-                    id_empresa = empresa,
-                    id_localcli = pedido.id_server,
-                    dtm_pedido = pedido.dtm_pedido,
-                    dtm_pagto = pedido.dtm_pagto,
-                    dtm_cancel = pedido.dtm_cancel,
-                    int_qtd_item = pedido.int_qtd_item,
-                    dbl_val_tot = pedido.dbl_val_tot,
-                    dbl_val_desc = pedido.dbl_val_desc,
-                    dbl_val_liq = pedido.dbl_val_liq,
-                    dbl_val_pag = pedido.dbl_val_pag,
-                    str_obs = pedido.str_obervacao,
-                    int_situacao = pedido.int_situacao, //0 - Aberto / 1 - Confirmado / 2 - Entregue Parcial / 3 - Entregue total / 4 - Pago parcialmente / 5 - Pago total / 9 - Cancelado
-                    id_usuario = pedido.id_usuario,
-                    id_app = pedido.id,
-                    id_user_man = pedido.id_usuario
-                });
-
-                string str_conn = configDB.ConnectString;
-
-                using (SqlConnection conn = new SqlConnection(str_conn))
-                {
-                    conn.Open();
-
-                    using (SqlTransaction tran = conn.BeginTransaction())
+                    //Carrega os itens do pedido
+                    if (item.GetType() != typeof(string))
                     {
-                        try
-                        {
-                            id_pedido = Convert.ToInt64(repData.ManutencaoTabela<Pedido>(str_operacao, pedidos, "ntv_tbl_pedido", conn, tran).Split(";")[0]);
-                            pedido.id_server = id_pedido;
-                            str_ret = JsonConvert.SerializeObject(pedido);
-                        }
-                        catch (Exception ex)
-                        {
-                            tran.Rollback();
-                            conn.Close();
-                            throw ex;
-                        }
-
-                        tran.Commit();
+                        str_param = JsonConvert.SerializeObject(item);
                     }
-                    conn.Close();
-                }
-            }
-
-            return str_ret;
-        }
-
-        public async Task<string> GravarPedidoItem(Int64 empresa, string dados)
-        {
-            string str_ret = "";
-            string str_id = "";
-            string str_operacao = "";
-
-            List<PedidoItemApp> itemApp = new List<PedidoItemApp>();
-            List<PedidoItem> itens = new List<PedidoItem>();
-
-            itemApp = JsonConvert.DeserializeObject<List<PedidoItemApp>>((dados.Contains("[") ? dados : "[" + dados + "]"));
-
-            if (itemApp != null && itemApp.Count > 0)
-            {
-                if (itemApp[0].id_server == 0)
-                {
-                    str_operacao = "I";
-                }
-                else
-                {
-                    str_operacao = "U";
-                }
-
-                for ( int i = 0; i < itemApp.Count; i++)
-                {
-                    itens.Add(new PedidoItem
+                    else
                     {
-                        id = itemApp[i].id_server,
-                        id_empresa = empresa,
-                        id_pedido = itemApp[i].id_pedido,
-                        id_produto = itemApp[i].id_produto,
-                        dbl_precounit = itemApp[i].dbl_precounit,
-                        int_qtd_comp = itemApp[i].int_qtd_comp,
-                        dbl_tot_item = itemApp[i].dbl_tot_item,
-                        dbl_desconto = itemApp[i].dbl_desconto,
-                        dbl_tot_liq = itemApp[i].dbl_tot_liq,
-                        int_situacao = itemApp[i].int_situacao, // 0 - Não entregue / 1 - Entregue / 9 - Cancelado
-                        id_app = itemApp[i].id,
-                        id_user_man = 0
-                    });
+                        str_param = item;
+                    }
+                    pedidoitem = JsonConvert.DeserializeObject<List<PedidoItem>>(str_param.IndexOf("[") == -1 ? "[" + str_param + "]" : str_param);
 
-                }
+                    //Carrega dados produtos do combo
+                    if (itemCombo.GetType() != typeof(string))
+                    {
+                        str_param = JsonConvert.SerializeObject(itemCombo);
+                    }
+                    else
+                    {
+                        str_param = itemCombo;
+                    }
+                    pedidoitemCmb = JsonConvert.DeserializeObject<List<PedidoItemCombo>>(str_param.IndexOf("[") == -1 ? "[" + str_param + "]" : str_param);
 
-                if (itens.Count > 0)
-                {
+                    //Carrega dados produtos adicionais
+                    if (itemAdic.GetType() != typeof(string))
+                    {
+                        str_param = JsonConvert.SerializeObject(itemAdic);
+                    }
+                    else
+                    {
+                        str_param = itemAdic;
+                    }
+                    pedidoitemAdic = JsonConvert.DeserializeObject<List<PedidoItemAdic>>(str_param.IndexOf("[") == -1 ? "[" + str_param + "]" : str_param);
+
                     string str_conn = configDB.ConnectString;
 
                     using (SqlConnection conn = new SqlConnection(str_conn))
@@ -144,13 +93,108 @@ namespace WebAppServer.Repositories
                         {
                             try
                             {
-                                str_id = repData.ManutencaoTabela<PedidoItem>(str_operacao, itens, "ntv_tbl_pedidoitem", conn, tran);
+                                //Grava pedido
+                                id_pedido = Convert.ToInt64(repData.ManutencaoTabela<Pedido>(operacao, pedidos, "ntv_tbl_pedido", conn, tran).Split(";")[0]);
+                                ped_grv = pedidos[0];
+                                ped_grv.id = id_pedido;
+                                str_ret = JsonConvert.SerializeObject(ped_grv);
 
-                                for (int i = 0; i < itemApp.Count; i++)
+                                //Grava itens do pedido
+                                if (pedidoitem != null && pedidoitem.Count > 0)
                                 {
-                                    itemApp[i].id_server = Convert.ToInt64(str_id.Split(';')[i]);
+                                    //carrega id do produto gravado
+                                    for (int i = 0; i < pedidoitem.Count; i++)
+                                    {
+                                        if (operacao == "U")
+                                        {
+                                            pedidoitem[i].id = -1;
+                                        }
+                                        pedidoitem[i].id_pedido = id_pedido;
+                                    }
+
+                                    str_ids = repData.ManutencaoTabela<PedidoItem>("I", pedidoitem, "ntv_tbl_pedidoitem", conn, tran);
+                                    if (str_ids.Split(";").Count() > 0)
+                                    {
+                                        for (int id = 0; id < str_ids.Split(";").Count(); id++)
+                                        {
+                                            if (str_ids.Split(";")[id] != "")
+                                            {
+                                                pedidoitem[id].id = Convert.ToInt64(str_ids.Split(";")[id]);
+                                            }
+                                        }
+                                    }
+
+                                    str_ret += "#|#|" + JsonConvert.SerializeObject(pedidoitem);
                                 }
-                                str_ret = JsonConvert.SerializeObject(itemApp);
+                                else
+                                {
+                                    str_ret += "#|#|";
+                                }
+
+                                //Grava itens combo
+                                if (pedidoitemCmb != null && pedidoitemCmb.Count > 0)
+                                {
+                                    //carrega id do produto gravado
+                                    for (int i = 0; i < pedidoitemCmb.Count; i++)
+                                    {
+                                        if (operacao == "U")
+                                        {
+                                            pedidoitemCmb[i].id = -1;
+                                        }
+                                        pedidoitemCmb[i].id_pedido = id_pedido;
+                                    }
+
+                                    str_ids = repData.ManutencaoTabela<PedidoItemCombo>("I", pedidoitemCmb, "ntv_tbl_pedidoitemcombo", conn, tran);
+                                    if (str_ids.Split(";").Count() > 0)
+                                    {
+                                        for (int id = 0; id < str_ids.Split(";").Count(); id++)
+                                        {
+                                            if (str_ids.Split(";")[id] != "")
+                                            {
+                                                pedidoitemCmb[id].id = Convert.ToInt64(str_ids.Split(";")[id]);
+                                            }
+                                        }
+                                    }
+
+                                    str_ret += "#|#|" + JsonConvert.SerializeObject(pedidoitemCmb);
+                                }
+                                else
+                                {
+                                    str_ret += "#|#|";
+                                }
+
+                                //Grava itens adicionais
+                                if (pedidoitemAdic != null && pedidoitemAdic.Count > 0)
+                                {
+                                    //carrega id do produto gravado
+                                    for (int i = 0; i < pedidoitemAdic.Count; i++)
+                                    {
+                                        if (operacao == "U")
+                                        {
+                                            pedidoitemAdic[i].id = -1;
+                                        }
+                                        pedidoitemAdic[i].id_pedido = id_pedido;
+                                    }
+
+                                    str_ids = repData.ManutencaoTabela<PedidoItemAdic>("I", pedidoitemAdic, "ntv_tbl_pedidoitemadic", conn, tran);
+                                    if (str_ids.Split(";").Count() > 0)
+                                    {
+                                        for (int id = 0; id < str_ids.Split(";").Count(); id++)
+                                        {
+                                            if (str_ids.Split(";")[id] != "")
+                                            {
+                                                pedidoitemAdic[id].id = Convert.ToInt64(str_ids.Split(";")[id]);
+                                            }
+                                        }
+                                    }
+
+                                    str_ret += "#|#|" + JsonConvert.SerializeObject(pedidoitemAdic);
+                                }
+                                else
+                                {
+                                    str_ret += "#|#|";
+                                }
+
                             }
                             catch (Exception ex)
                             {
@@ -165,7 +209,10 @@ namespace WebAppServer.Repositories
                     }
                 }
             }
-
+            catch (Exception ex)
+            {
+                str_ret = "Error : " + ex.Message.ToString();
+            }
             return str_ret;
         }
 
