@@ -22,6 +22,7 @@ namespace WebAppServer
 {
     public class Startup
     {
+        string str_policy = "AllowSpecificOrigins";
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
@@ -58,7 +59,7 @@ namespace WebAppServer
             }
             );            
             services.AddCors(options => {
-                options.AddPolicy(name: "AllowSpecificOrigins",
+                options.AddPolicy(name: str_policy,
                                       policy =>
                                       {
                                           /*policy.WithOrigins(["http://localhost:3000",
@@ -91,10 +92,9 @@ namespace WebAppServer
             }
 
 
-
+            app.UseCors(str_policy);
             app.UseHttpsRedirection();
-            app.UseStaticFiles();
-            app.UseCors("AllowSpecificOrigins");
+            app.UseStaticFiles();            
             app.UseRouting();            
             app.UseAuthentication();
             app.UseAuthorization();            
