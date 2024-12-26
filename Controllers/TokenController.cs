@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Cors;
 
 namespace WebAppServer.Controllers
 {
+    [EnableCors("AllowSpecificOrigins")]
     [Route("api/AppPraia/[controller]")]
     [ApiController]
     public class TokenController : Controller
