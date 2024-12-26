@@ -16,6 +16,7 @@ using WebAppServer.Models;
 using WebAppServer.Repositories;
 using WebAppServer.Hubs;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.AspNetCore.Cors.Infrastructure;
 
 namespace WebAppServer
 {
@@ -55,7 +56,7 @@ namespace WebAppServer
                     IssuerSigningKey = new SymmetricSecurityKey(chave)
                 };
             }
-            );
+            );            
             services.AddCors(options => {
                 options.AddPolicy(name: "AllowSpecificOrigins",
                                       policy =>
@@ -92,7 +93,15 @@ namespace WebAppServer
             app.UseHttpsRedirection();
             app.UseStaticFiles();            
             app.UseRouting();
-            app.UseCors("AllowSpecificOrigins");
+            //app.UseCors("AllowSpecificOrigins");
+            app.UseCors(options =>
+            {
+                options
+                .AllowAnyOrigin()
+                .AllowAnyHeader()
+                .AllowAnyMethod();                
+            }
+                );
             app.UseAuthentication();
             app.UseAuthorization();            
             app.UseEndpoints(endpoints =>
