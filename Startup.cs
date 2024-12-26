@@ -64,6 +64,7 @@ namespace WebAppServer
                                                             "http://192.168.1.136:3000",
                                                              "http://107.22.1.181",
                                                              "http://192.168.1.226:3000",
+                                                             "http://13.77.179.14:88",
                                                              "http://35.174.17.110");
                                           policy.AllowAnyOrigin();
                                           policy.WithOrigins("*");
