@@ -61,13 +61,14 @@ namespace WebAppServer
                 options.AddPolicy(name: "AllowSpecificOrigins",
                                       policy =>
                                       {
-                                          policy.WithOrigins("http://localhost:3000",
+                                          policy.WithOrigins(["http://localhost:3000",
                                                             "http://192.168.1.136:3000",
                                                              "http://107.22.1.181",
                                                              "http://192.168.1.226:3000",
                                                              "http://13.77.179.14:88",
-                                                             "http://35.174.17.110");
+                                                             "http://35.174.17.110"]);
                                           policy.AllowAnyHeader();
+                                          policy.AllowAnyMethod();
                                       });
             });
             services.AddControllersWithViews();
@@ -90,18 +91,10 @@ namespace WebAppServer
 
 
 
-            app.UseCors(options =>
-            {
-                options
-                .AllowAnyOrigin()
-                .AllowAnyHeader()
-                .AllowAnyMethod();
-            }
-                );
             app.UseHttpsRedirection();
             app.UseStaticFiles();            
             app.UseRouting();
-            //app.UseCors("AllowSpecificOrigins");
+            app.UseCors("AllowSpecificOrigins");
             app.UseAuthentication();
             app.UseAuthorization();            
             app.UseEndpoints(endpoints =>
