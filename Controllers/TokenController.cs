@@ -8,6 +8,7 @@ using WebAppServer.Services;
 using WebAppServer.Repositories;
 using WebAppServer.Models;
 using Newtonsoft.Json;
+using Microsoft.AspNetCore.Cors;
 
 namespace WebAppServer.Controllers
 {
