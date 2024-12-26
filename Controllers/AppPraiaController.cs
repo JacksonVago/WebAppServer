@@ -14,6 +14,7 @@ using WebAppServer.Repositories;
 namespace WebAppServer.Controllers
 {
     [Route("api/[controller]")]
+    [Authorize]
     [ApiController]
     public class AppPraiaController : Controller
     {
