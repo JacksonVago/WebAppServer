@@ -89,19 +89,19 @@ namespace WebAppServer
             }
 
 
-            
-            app.UseHttpsRedirection();
-            app.UseStaticFiles();            
-            app.UseRouting();
-            //app.UseCors("AllowSpecificOrigins");
+
             app.UseCors(options =>
             {
                 options
                 .AllowAnyOrigin()
                 .AllowAnyHeader()
-                .AllowAnyMethod();                
+                .AllowAnyMethod();
             }
                 );
+            app.UseHttpsRedirection();
+            app.UseStaticFiles();            
+            app.UseRouting();
+            //app.UseCors("AllowSpecificOrigins");
             app.UseAuthentication();
             app.UseAuthorization();            
             app.UseEndpoints(endpoints =>
