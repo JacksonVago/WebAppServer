@@ -59,7 +59,7 @@ namespace WebAppServer
             }
             );            
             services.AddCors(options => {
-                options.AddPolicy(name: str_policy,
+                options.AddDefaultPolicy(
                                       policy =>
                                       {
                                           policy.WithOrigins(["http://localhost:3000",
@@ -91,7 +91,7 @@ namespace WebAppServer
             }
 
 
-            app.UseCors(str_policy);
+            app.UseCors();
             app.UseHttpsRedirection();
             app.UseStaticFiles();            
             app.UseRouting();            
