@@ -347,6 +347,10 @@ namespace WebAppServer.Repositories
                                 dtt_usuario_grv.Columns.Add(new DataColumn("str_parametros", System.Type.GetType("System.String")));
                                 dtt_usuario_grv.Columns.Add(new DataColumn("int_nivel", System.Type.GetType("System.Int32")));
                             }
+                            else
+                            {
+                                dtt_usuario_grv.Columns.Add(new DataColumn("str_operation", System.Type.GetType("System.String")));
+                            }
 
                             row_usuario = dtt_usuario_grv.NewRow();
 
