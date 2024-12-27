@@ -9,6 +9,8 @@ using System.Data;
 using Microsoft.Data.SqlClient;
 using Newtonsoft.Json;
 using static System.Net.WebRequestMethods;
+using Npgsql;
+using System.ComponentModel.DataAnnotations;
 
 namespace WebAppServer.Repositories
 {
@@ -142,6 +144,117 @@ namespace WebAppServer.Repositories
             return user_ret;
         }
 
+        public async Task<UsuarioAcesso> ValidaUsuarioPostgres(string usuario, string senha)
+        {
+            UsuarioAcesso user_ret = new UsuarioAcesso();
+            List<Usuario> luser_ret = new List<Usuario>();
+            DataTable dtt_usuario = new DataTable();
+            DataTable dtt_permissao = new DataTable();
+
+            DataRepository repData = new DataRepository();
+
+            string str_ret = "";
+
+            string str_conn = configDB.ConnectString;
+            try
+            {
+                using (NpgsqlConnection conn = new NpgsqlConnection(configDB.ConnectString))
+                {
+                    conn.Open();
+
+                    using (NpgsqlTransaction tran = conn.BeginTransaction())
+                    {
+                        try
+                        {
+                            string sqlStr = "select * from f_sel_tbl_ntv_tbl_usuario(0,0,'" + usuario + "','')";
+
+                            str_ret = repData.ConsultaGenericaPostgres(sqlStr, conn, tran);
+                            dtt_usuario = JsonConvert.DeserializeObject<DataTable>(str_ret);
+                            luser_ret = JsonConvert.DeserializeObject<List<Usuario>>(str_ret);
+
+                            //dtt_usuario = repData.ConsultaGenericaDtt("[{ \"nome\":\"UserID\", \"valor\":\"" + usuario + "\", \"tipo\":\"string\"},{ \"nome\":\"Senha\", \"valor\":\"1\", \"tipo\":\"string\"}]", "ntv_p_sel_tbl_usuarios", conn, tran);
+                            //str_ret = repData.ConsultaGenerica("[{ \"UserID\":\"" + usuario + "\", \"Senha\":\"1\"}]", "ntv_p_sel_tbl_usuarios", conn, tran);
+                            //dtt_usuario = repData.ConsultaGenericaDtt("[{ \"nome\":\"UserID\", \"valor\":\"" + usuario + "\", \"tipo\":\"string\"},{ \"nome\":\"Senha\", \"valor\":\"1\", \"tipo\":\"string\"}]", "ntv_p_sel_tbl_usuarios", conn, tran);
+
+                            if (dtt_usuario.Rows.Count > 0)
+                            {
+                                //if (senha.ToUpper() == Descriptografar(dtt_usuario.Rows[0]["str_senha"].ToString()).ToUpper())
+                                if (senha.ToUpper() == dtt_usuario.Rows[0]["str_senha"].ToString().ToUpper())
+                                {
+
+                                    user_ret.id = Convert.ToInt64(dtt_usuario.Rows[0]["id"]);
+                                    user_ret.id_empresa = Convert.ToInt64(dtt_usuario.Rows[0]["id_empresa"]);
+                                    user_ret.int_tipo = Convert.ToInt16(dtt_usuario.Rows[0]["int_tipo"]);
+                                    user_ret.username = dtt_usuario.Rows[0]["str_login"].ToString();
+                                    user_ret.password = dtt_usuario.Rows[0]["str_senha"].ToString();
+                                    user_ret.validade = DateTime.Now.AddDays(1);
+                                    user_ret.int_local = Convert.ToInt16(dtt_usuario.Rows[0]["int_local_atend"]);
+
+                                    /*Carrega permissão do usuário*/
+                                    /*
+                                    dtt_permissao = ConsultaUsuarioPermissao("APINatividade", 1, Convert.ToInt64(dtt_usuario.Rows[0]["id"]), conn, tran);
+
+                                    if (dtt_permissao.Rows.Count > 0)
+                                    {
+                                        user_ret.id = Convert.ToInt64(dtt_usuario.Rows[0]["id"]);
+                                        user_ret.username = dtt_usuario.Rows[0]["str_usuario"].ToString();
+                                        user_ret.password = dtt_usuario.Rows[0]["str_senha"].ToString();
+                                        user_ret.validade = DateTime.Now.AddMinutes(40);
+                                    }
+                                    else
+                                    {
+                                        user_ret.id = 0;
+                                        user_ret.username = "Usuário sem permissão de acesso";
+                                        user_ret.password = "";
+                                        user_ret.validade = DateTime.Now.AddMinutes(30);
+
+                                    }*/
+
+                                    //luser_ret.Add(user_ret);
+                                    //str_ret = repData.ManutencaoTabela<dynamic>("I", luser_ret, "ntv_tbl_usuario", conn, tran);
+                                }
+                                else
+                                {
+                                    user_ret.id = 0;
+                                    user_ret.id_empresa = 0;
+                                    user_ret.int_tipo = 0;
+                                    user_ret.username = "Senha inválida";
+                                    user_ret.password = "";
+                                    user_ret.validade = DateTime.Now.AddDays(1);
+                                    user_ret.int_local = 1;
+                                }
+                            }
+                            else
+                            {
+                                user_ret.id = 0;
+                                user_ret.id_empresa = 0;
+                                user_ret.int_tipo = 0;
+                                user_ret.username = "Usuário não cadastrado.";
+                                user_ret.password = "";
+                                user_ret.validade = DateTime.Now.AddDays(1);
+                                user_ret.int_local = 1;
+                            }
+                            tran.Commit();
+                        }
+                        catch (Exception ex)
+                        {
+                            tran.Rollback();
+                            conn.Close();
+                            throw ex;
+
+                        }
+                    }
+                    conn.Close();
+                }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+
+            return user_ret;
+        }
+
         public async Task<bool> GravarAcesso(UsuarioAcesso usuario, string Token, string ip, string metodo, string parametros)
         {
             DataTable dtt_usuario_grv = new DataTable();
@@ -178,6 +291,79 @@ namespace WebAppServer.Repositories
                             stb_usuario = SaveThroughXML(dtt_usuario_grv, "ntv_tbl_token_acesso");
                             bol_ret = InsAcesso(stb_usuario.ToString(), conn, tran);
 
+                            tran.Commit();
+                        }
+                        catch (Exception ex)
+                        {
+                            tran.Rollback();
+                            conn.Close();
+                            throw ex;
+
+                        }
+                    }
+                    conn.Close();
+                }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+
+            return bol_ret;
+        }
+
+        public async Task<bool> GravarAcessoPostgres(UsuarioAcesso usuario, string Token, string ip, string metodo, string parametros)
+        {
+            DataTable dtt_usuario_grv = new DataTable();
+            DataRow row_usuario = null;
+            StringBuilder stb_usuario = new StringBuilder();
+
+            bool bol_ret = false;
+
+            try
+            {
+                using (NpgsqlConnection conn = new NpgsqlConnection(configDB.ConnectString))
+                {
+                    conn.Open();
+
+                    using (NpgsqlTransaction tran = conn.BeginTransaction())
+                    {
+                        try
+                        {
+                            string sqlStr = "select * from f_sel_tbl_ntv_tbl_token_acesso(-1,0,'','')";
+
+                            string str_ret = repData.ConsultaGenericaPostgres(sqlStr, conn, tran);
+                            dtt_usuario_grv = JsonConvert.DeserializeObject<DataTable>(str_ret);
+                            dtt_usuario_grv.Columns.Add(new DataColumn("str_operation", System.Type.GetType("System.String")));
+                            dtt_usuario_grv.Columns.Add(new DataColumn("id", System.Type.GetType("System.Int64")));
+                            dtt_usuario_grv.Columns.Add(new DataColumn("id_usuario", System.Type.GetType("System.Int64")));
+                            dtt_usuario_grv.Columns.Add(new DataColumn("dtm_acesso", System.Type.GetType("System.DateTime")));
+                            dtt_usuario_grv.Columns.Add(new DataColumn("dtm_validade", System.Type.GetType("System.DateTime")));
+                            dtt_usuario_grv.Columns.Add(new DataColumn("str_token", System.Type.GetType("System.String")));
+                            dtt_usuario_grv.Columns.Add(new DataColumn("str_ip", System.Type.GetType("System.String")));
+                            dtt_usuario_grv.Columns.Add(new DataColumn("str_metodo", System.Type.GetType("System.String")));
+                            dtt_usuario_grv.Columns.Add(new DataColumn("str_parametros", System.Type.GetType("System.String")));
+                            dtt_usuario_grv.Columns.Add(new DataColumn("int_nivel", System.Type.GetType("System.Int32")));
+
+                            row_usuario = dtt_usuario_grv.NewRow();
+
+                            row_usuario["str_operation"] = "I";
+                            row_usuario["id"] = 0;
+                            row_usuario["id_usuario"] = usuario.id;
+                            row_usuario["dtm_acesso"] = DateTime.Now;
+                            row_usuario["dtm_validade"] = usuario.validade;
+                            row_usuario["str_token"] = Token;
+                            row_usuario["str_ip"] = ip;
+                            row_usuario["str_metodo"] = metodo;
+                            row_usuario["str_parametros"] = parametros;
+                            row_usuario["int_nivel"] = 0;                            
+
+                            dtt_usuario_grv.Rows.Add(row_usuario);
+                            str_ret = JsonConvert.SerializeObject(dtt_usuario_grv);
+                            sqlStr = "select * from f_man_tbl_ntv_tbl_token_acesso('{\"dados\": " + str_ret + "}') as id";
+                            str_ret = repData.ConsultaGenericaPostgres(sqlStr, conn, tran);
+
+                            bol_ret = true;
                             tran.Commit();
                         }
                         catch (Exception ex)

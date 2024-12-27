@@ -34,7 +34,8 @@ namespace WebAppServer.Controllers
         public async Task<IActionResult> CreateJwtTokenAsync([FromBody] Usuariotoken user)
         {
             UsuarioAcesso user_ret = new UsuarioAcesso();
-            user_ret = await _repository.ValidaUsuario(user.username, user.password);
+            user_ret = await _repository.ValidaUsuarioPostgres(user.username, user.password);
+            //user_ret = await _repository.ValidaUsuario(user.username, user.password);
             if (user_ret != null)
             {
                 if (user_ret.id > 0)
@@ -47,7 +48,7 @@ namespace WebAppServer.Controllers
                             var ip = _httpContext.HttpContext.Connection.LocalIpAddress.ToString();
                             var metodo = _httpContext.HttpContext.Request.Path.ToString();
 
-                            if (await _repository.GravarAcesso(user_ret, token.access_token, ip, metodo, JsonConvert.SerializeObject(user_ret)))
+                            if (await _repository.GravarAcessoPostgres(user_ret, token.access_token, ip, metodo, JsonConvert.SerializeObject(user_ret)))
                             {
                                 return Ok(new
                                 {
