@@ -334,16 +334,19 @@ namespace WebAppServer.Repositories
 
                             string str_ret = repData.ConsultaGenericaPostgres(sqlStr, conn, tran);
                             dtt_usuario_grv = JsonConvert.DeserializeObject<DataTable>(str_ret);
-                            dtt_usuario_grv.Columns.Add(new DataColumn("str_operation", System.Type.GetType("System.String")));
-                            dtt_usuario_grv.Columns.Add(new DataColumn("id", System.Type.GetType("System.Int64")));
-                            dtt_usuario_grv.Columns.Add(new DataColumn("id_usuario", System.Type.GetType("System.Int64")));
-                            dtt_usuario_grv.Columns.Add(new DataColumn("dtm_acesso", System.Type.GetType("System.DateTime")));
-                            dtt_usuario_grv.Columns.Add(new DataColumn("dtm_validade", System.Type.GetType("System.DateTime")));
-                            dtt_usuario_grv.Columns.Add(new DataColumn("str_token", System.Type.GetType("System.String")));
-                            dtt_usuario_grv.Columns.Add(new DataColumn("str_ip", System.Type.GetType("System.String")));
-                            dtt_usuario_grv.Columns.Add(new DataColumn("str_metodo", System.Type.GetType("System.String")));
-                            dtt_usuario_grv.Columns.Add(new DataColumn("str_parametros", System.Type.GetType("System.String")));
-                            dtt_usuario_grv.Columns.Add(new DataColumn("int_nivel", System.Type.GetType("System.Int32")));
+                            if (dtt_usuario_grv.Columns.Count == 0)
+                            {
+                                dtt_usuario_grv.Columns.Add(new DataColumn("str_operation", System.Type.GetType("System.String")));
+                                dtt_usuario_grv.Columns.Add(new DataColumn("id", System.Type.GetType("System.Int64")));
+                                dtt_usuario_grv.Columns.Add(new DataColumn("id_usuario", System.Type.GetType("System.Int64")));
+                                dtt_usuario_grv.Columns.Add(new DataColumn("dtm_acesso", System.Type.GetType("System.DateTime")));
+                                dtt_usuario_grv.Columns.Add(new DataColumn("dtm_validade", System.Type.GetType("System.DateTime")));
+                                dtt_usuario_grv.Columns.Add(new DataColumn("str_token", System.Type.GetType("System.String")));
+                                dtt_usuario_grv.Columns.Add(new DataColumn("str_ip", System.Type.GetType("System.String")));
+                                dtt_usuario_grv.Columns.Add(new DataColumn("str_metodo", System.Type.GetType("System.String")));
+                                dtt_usuario_grv.Columns.Add(new DataColumn("str_parametros", System.Type.GetType("System.String")));
+                                dtt_usuario_grv.Columns.Add(new DataColumn("int_nivel", System.Type.GetType("System.Int32")));
+                            }
 
                             row_usuario = dtt_usuario_grv.NewRow();
 
