@@ -1,7 +1,10 @@
 ﻿using Microsoft.Data.SqlClient;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Npgsql;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.IO;
 using System.Net;
 using System.Net.Mail;
@@ -72,6 +75,77 @@ namespace WebAppServer.Repositories
                             email_grv.Add(email);
 
                             str_ret = repData.ManutencaoTabela<envEmail>(str_operacao, email_grv, "ntv_tbl_env_emails", conn);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        throw ex;
+                    }
+                    conn.Close();
+                }
+            }
+
+        }
+
+        public async void EnviarEmailsPostgres(List<envEmail> mails)
+        {
+            DataRepository repData = new DataRepository();
+            DataTable dtt_retorno = new DataTable();
+
+            bool bol_ret = true;
+            Int64 id_prim = 0;
+            string str_ret = "";
+            string str_operacao = "U";
+
+            if (mails.Count > 0)
+            {
+
+
+                using (NpgsqlConnection conn = new NpgsqlConnection(configDB.ConnectString))
+                {
+                    conn.Open();
+                    try
+                    {
+                        foreach (envEmail email in mails)
+                        {
+                            str_ret = EnviaEmail(email);
+                            if (str_ret == "ok")
+                            {
+                                email.int_situacao = 1;
+                            }
+                            else
+                            {
+                                email.int_situacao = 2;
+                            }
+                            if (email.id > 0)
+                            {
+                                str_operacao = "U";
+                            }
+                            else
+                            {
+                                str_operacao = "I";
+                            }
+
+                            List<envEmail> email_grv = new List<envEmail>();
+                            email_grv.Add(email);
+
+
+                            str_ret = JsonConvert.SerializeObject(email_grv);
+
+                            dtt_retorno = JsonConvert.DeserializeObject<DataTable>(str_ret);
+
+                            if (dtt_retorno.Columns.Count > 0)
+                            {
+                                if (!dtt_retorno.Columns.Contains("str_operation"))
+                                {
+                                    dtt_retorno.Columns.Add(new DataColumn("str_operation", System.Type.GetType("System.String")));
+                                    dtt_retorno.Rows[0]["str_operation"] = str_operacao;
+                                }
+                                str_ret = JsonConvert.SerializeObject(dtt_retorno);
+                            }
+
+                            string sqlStr = "select * from f_man_tbl_ntv_tbl_empresa('{\"dados\": " + str_ret + "}') as id";
+                            str_ret = repData.ConsultaGenericaPostgres(sqlStr, conn, null);
                         }
                     }
                     catch (Exception ex)

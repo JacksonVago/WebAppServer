@@ -166,7 +166,7 @@ namespace WebAppServer.Repositories
                     {
                         try
                         {
-                            string sqlStr = "select * from f_sel_tbl_ntv_tbl_usuario(0,0,'" + usuario + "','')";
+                            string sqlStr = "select * from f_sel_tbl_ntv_tbl_usuario(0,0,'" + usuario + "','',0)";
 
                             str_ret = repData.ConsultaGenericaPostgres(sqlStr, conn, tran);
                             dtt_usuario = JsonConvert.DeserializeObject<DataTable>(str_ret);

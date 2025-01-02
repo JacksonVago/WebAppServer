@@ -36,7 +36,6 @@ namespace WebAppServer.Repositories
                 {
                     conn.Open();
 
-                    //Verifica se o é primeiro acesso
                     dyn_ret = repData.ConsultaGenerica(paramEntrada.parametros, paramEntrada.procedure, conn);
                 }
                 catch (Exception ex)

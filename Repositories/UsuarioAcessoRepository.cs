@@ -1,6 +1,7 @@
 ﻿using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
+using Npgsql;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -280,6 +281,311 @@ namespace WebAppServer.Repositories
                                     }
                                 }
                             }
+                            tran.Commit();
+                        }
+                        catch (Exception ex)
+                        {
+                            tran.Rollback();
+                            conn.Close();
+                            throw ex;
+                        }
+                    }
+                    conn.Close();
+                }
+            }
+
+            return dyn_ret;
+        }
+        public async Task<IEnumerable<UserPrimAcess>> PrimeiroAcessoEmpPostgres(string str_mail)
+        {
+            DataRepository repData = new DataRepository();
+            DataTable dtt_retorno = new DataTable();
+            bool bol_ret = true;
+            Int64 id_emp = 0;
+            Int64 id_prim = 0;
+            string str_ret = "";
+            string str_corpo = "";
+
+            List<Empresa> empresa = new List<Empresa>();
+            List<UserPrimAcess> primAcesses = new List<UserPrimAcess>();
+
+            empresa.Add(new Empresa
+            {
+                id = 0,
+                int_cgccpf = 0,
+                str_nome = "",
+                str_fantasia = "",
+                str_email = str_mail,
+                int_telefone = 0,
+                int_local_atend = 0,
+                int_id_user_adm = 0,
+                dtm_inclusao = DateTime.Now,
+                int_situacao = 0,
+                int_sitpag = 0,
+                dtm_ultpag = null,
+                id_app = 0
+            });
+
+            using (NpgsqlConnection conn = new NpgsqlConnection(configDB.ConnectString))
+            {
+                conn.Open();
+                using (NpgsqlTransaction tran = conn.BeginTransaction())
+                {
+                    try
+                    {
+                        str_ret = JsonConvert.SerializeObject(empresa);
+                        dtt_retorno = JsonConvert.DeserializeObject<DataTable>(str_ret);
+
+                        //Incluir coluna da operação a ser executada
+                        if (dtt_retorno.Columns.Count > 0)
+                        {
+                            if (!dtt_retorno.Columns.Contains("str_operation")){
+                                dtt_retorno.Columns.Add(new DataColumn("str_operation", System.Type.GetType("System.String")));
+                                dtt_retorno.Rows[0]["str_operation"] = "U";
+                            }
+                            str_ret = JsonConvert.SerializeObject(dtt_retorno);
+
+                            string sqlStr = "select * from f_man_tbl_ntv_tbl_empresa('{\"dados\": " + str_ret + "}') as id";
+                            str_ret = repData.ConsultaGenericaPostgres(sqlStr, conn, tran);
+                            dtt_retorno = JsonConvert.DeserializeObject<DataTable>(str_ret);
+                            if (dtt_retorno.Columns.Count > 0)
+                            {
+                                primAcesses.Add(new UserPrimAcess
+                                {
+                                    id = 0,
+                                    id_empresa = Convert.ToInt64(dtt_retorno.Rows[0]["id"]),
+                                    id_emp_serv = Convert.ToInt64(dtt_retorno.Rows[0]["id"]),
+                                    id_user_app = 0,
+                                    str_email = str_mail,
+                                    dtm_acesso = DateTime.Now,
+                                    int_cod_acesso = 0,
+                                    dtm_confirma = null,
+                                    int_situacao = 0
+                                });
+
+                                str_ret = JsonConvert.SerializeObject(primAcesses);
+                                dtt_retorno = JsonConvert.DeserializeObject<DataTable>(str_ret);
+
+                                if (dtt_retorno.Columns.Count > 0)
+                                {
+                                    if (!dtt_retorno.Columns.Contains("str_operation"))
+                                    {
+                                        dtt_retorno.Columns.Add(new DataColumn("str_operation", System.Type.GetType("System.String")));
+                                        dtt_retorno.Rows[0]["str_operation"] = "I";
+                                    }
+                                    str_ret = JsonConvert.SerializeObject(dtt_retorno);
+                                }
+
+                                sqlStr = "select * from f_man_tbl_ntv_tbl_prim_acess('{\"dados\": " + str_ret + "}') as id";
+                                str_ret = repData.ConsultaGenericaPostgres(sqlStr, conn, tran);
+                                dtt_retorno = JsonConvert.DeserializeObject<DataTable>(str_ret);
+
+                                if (dtt_retorno.Columns.Count > 0)
+                                {
+                                    sqlStr = "select * from f_sel_tbl_ntv_tbl_token_acesso(" + dtt_retorno.Rows[0]["id_prim"] + ",0,'',0)";
+
+                                    str_ret = repData.ConsultaGenericaPostgres(sqlStr, conn, tran);
+                                    dtt_retorno = JsonConvert.DeserializeObject<DataTable>(str_ret);
+                                    if (dtt_retorno.Columns.Count == 0)
+                                    {
+                                        str_corpo += "<p style = 'font-family:Arial; font-size:120%; font-weight:bold;' > TERMO DE ADESÃO ON-LINE</p>";
+                                        str_corpo += "<br/>";
+                                        str_corpo += "<p style = 'font-family:Arial; font-size:120%; font-weight:bold;' > Prezado Cliente,</p>";
+                                        str_corpo += "<br/>";
+                                        str_corpo += "<p style = 'font-family:Arial; font-size:100%; ' > Segue número de aceite para confirmação do acesso:</p>";
+                                        str_corpo += "<p style = 'font-family:Arial; font-size:100%; font-weight:bold;' > " + String.Format("{0:0000}", primAcesses[0].int_cod_acesso) + "</p>";
+                                        str_corpo += "<p style = 'font-family:Arial; font-size:100%; ' > Atenciosamente,</p>";
+                                        str_corpo += "<p style = 'font-family:Arial; font-size:100%; ' > Natividade Soluções em TI</p>";
+
+                                        List<envEmail> emails = new List<envEmail>();
+                                        emails.Add(new envEmail
+                                        {
+                                            id = 0,
+                                            str_de = "suporte@natividadesolucoes.com.br",
+                                            str_para = str_mail,
+                                            str_cc = "",
+                                            str_ass = "Adesão ao APP na Areia",
+                                            str_msg = str_corpo,
+                                            str_html = "S",
+                                            dtm_data_inc = DateTime.Now,
+                                            str_modulo = "Primeiro Acesso WebAppServer.Data.Usuario.Repositories",
+                                            str_obs = "",
+                                            int_situacao = 0
+
+                                        });
+                                        _repEmail.EnviarEmailsPostgres(emails);
+                                    }
+                                }
+                            }
+                        }
+
+                        tran.Commit();
+                    }
+                    catch (Exception ex)
+                    {
+                        tran.Rollback();
+                        conn.Close();
+                        throw ex;
+                    }
+                }
+                conn.Close();
+            }
+
+            return primAcesses;
+
+
+        }
+
+        public async Task<IEnumerable<dynamic>> VerificaUsuarioPostgres(string str_mail)
+        {
+            DataRepository repData = new DataRepository();
+            DataTable dtt_retorno = new DataTable();
+            bool bol_ret = true;
+            Int64 id_emp = 0;
+            Int64 id_prim = 0;
+            string str_ret = "";
+            string str_corpo = "";
+            dynamic dyn_ret = null;
+
+            using (NpgsqlConnection conn = new NpgsqlConnection(configDB.ConnectString))
+            {
+                try
+                {
+                    conn.Open();
+
+                    //Verifica se o é primeiro acesso
+                    string sqlStr = "select * from f_sel_tbl_ntv_tbl_prim_acess(0,0," + str_mail + ",0)";
+                    str_ret = repData.ConsultaGenericaPostgres(sqlStr, conn, null);
+                    dtt_retorno = JsonConvert.DeserializeObject<DataTable>(str_ret);
+
+                    if (dtt_retorno.Columns.Count > 0 && dtt_retorno.Rows.Count > 0)
+                    {
+                        //Verifica se o usuário esta ativo 
+                        sqlStr = "select * from f_sel_tbl_ntv_tbl_usuario(0,0," + str_mail + ",'',1)";
+                        str_ret = repData.ConsultaGenericaPostgres(sqlStr, conn, null);                        
+                    }
+
+                    dyn_ret = JsonConvert.DeserializeObject<List<Usuario>>(str_ret);
+                }
+                catch (Exception ex)
+                {
+                    conn.Close();
+                    throw ex;
+                }
+                conn.Close();
+            }
+
+            return dyn_ret;
+
+
+        }
+
+        public async Task<IEnumerable<UserPrimAcess>> ValPrimeiroAcessoPostgres(string str_mail, Int64 codigo)
+        {
+
+            DataRepository repData = new DataRepository();            
+
+            bool bol_ret = false;
+
+            string str_ret = "";
+            List<UserPrimAcess> primAcesses = new List<UserPrimAcess>();
+
+            using (NpgsqlConnection conn = new NpgsqlConnection(configDB.ConnectString))
+            {
+                conn.Open();
+                string sqlStr = "select * from f_sel_tbl_ntv_tbl_prim_acess(0,0," + str_mail + "," + codigo.ToString() + ",-1)";
+                str_ret = repData.ConsultaGenericaPostgres(sqlStr, conn, null);
+                if (str_ret != "[]")
+                {
+                    primAcesses = JsonConvert.DeserializeObject<List<UserPrimAcess>>(str_ret);
+                    if (primAcesses.Count > 0)
+                    {
+                        dynamic user = await AtuPrimeiroAcessoPostgres(primAcesses[0]);
+                    }
+                }
+
+                conn.Close();
+            }
+            return primAcesses;
+        }
+
+        public async Task<IEnumerable<dynamic>> AtuPrimeiroAcessoPostgres(UserPrimAcess primAcess)
+        {
+
+            DataRepository repData = new DataRepository();
+            DataTable dtt_retorno = new DataTable();
+
+            List<UserPrimAcess> prim = new List<UserPrimAcess>();
+            List<Usuario> usu = new List<Usuario>();
+            dynamic dyn_ret = null;
+
+            Int64 int6_ret = 0;
+
+            if (primAcess != null)
+            {
+                using (NpgsqlConnection conn = new NpgsqlConnection(configDB.ConnectString))
+                {
+                    conn.Open();
+                    using (NpgsqlTransaction tran = conn.BeginTransaction())
+                    {
+                        try
+                        {
+                            primAcess.dtm_confirma = DateTime.Now;
+                            primAcess.int_situacao = 1;
+
+                            List<UserPrimAcess> primAcesses = new List<UserPrimAcess>();
+
+                            primAcesses.Add(primAcess);
+                            string str_ret = JsonConvert.SerializeObject(primAcesses);
+
+                            dtt_retorno = JsonConvert.DeserializeObject<DataTable>(str_ret);
+
+                            //Incluir coluna da operação a ser executada
+                            if (dtt_retorno.Columns.Count > 0)
+                            {
+                                if (!dtt_retorno.Columns.Contains("str_operation"))
+                                {
+                                    dtt_retorno.Columns.Add(new DataColumn("str_operation", System.Type.GetType("System.String")));
+                                    dtt_retorno.Rows[0]["str_operation"] = "U";
+                                }
+                                str_ret = JsonConvert.SerializeObject(dtt_retorno);
+
+                            }
+
+                            string sqlStr = "select * from f_man_tbl_ntv_tbl_prim_acess('{\"dados\": " + str_ret + "}') as id";
+                            str_ret = repData.ConsultaGenericaPostgres(sqlStr, conn, tran);
+                            dtt_retorno = JsonConvert.DeserializeObject<DataTable>(str_ret);
+
+                            if (dtt_retorno.Columns.Count > 0 && dtt_retorno.Rows.Count == 0) {
+                                if (Convert.ToInt64(dtt_retorno.Rows[0]["id_user_app"]) > 0)
+                                {
+                                    //Atualiza usuário
+                                    sqlStr = "select * from f_sel_tbl_ntv_tbl_usuario(" + dtt_retorno.Rows[0]["id_user_app"] + ",0,'','',1)";
+                                    str_ret = repData.ConsultaGenericaPostgres(sqlStr, conn, null);
+
+                                    dtt_retorno = JsonConvert.DeserializeObject<DataTable>(str_ret);
+                                    //Incluir coluna da operação a ser executada
+                                    if (dtt_retorno.Columns.Count > 0)
+                                    {
+                                        if (!dtt_retorno.Columns.Contains("str_operation"))
+                                        {
+                                            dtt_retorno.Columns.Add(new DataColumn("str_operation", System.Type.GetType("System.String")));
+                                            dtt_retorno.Rows[0]["str_operation"] = "U";
+                                        }
+                                        str_ret = JsonConvert.SerializeObject(dtt_retorno);
+                                        sqlStr = "select * from f_man_tbl_ntv_tbl_usuario('{\"dados\": " + str_ret + "}') as id";
+                                        str_ret = repData.ConsultaGenericaPostgres(sqlStr, conn, null);
+                                    }
+                                }
+                                else
+                                {
+                                    sqlStr = "select * from f_sel_tbl_ntv_tbl_prim_acess(" + dtt_retorno.Rows[0]["id"]+ ",0,'',0,-1)";
+                                    str_ret = repData.ConsultaGenericaPostgres(sqlStr, conn, null);
+                                }
+                            }
+
+                            dyn_ret = str_ret;
+
                             tran.Commit();
                         }
                         catch (Exception ex)

@@ -216,6 +216,23 @@ namespace WebAppServer.Controllers
 
         }
 
+        [HttpPost("v1/ProcedurePostgres")]
+        public async Task<ActionResult<dynamic>> ProcedurePostgres([FromBody] DadosPostgres dados)
+        {
+            dynamic dyn_retorno = null;
+            try
+            {
+                string sqlStr = "select * from " + dados.tabela + "(" + dados.Dados + ")";
+                dyn_retorno = _repApp.ExecutaSqlPostgres(sqlStr);
+                return dyn_retorno;
+            }
+            catch (Exception ex)
+            {
+                return NotFound(new { mensagem = ex.Message.ToString() });
+            }
+
+        }
+
         [HttpPost("v1/MaintenencePostgres")]
         public async Task<ActionResult<dynamic>> MaintenencePostgres([FromBody] DadosPostgres dados)
         {

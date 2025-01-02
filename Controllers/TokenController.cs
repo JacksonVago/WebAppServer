@@ -103,7 +103,7 @@ namespace WebAppServer.Controllers
                         var ip = _httpContext.HttpContext.Connection.LocalIpAddress.ToString();
                         var metodo = _httpContext.HttpContext.Request.Path.ToString();
 
-                        if (await _repository.GravarAcesso(user_ret, token.access_token, ip, metodo, JsonConvert.SerializeObject(user_ret)))
+                        if (await _repository.GravarAcessoPostgres(user_ret, token.access_token, ip, metodo, JsonConvert.SerializeObject(user_ret)))
                         {
                             return Ok(new
                             {
@@ -136,7 +136,7 @@ namespace WebAppServer.Controllers
         {
             try
             {
-                dynamic ret = await _repAcesso.PrimeiroAcessoEmp(email);
+                dynamic ret = await _repAcesso.PrimeiroAcessoEmpPostgres(email);
                 return ret;
                 /*return Ok(new
                 {
@@ -155,7 +155,7 @@ namespace WebAppServer.Controllers
         {
             try
             {
-                dynamic ret = await _repAcesso.VerificaUsuario(email);
+                dynamic ret = await _repAcesso.VerificaUsuarioPostgres(email);
                 return ret;
                 /*return Ok(new
                 {
@@ -209,7 +209,7 @@ namespace WebAppServer.Controllers
         public async Task<dynamic> AtuPrimAcess([FromBody] UserPrimAcess primAcess)
         {
 
-            dynamic ret = await _repAcesso.AtuPrimeiroAcesso(primAcess);
+            dynamic ret = await _repAcesso.AtuPrimeiroAcessoPostgres(primAcess);
             return ret;
         }
 
@@ -220,7 +220,7 @@ namespace WebAppServer.Controllers
             _strHrInicioVnd = "00:00:01";
             if (Convert.ToDateTime(_strHrInicioVnd) < DateTime.Now)
             {
-                    dynamic ret = await _repAcesso.VerificaUsuario("jackson@natividadesolucoes.com.br");
+                    dynamic ret = await _repAcesso.VerificaUsuarioPostgres("jackson@natividadesolucoes.com.br");
                 return "Verdadeiro";
             }
             else
