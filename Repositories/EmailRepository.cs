@@ -144,7 +144,7 @@ namespace WebAppServer.Repositories
                                 str_ret = JsonConvert.SerializeObject(dtt_retorno);
                             }
 
-                            string sqlStr = "select * from f_man_tbl_ntv_tbl_empresa('{\"dados\": " + str_ret + "}') as id";
+                            string sqlStr = "select * from f_man_tbl_ntv_tbl_env_emails('{\"dados\": " + str_ret.Replace("'","|||") + "}') as id";
                             str_ret = repData.ConsultaGenericaPostgres(sqlStr, conn, null);
                         }
                     }

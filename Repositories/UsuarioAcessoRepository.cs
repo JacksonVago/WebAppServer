@@ -341,7 +341,7 @@ namespace WebAppServer.Repositories
                         {
                             if (!dtt_retorno.Columns.Contains("str_operation")){
                                 dtt_retorno.Columns.Add(new DataColumn("str_operation", System.Type.GetType("System.String")));
-                                dtt_retorno.Rows[0]["str_operation"] = "U";
+                                dtt_retorno.Rows[0]["str_operation"] = "I";
                             }
                             str_ret = JsonConvert.SerializeObject(dtt_retorno);
 
@@ -350,11 +350,29 @@ namespace WebAppServer.Repositories
                             dtt_retorno = JsonConvert.DeserializeObject<DataTable>(str_ret);
                             if (dtt_retorno.Columns.Count > 0)
                             {
+                                //Grava configurações
+                                List<EmpresaConfig> empresaConfig = new List<EmpresaConfig>();
+
+                                empresaConfig.Add(new EmpresaConfig
+                                {
+                                    id_empresa = Convert.ToInt64(dtt_retorno.Rows[0]["id"].ToString().Replace(";", "")),
+                                    str_impressora = "",
+                                    str_imp_ped = "",
+                                    str_imp_conta = "",
+                                    str_conf_rec = "",
+                                    str_conf_pronto = "",
+                                    str_conf_ent = "N",
+                                    dbl_perc_serv = 0,
+                                    id_app = 0,
+                                    id_user_man = 0
+                                });
+
+                                //Gera primeiro acesso
                                 primAcesses.Add(new UserPrimAcess
                                 {
                                     id = 0,
-                                    id_empresa = Convert.ToInt64(dtt_retorno.Rows[0]["id"]),
-                                    id_emp_serv = Convert.ToInt64(dtt_retorno.Rows[0]["id"]),
+                                    id_empresa = Convert.ToInt64(dtt_retorno.Rows[0]["id"].ToString().Replace(";", "")),
+                                    id_emp_serv = Convert.ToInt64(dtt_retorno.Rows[0]["id"].ToString().Replace(";", "")),
                                     id_user_app = 0,
                                     str_email = str_mail,
                                     dtm_acesso = DateTime.Now,
@@ -362,6 +380,22 @@ namespace WebAppServer.Repositories
                                     dtm_confirma = null,
                                     int_situacao = 0
                                 });
+
+                                str_ret = JsonConvert.SerializeObject(empresaConfig);
+                                dtt_retorno = JsonConvert.DeserializeObject<DataTable>(str_ret);
+
+                                if (dtt_retorno.Columns.Count > 0)
+                                {
+                                    if (!dtt_retorno.Columns.Contains("str_operation"))
+                                    {
+                                        dtt_retorno.Columns.Add(new DataColumn("str_operation", System.Type.GetType("System.String")));
+                                        dtt_retorno.Rows[0]["str_operation"] = "I";
+                                    }
+                                    str_ret = JsonConvert.SerializeObject(dtt_retorno);
+                                }
+
+                                sqlStr = "select * from f_man_tbl_ntv_tbl_empresa_config('{\"dados\": " + str_ret + "}') as id";
+                                str_ret = repData.ConsultaGenericaPostgres(sqlStr, conn, tran);
 
                                 str_ret = JsonConvert.SerializeObject(primAcesses);
                                 dtt_retorno = JsonConvert.DeserializeObject<DataTable>(str_ret);
@@ -380,22 +414,25 @@ namespace WebAppServer.Repositories
                                 str_ret = repData.ConsultaGenericaPostgres(sqlStr, conn, tran);
                                 dtt_retorno = JsonConvert.DeserializeObject<DataTable>(str_ret);
 
-                                if (dtt_retorno.Columns.Count > 0)
+                                if (dtt_retorno.Rows.Count > 0)
                                 {
-                                    sqlStr = "select * from f_sel_tbl_ntv_tbl_token_acesso(" + dtt_retorno.Rows[0]["id_prim"] + ",0,'',0)";
+                                    sqlStr = "select * from f_sel_tbl_ntv_tbl_prim_acess(" + dtt_retorno.Rows[0]["id"].ToString().Replace(";","") + ",0,'',0)";
 
                                     str_ret = repData.ConsultaGenericaPostgres(sqlStr, conn, tran);
                                     dtt_retorno = JsonConvert.DeserializeObject<DataTable>(str_ret);
-                                    if (dtt_retorno.Columns.Count == 0)
+                                    if (dtt_retorno.Rows.Count > 0)
                                     {
                                         str_corpo += "<p style = 'font-family:Arial; font-size:120%; font-weight:bold;' > TERMO DE ADESÃO ON-LINE</p>";
                                         str_corpo += "<br/>";
                                         str_corpo += "<p style = 'font-family:Arial; font-size:120%; font-weight:bold;' > Prezado Cliente,</p>";
                                         str_corpo += "<br/>";
                                         str_corpo += "<p style = 'font-family:Arial; font-size:100%; ' > Segue número de aceite para confirmação do acesso:</p>";
-                                        str_corpo += "<p style = 'font-family:Arial; font-size:100%; font-weight:bold;' > " + String.Format("{0:0000}", primAcesses[0].int_cod_acesso) + "</p>";
+                                        str_corpo += "<p style = 'font-family:Arial; font-size:100%; font-weight:bold;' > " + String.Format("{0:0000}", dtt_retorno.Rows[0]["int_cod_acesso"].ToString()) + "</p>";
                                         str_corpo += "<p style = 'font-family:Arial; font-size:100%; ' > Atenciosamente,</p>";
                                         str_corpo += "<p style = 'font-family:Arial; font-size:100%; ' > Natividade Soluções em TI</p>";
+
+                                        primAcesses[0].int_cod_acesso = Convert.ToInt64(dtt_retorno.Rows[0]["int_cod_acesso"]);
+                                        primAcesses[0].id = Convert.ToInt64(dtt_retorno.Rows[0]["id"]);
 
                                         List<envEmail> emails = new List<envEmail>();
                                         emails.Add(new envEmail
@@ -556,8 +593,8 @@ namespace WebAppServer.Repositories
                             str_ret = repData.ConsultaGenericaPostgres(sqlStr, conn, tran);
                             dtt_retorno = JsonConvert.DeserializeObject<DataTable>(str_ret);
 
-                            if (dtt_retorno.Columns.Count > 0 && dtt_retorno.Rows.Count == 0) {
-                                if (Convert.ToInt64(dtt_retorno.Rows[0]["id_user_app"]) > 0)
+                            if (dtt_retorno.Columns.Count > 0 && dtt_retorno.Rows.Count > 0) {
+                                /*if (Convert.ToInt64(dtt_retorno.Rows[0]["id_user_app"]) > 0)
                                 {
                                     //Atualiza usuário
                                     sqlStr = "select * from f_sel_tbl_ntv_tbl_usuario(" + dtt_retorno.Rows[0]["id_user_app"] + ",0,'','',1)";
@@ -581,10 +618,11 @@ namespace WebAppServer.Repositories
                                 {
                                     sqlStr = "select * from f_sel_tbl_ntv_tbl_prim_acess(" + dtt_retorno.Rows[0]["id"]+ ",0,'',0,-1)";
                                     str_ret = repData.ConsultaGenericaPostgres(sqlStr, conn, null);
-                                }
+                                }*/
+                                dyn_ret = primAcesses;
                             }
 
-                            dyn_ret = str_ret;
+                            
 
                             tran.Commit();
                         }

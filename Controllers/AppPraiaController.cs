@@ -239,7 +239,7 @@ namespace WebAppServer.Controllers
             dynamic dyn_retorno = null;
             try
             {
-                string sqlStr = "select * from f_man_tbl_" + dados.tabela + "('{\"dados\": " + dados.Dados + "}') as id";
+                string sqlStr = "select * from f_man_tbl_" + dados.tabela + "('{\"dados\": " + dados.Dados.Replace("'","\"") + "}') as id";
                 dyn_retorno = _repApp.ExecutaSqlPostgres(sqlStr);
                 return dyn_retorno;
             }
