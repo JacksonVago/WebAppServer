@@ -349,7 +349,7 @@ namespace WebAppServer.Repositories
 
                                 }
 
-
+                                /*
                                 id_ret = Convert.ToInt64(repData.ManutencaoTabela<Produto>(operacao, listDados_prod, "ntv_tbl_produto", conn, tran).Split(";")[0]);
                                 dados_prod = listDados_prod[0];
                                 dados_prod.id = id_ret;
@@ -417,7 +417,7 @@ namespace WebAppServer.Repositories
                                 else
                                 {
                                     str_ret += "#|#|";
-                                }
+                                }*/
 
                             }
                             catch (Exception ex)
