@@ -250,10 +250,9 @@ namespace WebAppServer.Repositories
                                     if (!dtt_retorno.Columns.Contains("str_operation"))
                                     {
                                         dtt_retorno.Columns.Add(new DataColumn("str_operation", System.Type.GetType("System.String")));
-                                        dtt_retorno.Rows[0]["str_operation"] = "I";
+                                        dtt_retorno.Rows[0]["str_operation"] = operacao;
                                     }
-                                    str_ret = JsonConvert.SerializeObject(dtt_retorno);
-                                    str_ret_fim = str_ret;
+                                    str_ret = JsonConvert.SerializeObject(dtt_retorno);                                    
 
                                     string sqlStr = "select * from f_man_tbl_ntv_tbl_produto('{\"dados\": " + str_ret + "}') as id";
                                     str_ret = repData.ConsultaGenericaPostgres(sqlStr, conn, tran);
@@ -264,9 +263,13 @@ namespace WebAppServer.Repositories
                                         //Guarda id do produto principal
                                         id_ret = Convert.ToInt64(dtt_retorno.Rows[0]["id"].ToString().Replace(";", ""));
 
+                                        listDados_prod[0].id = id_ret;
+                                        str_ret_fim = JsonConvert.SerializeObject(listDados_prod);
+
                                         //Grava itens combo
                                         if (listDados_cmb != null && listDados_cmb.Count > 0)
                                         {
+
                                             //carrega id do produto gravado para os itens do combo
                                             for (int i = 0; i < listDados_cmb.Count; i++)
                                             {
@@ -277,7 +280,7 @@ namespace WebAppServer.Repositories
                                                 listDados_cmb[i].id_produto = id_ret;
                                             }
 
-                                            str_ret = JsonConvert.SerializeObject(listDados_prod);
+                                            str_ret = JsonConvert.SerializeObject(listDados_cmb);
                                             dtt_retorno = JsonConvert.DeserializeObject<DataTable>(str_ret);
                                             //Incluir coluna da operação a ser executada
                                             if (dtt_retorno.Columns.Count > 0)
@@ -285,7 +288,10 @@ namespace WebAppServer.Repositories
                                                 if (!dtt_retorno.Columns.Contains("str_operation"))
                                                 {
                                                     dtt_retorno.Columns.Add(new DataColumn("str_operation", System.Type.GetType("System.String")));
-                                                    dtt_retorno.Rows[0]["str_operation"] = "I";
+                                                    for (int i = 0; i < dtt_retorno.Rows.Count; i++)
+                                                    {
+                                                        dtt_retorno.Rows[i]["str_operation"] = "I";
+                                                    }
                                                 }
                                                 str_ret = JsonConvert.SerializeObject(dtt_retorno);
 
@@ -295,6 +301,10 @@ namespace WebAppServer.Repositories
 
                                                 if (dtt_retorno.Rows.Count > 0)
                                                 {
+                                                    for (int i = 0; i < dtt_retorno.Rows[0]["id"].ToString().Split(";").Length; i++)
+                                                    {
+                                                        listDados_cmb[i].id = Convert.ToInt64(dtt_retorno.Rows[0]["id"].ToString().Split(";")[0]);
+                                                    }
                                                 }
                                             }
 
@@ -327,16 +337,23 @@ namespace WebAppServer.Repositories
                                                 if (!dtt_retorno.Columns.Contains("str_operation"))
                                                 {
                                                     dtt_retorno.Columns.Add(new DataColumn("str_operation", System.Type.GetType("System.String")));
-                                                    dtt_retorno.Rows[0]["str_operation"] = operacao;
+                                                    for (int i = 0; i < dtt_retorno.Rows.Count; i++)
+                                                    {
+                                                        dtt_retorno.Rows[i]["str_operation"] = "I";
+                                                    }
                                                 }
                                                 str_ret = JsonConvert.SerializeObject(dtt_retorno);
 
-                                                sqlStr = "select * from f_man_tbl_ntv_tbl_itemcombo('{\"dados\": " + str_ret + "}') as id";
+                                                sqlStr = "select * from f_man_tbl_ntv_tbl_itemadicional('{\"dados\": " + str_ret + "}') as id";
                                                 str_ret = repData.ConsultaGenericaPostgres(sqlStr, conn, tran);
                                                 dtt_retorno = JsonConvert.DeserializeObject<DataTable>(str_ret);
 
                                                 if (dtt_retorno.Rows.Count > 0)
                                                 {
+                                                    for (int i = 0; i < dtt_retorno.Rows[0]["id"].ToString().Split(";").Length; i++)
+                                                    {
+                                                        listDados_adic[i].id = Convert.ToInt64(dtt_retorno.Rows[0]["id"].ToString().Split(";")[0]);
+                                                    }
                                                 }
                                             }
                                             str_ret_fim += "#|#|" + JsonConvert.SerializeObject(listDados_adic);
@@ -435,9 +452,9 @@ namespace WebAppServer.Repositories
             }
             catch (Exception ex)
             {
-                str_ret = "Error : " + ex.Message.ToString();
+                str_ret_fim = "Error : " + ex.Message.ToString();
             }
-            return str_ret;
+            return str_ret_fim;
 
         }
     }
