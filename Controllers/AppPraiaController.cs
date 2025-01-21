@@ -132,9 +132,9 @@ namespace WebAppServer.Controllers
             {
                 Assembly genModel = null;
 
-                //string assemblyPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "WebAppServer.dll");
-                //genModel = Assembly.LoadFrom(assemblyPath);
-                genModel = Assembly.LoadFrom(@"D:\Jackson\Natividade\APP\AppServer\WebAppServer\WebAppServer\bin\Debug\netcoreapp3.1\WebAppServer.dll");
+                string assemblyPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "WebAppServer.dll");
+                genModel = Assembly.LoadFrom(assemblyPath);
+                //genModel = Assembly.LoadFrom(@"D:\Jackson\Natividade\APP\AppServer\WebAppServer\WebAppServer\bin\Debug\netcoreapp3.1\WebAppServer.dll");
 
 
                 Type ClasseImporta = genModel.GetType("WebAppServer." + genModels.classe);

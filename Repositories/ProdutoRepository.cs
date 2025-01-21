@@ -196,7 +196,7 @@ namespace WebAppServer.Repositories
 
             string str_param = "";
 
-            log.EscreverTextoNoArquivo("WebAppServer.Repositories.ProdutoRepository.GravarDadosPostgres", "Produtos.log", DateTime.Now.ToString("G") + " : Inicio da gravação. ");
+            //log.EscreverTextoNoArquivo("WebAppServer.Repositories.ProdutoRepository.GravarDadosPostgres", "Produtos.log", DateTime.Now.ToString("G") + " : Inicio da gravação. ");
 
             try
             {
@@ -211,11 +211,11 @@ namespace WebAppServer.Repositories
                 }
                 listDados_prod = JsonConvert.DeserializeObject<List<Produto>>(str_param.IndexOf("[") == -1 ? "[" + str_param + "]" : str_param);
 
-                log.EscreverTextoNoArquivo("WebAppServer.Repositories.ProdutoRepository.GravarDadosPostgres", "Produtos.log", DateTime.Now.ToString("G") + " : Carregou produto. ");
+                //log.EscreverTextoNoArquivo("WebAppServer.Repositories.ProdutoRepository.GravarDadosPostgres", "Produtos.log", DateTime.Now.ToString("G") + " : Carregou produto. ");
                 if (listDados_prod != null)
                 {
                     //Carrega dados produtos do combo
-                    log.EscreverTextoNoArquivo("WebAppServer.Repositories.ProdutoRepository.GravarDadosPostgres", "Produtos.log", DateTime.Now.ToString("G") + " : Carrega dados produtos do combo. ");
+                    //log.EscreverTextoNoArquivo("WebAppServer.Repositories.ProdutoRepository.GravarDadosPostgres", "Produtos.log", DateTime.Now.ToString("G") + " : Carrega dados produtos do combo. ");
                     if (itemCombo.GetType() != typeof(string))
                     {
                         str_param = JsonConvert.SerializeObject(itemCombo);
@@ -227,7 +227,7 @@ namespace WebAppServer.Repositories
                     listDados_cmb = JsonConvert.DeserializeObject<List<ItemCombo>>(str_param.IndexOf("[") == -1 ? "[" + str_param + "]" : str_param);
 
                     //Carrega dados produtos adicionais
-                    log.EscreverTextoNoArquivo("WebAppServer.Repositories.ProdutoRepository.GravarDadosPostgres", "Produtos.log", DateTime.Now.ToString("G") + " : Carrega dados produtos adicionais. ");
+                    //log.EscreverTextoNoArquivo("WebAppServer.Repositories.ProdutoRepository.GravarDadosPostgres", "Produtos.log", DateTime.Now.ToString("G") + " : Carrega dados produtos adicionais. ");
                     if (itemAdic.GetType() != typeof(string))
                     {
                         str_param = JsonConvert.SerializeObject(itemAdic);
@@ -249,7 +249,7 @@ namespace WebAppServer.Repositories
                             try
                             {
                                 //Grava produto
-                                log.EscreverTextoNoArquivo("WebAppServer.Repositories.ProdutoRepository.GravarDadosPostgres", "Produtos.log", DateTime.Now.ToString("G") + " : Grava produto.");
+                                //log.EscreverTextoNoArquivo("WebAppServer.Repositories.ProdutoRepository.GravarDadosPostgres", "Produtos.log", DateTime.Now.ToString("G") + " : Grava produto.");
                                 str_ret = JsonConvert.SerializeObject(listDados_prod);
                                 dtt_retorno = JsonConvert.DeserializeObject<DataTable>(str_ret);
                                 //Incluir coluna da operação a ser executada
@@ -262,17 +262,17 @@ namespace WebAppServer.Repositories
                                     }
                                     str_ret = JsonConvert.SerializeObject(dtt_retorno);
 
-                                    log.EscreverTextoNoArquivo("WebAppServer.Repositories.ProdutoRepository.GravarDadosPostgres", "Produtos.log", DateTime.Now.ToString("G") + " : Chama função para gravar.");
+                                    //log.EscreverTextoNoArquivo("WebAppServer.Repositories.ProdutoRepository.GravarDadosPostgres", "Produtos.log", DateTime.Now.ToString("G") + " : Chama função para gravar.");
                                     string sqlStr = "select * from f_man_tbl_ntv_tbl_produto('{\"dados\": " + str_ret + "}') as id";
                                     str_ret = repData.ConsultaGenericaPostgres(sqlStr, conn, tran);
-                                    log.EscreverTextoNoArquivo("WebAppServer.Repositories.ProdutoRepository.GravarDadosPostgres", "Produtos.log", DateTime.Now.ToString("G") + " : Salvou." + str_ret);
+                                    //log.EscreverTextoNoArquivo("WebAppServer.Repositories.ProdutoRepository.GravarDadosPostgres", "Produtos.log", DateTime.Now.ToString("G") + " : Salvou." + str_ret);
 
                                     dtt_retorno = JsonConvert.DeserializeObject<DataTable>(str_ret);
 
                                     if (dtt_retorno.Rows.Count > 0)
                                     {
                                         //Guarda id do produto principal
-                                        log.EscreverTextoNoArquivo("WebAppServer.Repositories.ProdutoRepository.GravarDadosPostgres", "Produtos.log", DateTime.Now.ToString("G") + " : Guarda id do produto principal." + dtt_retorno.Rows[0]["id"].ToString().Replace(";", ""));
+                                        //log.EscreverTextoNoArquivo("WebAppServer.Repositories.ProdutoRepository.GravarDadosPostgres", "Produtos.log", DateTime.Now.ToString("G") + " : Guarda id do produto principal." + dtt_retorno.Rows[0]["id"].ToString().Replace(";", ""));
                                         id_ret = Convert.ToInt64(dtt_retorno.Rows[0]["id"].ToString().Replace(";", ""));
 
                                         listDados_prod[0].id = id_ret;
