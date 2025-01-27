@@ -368,7 +368,10 @@ namespace WebAppServer.Repositories
                                                 {
                                                     for (int i = 0; i < dtt_retorno.Rows[0]["id"].ToString().Split(";").Length; i++)
                                                     {
-                                                        listDados_adic[i].id = Convert.ToInt64(dtt_retorno.Rows[0]["id"].ToString().Split(";")[i]);
+                                                        if (dtt_retorno.Rows[0]["id"].ToString().Split(";")[i] != "")
+                                                        {
+                                                            listDados_adic[i].id = Convert.ToInt64(dtt_retorno.Rows[0]["id"].ToString().Split(";")[i]);
+                                                        }
                                                     }
                                                 }
                                             }

@@ -213,7 +213,7 @@ namespace WebAppServer.Repositories
                     id_grupo = produto.id_grupo,
                     str_descricao = produto.str_descricao,
                     str_obs = produto.str_obs,
-                    int_qtd_estmin = produto.int_qtd_estmin,
+                    dbl_qtd_estmin = produto.int_qtd_estmin,
                     int_qtd_combo = produto.int_qtd_combo,
                     dbl_val_comp = produto.dbl_val_comp,
                     dbl_val_unit = produto.dbl_val_unit,
