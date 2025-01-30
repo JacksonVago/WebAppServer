@@ -517,6 +517,42 @@ namespace WebAppServer.Repositories
 
         }
 
+        public async Task<IEnumerable<dynamic>> ValidaUsuarioPostgres(string str_mail)
+        {
+            DataRepository repData = new DataRepository();
+            DataTable dtt_retorno = new DataTable();
+            bool bol_ret = true;
+            Int64 id_emp = 0;
+            Int64 id_prim = 0;
+            string str_ret = "";
+            string str_corpo = "";
+            dynamic dyn_ret = null;
+
+            using (NpgsqlConnection conn = new NpgsqlConnection(configDB.ConnectString))
+            {
+                try
+                {
+                    conn.Open();
+
+                    //Verifica se o usuário esta ativo 
+                    string sqlStr = "select * from f_sel_tbl_ntv_tbl_usuario(0,0,'" + str_mail + "','',1)";
+                    str_ret = repData.ConsultaGenericaPostgres(sqlStr, conn, null);
+
+                    dyn_ret = JsonConvert.DeserializeObject<List<Usuario>>(str_ret);
+                }
+                catch (Exception ex)
+                {
+                    conn.Close();
+                    throw ex;
+                }
+                conn.Close();
+            }
+
+            return dyn_ret;
+
+
+        }
+
         public async Task<IEnumerable<UserPrimAcess>> ValPrimeiroAcessoPostgres(string str_mail, Int64 codigo)
         {
 

@@ -205,6 +205,42 @@ namespace WebAppServer.Controllers
 
         }
 
+        [HttpPost("v1/LocalCardapioPostgres")]
+        public async Task<ActionResult<dynamic>> LocalCardapioPostgres([FromBody] DadosPostgres dados)
+        {
+            dynamic dyn_retorno = null;
+            try
+            {
+                string sqlStr = "select * from f_sel_localCliente_cardapio(" + dados.Dados + ")";
+                dyn_retorno = _repApp.ExecutaSqlPostgres(sqlStr);
+                return dyn_retorno;
+            }
+            catch (Exception ex)
+            {
+                return NotFound(new { mensagem = ex.Message.ToString() });
+            }
+
+        }
+
+        [HttpGet("v1/ValidaUserPostgres/{email}")]
+        public async Task<dynamic> ValidaUserPostgres(string email)
+        {
+            try
+            {
+                dynamic ret = await _repAcesso.ValidaUsuarioPostgres(email);
+                return ret;
+                /*return Ok(new
+                {
+                    UserAcess = ret
+
+                });*/
+            }
+            catch (Exception ex)
+            {
+                return NotFound(new { message = ex.Message.ToString() });
+            }
+        }
+
         [HttpPost("v1/UpdPrimAcess")]
         public async Task<dynamic> AtuPrimAcess([FromBody] UserPrimAcess primAcess)
         {
