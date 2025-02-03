@@ -304,8 +304,11 @@ namespace WebAppServer.Hubs
         {
             //Ao usar o método Client(_connections.GetUserId(chat.destination)) eu estou enviando a mensagem apenas para o usuário destino, não realizando broadcast
 
-            await Clients.Group(empresa).SendAsync("ReceivePedido", msg, msg);
-            await Clients.Client(userID).SendAsync("Receive", msg, msg);
+
+            //Comentado para testes
+            //await Clients.Group(empresa).SendAsync("ReceivePedido", msg, msg);
+            //await Clients.Client(userID).SendAsync("Receive", msg, msg);
+            await Clients.All.SendAsync("ReceiveMessage", msg);
         }
 
 

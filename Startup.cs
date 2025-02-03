@@ -17,6 +17,7 @@ using WebAppServer.Repositories;
 using WebAppServer.Hubs;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Cors.Infrastructure;
+using static System.Net.WebRequestMethods;
 
 namespace WebAppServer
 {
@@ -56,20 +57,42 @@ namespace WebAppServer
                     ValidAudience = "natividadesolucoes.com.br",
                     IssuerSigningKey = new SymmetricSecurityKey(chave)
                 };
+
+                /*
+                options.Events = new JwtBearerEvents
+                {
+                    OnMessageReceived = context =>
+                    {
+                        var accessToken = context.Request.Query["access_token"];
+
+                        // If the request is for our hub...
+                        var path = context.HttpContext.Request.Path;
+                        if (!string.IsNullOrEmpty(accessToken) &&
+                            (path.StartsWithSegments("/hubs/AppHub")))
+                        {
+                            // Read the token out of the query string
+                            context.Token = accessToken;
+                        }
+                        return Task.CompletedTask;
+                    }
+                };*/
             }
             );            
             services.AddCors(options => {
                 options.AddDefaultPolicy(
                                       policy =>
                                       {
-                                          policy.WithOrigins(["http://localhost:3000",
+                                          policy.WithOrigins(
+                                              ["http://localhost:3000",                                               
                                                             "http://192.168.1.136:3000",
                                                              "http://107.22.1.181",
                                                              "http://192.168.1.226:3000",
                                                              "http://13.77.179.14:88",
-                                                             "http://35.174.17.110"]);
+                                                             "http://35.174.17.110"]
+                                                             );
                                           policy.AllowAnyHeader();
                                           policy.AllowAnyMethod();
+                                          policy.AllowCredentials();
                                       });
             });
             services.AddControllersWithViews();
