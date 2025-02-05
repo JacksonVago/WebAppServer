@@ -1,7 +1,7 @@
 {
   "ConnectionStrings1": {
-    //"DeafultConnectionStrings": "Server=13.77.179.14;User Id=postgres;Password=postgres;Database=dbPraia;" //Rodando localmente
-    "DeafultConnectionStrings": "Server=172.17.0.1;User Id=postgres;Password=postgres;Database=dbPraia;" //Rodando no SRVDB
+    "DeafultConnectionStrings": "Server=13.77.179.14;User Id=postgres;Password=postgres;Database=dbPraia;" //Rodando localmente
+    //"DeafultConnectionStrings": "Server=172.17.0.1;User Id=postgres;Password=postgres;Database=dbPraia;" //Rodando no SRVDB
     //"DeafultConnectionStrings": "Server=127.0.0.1;User Id=postgres;Password=postgres;Database=dbPraia;"
     //"DeafultConnectionStrings": "Server=192.168.56.1;Database=dbPraia;Persist Security Info=True;TrustServerCertificate=true;User ID=natividade;Password=",
     //"DeafultConnectionStrings": "Server=192.168.56.1;Database=dbAppPraia;Persist Security Info=True;TrustServerCertificate=true;User ID=natividade;Password="
