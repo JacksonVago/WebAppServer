@@ -30,6 +30,7 @@ namespace WebAppServer.Hubs
         {
             string str_conect_adm = "";
 
+            /*
             //Verifica se é o administrador que esta conectando
             _logger.LogInformation(DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss") + " Hub OnConnect - " + empresa + "/" + user + "/" + userAdm);
             if (user == userAdm)
@@ -80,6 +81,7 @@ namespace WebAppServer.Hubs
 
             await AtualizaGrupo(empresa, user, true);
             await base.OnConnectedAsync();
+            */
 
         }
 
@@ -309,6 +311,17 @@ namespace WebAppServer.Hubs
             //await Clients.Group(empresa).SendAsync("ReceivePedido", msg, msg);
             //await Clients.Client(userID).SendAsync("Receive", msg, msg);
             await Clients.All.SendAsync("ReceiveMessage", msg);
+        }
+
+        public async Task ImprimePedido(string empresa, string userID, string msg)
+        {
+            //Ao usar o método Client(_connections.GetUserId(chat.destination)) eu estou enviando a mensagem apenas para o usuário destino, não realizando broadcast
+
+
+            //Comentado para testes
+            //await Clients.Group(empresa).SendAsync("ReceivePedido", msg, msg);
+            //await Clients.Client(userID).SendAsync("Receive", msg, msg);
+            await Clients.All.SendAsync("ImprimePedido", msg);
         }
 
 
