@@ -313,7 +313,7 @@ namespace WebAppServer.Hubs
             await Clients.All.SendAsync("ReceiveMessage", msg);
         }
 
-        public async Task ImprimePedido(string empresa, string userID, string msg)
+        public async Task ImprimePedido(string empresa, string impressora, string msg)
         {
             //Ao usar o método Client(_connections.GetUserId(chat.destination)) eu estou enviando a mensagem apenas para o usuário destino, não realizando broadcast
 
@@ -321,7 +321,7 @@ namespace WebAppServer.Hubs
             //Comentado para testes
             //await Clients.Group(empresa).SendAsync("ReceivePedido", msg, msg);
             //await Clients.Client(userID).SendAsync("Receive", msg, msg);
-            await Clients.All.SendAsync("ImprimePedido", msg);
+            await Clients.All.SendAsync("ImprimePedido", impressora, msg);
         }
 
 
