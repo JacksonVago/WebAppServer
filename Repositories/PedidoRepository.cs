@@ -306,8 +306,7 @@ namespace WebAppServer.Repositories
                                         dtt_retorno.Columns.Add(new DataColumn("str_operation", System.Type.GetType("System.String")));
                                         dtt_retorno.Rows[0]["str_operation"] = operacao;
                                     }
-                                    str_ret = JsonConvert.SerializeObject(dtt_retorno);
-                                    str_ret_fim = str_ret;
+                                    str_ret = JsonConvert.SerializeObject(dtt_retorno);                                    
 
                                     string sqlStr = "select * from f_man_tbl_ntv_tbl_pedido('{\"dados\": " + str_ret + "}') as id";
                                     str_ret = repData.ConsultaGenericaPostgres(sqlStr, conn, tran);
@@ -317,6 +316,9 @@ namespace WebAppServer.Repositories
                                     {
                                         //Guarda id do pedido
                                         id_pedido = Convert.ToInt64(dtt_retorno.Rows[0]["id"].ToString().Replace(";", ""));
+                                        pedidos[0].id = id_pedido;
+
+                                        str_ret_fim = JsonConvert.SerializeObject(pedidos);
 
                                         //Grava itens do pedido
                                         if (pedidoitem != null && pedidoitem.Count > 0)
@@ -353,6 +355,18 @@ namespace WebAppServer.Repositories
 
                                                 if (dtt_retorno.Rows.Count > 0)
                                                 {
+                                                    //Coloca novos ids
+                                                    for (int i = 0; i < dtt_retorno.Rows[0]["id"].ToString().Split(";").Length; i++)
+                                                    {
+
+                                                        if (dtt_retorno.Rows[0]["id"].ToString().Split(";")[i] != "")
+                                                        {
+                                                            pedidoitem[i].id = Convert.ToInt64(dtt_retorno.Rows[0]["id"].ToString().Split(";")[i]);
+                                                        }
+                                                    }
+
+                                                    str_ret_fim += "#|#|" + JsonConvert.SerializeObject(pedidoitem);
+
                                                     //Colocar id do item do pedido produtos combo
                                                     if (pedidoitemCmb != null && pedidoitemCmb.Count > 0)
                                                     {
@@ -382,15 +396,20 @@ namespace WebAppServer.Repositories
                                                             }
                                                         }
                                                     }
-
+                                                }
+                                                else
+                                                {
+                                                    str_ret_fim += "#|#|";
                                                 }
                                             }
-
-                                            str_ret += "#|#|" + JsonConvert.SerializeObject(pedidoitem);
+                                            else
+                                            {
+                                                str_ret_fim += "#|#|";
+                                            }
                                         }
                                         else
                                         {
-                                            str_ret += "#|#|";
+                                            str_ret_fim += "#|#|";
                                         }
 
                                         //Grava itens combo
@@ -428,14 +447,23 @@ namespace WebAppServer.Repositories
 
                                                 if (dtt_retorno.Rows.Count > 0)
                                                 {
+                                                    //Coloca novos ids
+                                                    for (int i = 0; i < dtt_retorno.Rows[0]["id"].ToString().Split(";").Length; i++)
+                                                    {
+
+                                                        if (dtt_retorno.Rows[0]["id"].ToString().Split(";")[i] != "")
+                                                        {
+                                                            pedidoitemCmb[i].id = Convert.ToInt64(dtt_retorno.Rows[0]["id"].ToString().Split(";")[i]);
+                                                        }
+                                                    }                                                    
                                                 }
                                             }
 
-                                            str_ret += "#|#|" + JsonConvert.SerializeObject(pedidoitemCmb);
+                                            str_ret_fim += "#|#|" + JsonConvert.SerializeObject(pedidoitemCmb);
                                         }
                                         else
                                         {
-                                            str_ret += "#|#|";
+                                            str_ret_fim += "#|#|";
                                         }
 
                                         //Grava itens adicionais
@@ -473,14 +501,23 @@ namespace WebAppServer.Repositories
 
                                                 if (dtt_retorno.Rows.Count > 0)
                                                 {
+                                                    //Coloca novos ids
+                                                    for (int i = 0; i < dtt_retorno.Rows[0]["id"].ToString().Split(";").Length; i++)
+                                                    {
+
+                                                        if (dtt_retorno.Rows[0]["id"].ToString().Split(";")[i] != "")
+                                                        {
+                                                            pedidoitemAdic[i].id = Convert.ToInt64(dtt_retorno.Rows[0]["id"].ToString().Split(";")[i]);
+                                                        }
+                                                    }
                                                 }
                                             }
 
-                                            str_ret += "#|#|" + JsonConvert.SerializeObject(pedidoitemAdic);
+                                            str_ret_fim += "#|#|" + JsonConvert.SerializeObject(pedidoitemAdic);
                                         }
                                         else
                                         {
-                                            str_ret += "#|#|";
+                                            str_ret_fim += "#|#|";
                                         }
                                     }
                                 }
@@ -501,9 +538,9 @@ namespace WebAppServer.Repositories
             }
             catch (Exception ex)
             {
-                str_ret = "Error : " + ex.Message.ToString();
+                str_ret_fim = "Error : " + ex.Message.ToString();
             }
-            return str_ret;
+            return str_ret_fim;
         }
 
     }
