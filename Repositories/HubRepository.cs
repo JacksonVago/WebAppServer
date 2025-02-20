@@ -1,5 +1,6 @@
 ﻿using Microsoft.Data.SqlClient;
 using Newtonsoft.Json;
+using Npgsql;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -1679,5 +1680,96 @@ namespace WebAppServer.Repositories
 
             return str_notific;
         }
+        public async Task<string> AtualizaPedidoPostgres(string empresa, string pedido)
+        {
+            List<Pedido> pedidos = new List<Pedido>();
+
+            DataTable dtt_retorno = new DataTable();
+
+            string dados = "";
+            string str_param = "";
+            string str_ret = "";
+            string sqlStr = "";
+
+            try
+            {
+
+
+                //Carrega dados pedido
+                if (dados.GetType() != typeof(string))
+                {
+                    str_param = JsonConvert.SerializeObject(dados);
+                }
+                else
+                {
+                    str_param = dados;
+                }
+                pedidos = JsonConvert.DeserializeObject<List<Pedido>>(str_param.IndexOf("[") == -1 ? "[" + str_param + "]" : str_param);
+
+                if (pedidos != null)
+                {
+                    string str_conn = configDB.ConnectString;
+
+                    using (NpgsqlConnection conn = new NpgsqlConnection(configDB.ConnectString))
+                    {
+                        conn.Open();
+
+                        using (NpgsqlTransaction tran = conn.BeginTransaction())
+                        {
+                            try
+                            {
+                                //Consulta pedidos
+                                sqlStr = "select * from f_sel_tbl_ntv_tbl_pedido(" + pedido + "," + empresa.ToString() + ",0,'2001-01-01','2001-01-01',1)";
+
+                                str_ret = repData.ConsultaGenericaPostgres(sqlStr, conn, tran);
+                                dtt_retorno = JsonConvert.DeserializeObject<DataTable>(str_ret);
+
+                                if (dtt_retorno.Rows[0]["int_situacao"] == "0")
+                                {
+                                    if (dtt_retorno.Columns.Count > 0)
+                                    {
+                                        dtt_retorno.Columns.Add(new DataColumn("str_operation", System.Type.GetType("System.String")));
+
+                                        for (int i = 0; i < dtt_retorno.Rows.Count; i++)
+                                        {
+                                            dtt_retorno.Rows[i]["int_situacao"] = 1;
+                                            dtt_retorno.Rows[i]["str_operation"] = "U";
+                                        }
+                                        str_ret = JsonConvert.SerializeObject(dtt_retorno);
+
+                                        sqlStr = "select * from f_man_tbl_ntv_tbl_pedido('{\"dados\": " + str_ret + "}') as id";
+                                        str_ret = repData.ConsultaGenericaPostgres(sqlStr, conn, tran);
+                                        dtt_retorno = JsonConvert.DeserializeObject<DataTable>(str_ret);
+
+                                        if (dtt_retorno.Rows.Count > 0)
+                                        {
+                                        }
+                                    }
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                tran.Rollback();
+                                conn.Close();
+                                throw ex;
+                            }
+
+                            tran.Commit();
+                        }
+                        conn.Close();
+                    }
+
+
+
+                }
+            }
+            catch (Exception ex)
+            {
+                str_ret = "Error : " + ex.Message.ToString();
+            }
+
+            return str_ret;
+        }
+
     }
 }

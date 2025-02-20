@@ -324,6 +324,14 @@ namespace WebAppServer.Hubs
             await Clients.All.SendAsync("ImprimePedido", impressora, msg);
         }
 
+        public async Task AtualizaPedido(string empresa, string pedido)
+        {
+            //Atualiza status do pedido para impresso (1 - confirmado)
+            string str_ret = await _repHub.AtualizaPedidoPostgres(empresa, pedido);
+
+
+        }
+
 
         private async Task AtualizaGrupo(string empresa, string usuario, bool connect)
         {
