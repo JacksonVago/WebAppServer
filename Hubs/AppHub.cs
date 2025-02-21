@@ -313,6 +313,17 @@ namespace WebAppServer.Hubs
             await Clients.All.SendAsync("ReceiveMessage", msg);
         }
 
+        public async Task SendPedidoWeb(string empresa, string impressora, string dados, string pedido)
+        {
+            //Ao usar o método Client(_connections.GetUserId(chat.destination)) eu estou enviando a mensagem apenas para o usuário destino, não realizando broadcast
+
+
+            //Comentado para testes
+            //await Clients.Group(empresa).SendAsync("ReceivePedido", msg, msg);
+            //await Clients.Client(userID).SendAsync("Receive", msg, msg);
+            await Clients.All.SendAsync("ReceivePedidoWeb", impressora, dados, pedido);
+        }
+
         public async Task ImprimePedido(string empresa, string impressora, string msg, string pedido)
         {
             //Ao usar o método Client(_connections.GetUserId(chat.destination)) eu estou enviando a mensagem apenas para o usuário destino, não realizando broadcast
