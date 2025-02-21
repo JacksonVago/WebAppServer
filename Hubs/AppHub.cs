@@ -321,7 +321,7 @@ namespace WebAppServer.Hubs
             //Comentado para testes
             //await Clients.Group(empresa).SendAsync("ReceivePedido", msg, msg);
             //await Clients.Client(userID).SendAsync("Receive", msg, msg);
-            await Clients.All.SendAsync("ReceivePedidoWeb", impressora, dados, pedido);
+            await Clients.All.SendAsync("ReceivePedidoWeb", empresa, impressora, dados, pedido);
         }
 
         public async Task ImprimePedido(string empresa, string impressora, string msg, string pedido)
