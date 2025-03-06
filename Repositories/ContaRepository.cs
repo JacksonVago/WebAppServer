@@ -147,7 +147,7 @@ namespace WebAppServer.Repositories
                                                         {
                                                             //Atualiza situação do pedidos somente quando paagar total
                                                             //Consulta pedidos
-                                                            sqlStr = "select * from f_sel_tbl_ntv_tbl_pedido(0," + localCli[0].id_empresa + "," + localCli[0].id + ",'2001-01-01','2001-01-01',1)";
+                                                            sqlStr = "select * from f_sel_tbl_ntv_tbl_pedido(0," + localCli[0].id_empresa + "," + localCli[0].id + ",'2001-01-01','2001-01-01',-9)";
 
                                                             str_ret = repData.ConsultaGenericaPostgres(sqlStr, conn, tran);
                                                             dtt_retorno = JsonConvert.DeserializeObject<DataTable>(str_ret);
