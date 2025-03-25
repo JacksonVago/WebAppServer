@@ -2,22 +2,20 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-/*using Microsoft.IdentityModel.Tokens;
-using System;
-using System.Collections.Generic;
-using System.Linq;*/
 using System.Text;
-using System.Threading.Tasks;
 using WebAppServer.Models;
 using WebAppServer.Repositories;
 using WebAppServer.Hubs;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.AspNetCore.Cors.Infrastructure;
 using static System.Net.WebRequestMethods;
+using Coravel;
+using Coravel.Scheduling.Schedule;
+using System.Xml.Serialization;
+using WebAppServer.Services;
+using System;
 
 namespace WebAppServer
 {
@@ -45,7 +43,11 @@ namespace WebAppServer
             services.AddScoped<SyncRepository>();
             services.AddScoped<EmailRepository>();
             services.AddScoped<NotificacoesRepository>();
+            services.AddTransient<LocalRepository>();
+            services.AddTransient<ScheduleTaks>();
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+
+
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
             {
                 options.TokenValidationParameters = new TokenValidationParameters
@@ -58,24 +60,6 @@ namespace WebAppServer
                     IssuerSigningKey = new SymmetricSecurityKey(chave)
                 };
 
-                /*
-                options.Events = new JwtBearerEvents
-                {
-                    OnMessageReceived = context =>
-                    {
-                        var accessToken = context.Request.Query["access_token"];
-
-                        // If the request is for our hub...
-                        var path = context.HttpContext.Request.Path;
-                        if (!string.IsNullOrEmpty(accessToken) &&
-                            (path.StartsWithSegments("/hubs/AppHub")))
-                        {
-                            // Read the token out of the query string
-                            context.Token = accessToken;
-                        }
-                        return Task.CompletedTask;
-                    }
-                };*/
             }
             );            
             services.AddCors(options => {
@@ -96,7 +80,8 @@ namespace WebAppServer
                                       });
             });
             services.AddControllersWithViews();
-            services.AddSignalR();            
+            services.AddSignalR();
+            services.AddScheduler();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -113,7 +98,12 @@ namespace WebAppServer
                 app.UseHsts();
             }
 
-
+            app.ApplicationServices.UseScheduler(Scheduler =>
+            {
+                Scheduler.Schedule<ScheduleTaks>().Cron("40 19 * * *").Zoned(TimeZoneInfo.Local);
+                //Scheduler.Schedule<ScheduleTaks>().DailyAt(19, 22);
+                //Scheduler.Schedule<ScheduleTaks>().EveryThirtySeconds();
+            }).OnError(exception => throw exception);
             app.UseCors();
             app.UseHttpsRedirection();
             app.UseStaticFiles();            

@@ -13,5 +13,8 @@ namespace WebAppServer.Models
 		public string str_idprodutos { get; set; } //id´s dos produtos que faz parte da lista
 		public Int64 id_app { get; set; } //Id do registro do APP
 		public Int64 id_user_man { get; set; }
-	}
+
+        public string str_foto { get; set; } //foto da lista
+    }
+
 }

@@ -31,5 +31,6 @@ namespace WebAppServer.Models
         public Int16 int_situacao { get; set; }
         public Int64 id_app { get; set; }
         public Int64 id_user_man { get; set; }
+        public Int64 id_praca { get; set; }
     }
 }

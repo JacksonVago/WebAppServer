@@ -207,5 +207,72 @@ namespace WebAppServer.Repositories
             return str_ret;
 
         }
+        public string IniciaDia()
+        {
+            DataTable dtt_local = new DataTable();
+            string str_ret = "";
+            string str_conn = configDB.ConnectString;
+            DataTable dtt_retorno = new DataTable();
+
+            try
+            {
+                using (NpgsqlConnection conn = new NpgsqlConnection(configDB.ConnectString))
+                {
+                    conn.Open();
+
+                    using (NpgsqlTransaction tran = conn.BeginTransaction())
+                    {
+                        try
+                        {
+                            string sqlStr = "select * from f_sel_tbl_ntv_tbl_local(0,0,2)";
+
+                            str_ret = repData.ConsultaGenericaPostgres(sqlStr, conn, tran);
+                            dtt_local = JsonConvert.DeserializeObject<DataTable>(str_ret);
+
+                            if (dtt_local.Rows.Count > 0)
+                            {
+                                if (!dtt_local.Columns.Contains("str_operation"))
+                                {
+                                    dtt_local.Columns.Add(new DataColumn("str_operation", System.Type.GetType("System.String")));
+                                    dtt_local.Rows[0]["str_operation"] = "U";
+                                }
+
+                                for (int i = 0; i < dtt_local.Rows.Count; i++)
+                                {
+                                    dtt_local.Rows[i]["int_situacao"] = 1;
+                                }
+
+                                str_ret = JsonConvert.SerializeObject(dtt_local);
+
+                                sqlStr = "select * from f_man_tbl_ntv_tbl_local('{\"dados\": " + str_ret + "}') as id";
+                                str_ret = repData.ConsultaGenericaPostgres(sqlStr, conn, tran);
+
+                                dtt_retorno = JsonConvert.DeserializeObject<DataTable>(str_ret);
+
+                                if (dtt_retorno.Rows.Count > 0)
+                                {
+                                }
+                            }
+
+                            tran.Commit();
+                        }
+                        catch (Exception ex)
+                        {
+                            tran.Rollback();
+                            conn.Close();
+                            throw ex;
+
+                        }
+                    }
+                    conn.Close();
+                }
+
+            }
+            catch (Exception ex)
+            {
+                str_ret = "Error : " + ex.Message.ToString();
+            }
+            return str_ret;
+        }
     }
 }
