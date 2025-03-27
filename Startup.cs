@@ -100,7 +100,7 @@ namespace WebAppServer
 
             app.ApplicationServices.UseScheduler(Scheduler =>
             {
-                Scheduler.Schedule<ScheduleTaks>().Cron("40 19 * * *").Zoned(TimeZoneInfo.Local);
+                Scheduler.Schedule<ScheduleTaks>().Cron("00 6 * * *").Zoned(TimeZoneInfo.Local);
                 //Scheduler.Schedule<ScheduleTaks>().DailyAt(19, 22);
                 //Scheduler.Schedule<ScheduleTaks>().EveryThirtySeconds();
             }).OnError(exception => throw exception);
