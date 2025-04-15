@@ -72,7 +72,8 @@ namespace WebAppServer
                                                              "http://107.22.1.181",
                                                              "http://192.168.1.226:3000",
                                                              "http://13.77.179.14:88",
-                                                             "http://35.174.17.110"]
+                                                             "http://35.174.17.110",
+                                          "http://www.apppraia.com.br"]
                                                              );
                                           policy.AllowAnyHeader();
                                           policy.AllowAnyMethod();
