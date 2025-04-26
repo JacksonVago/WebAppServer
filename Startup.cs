@@ -84,6 +84,9 @@ namespace WebAppServer
             services.AddControllersWithViews();
             services.AddSignalR();
             services.AddScheduler();
+            services.AddHttpsRedirection(options => {
+                options.HttpsPort = 88;
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

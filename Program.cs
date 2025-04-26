@@ -19,7 +19,13 @@ namespace WebAppServer
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webBuilder =>
-                {                    
+                {
+                    webBuilder.ConfigureKestrel(options =>
+                    {
+                        options.ListenAnyIP(88, listenOptions => {
+                            listenOptions.UseHttps("./certs/apppraia.pfx","321654");
+                        });
+                    });
                     webBuilder.UseStartup<Startup>();
                 });
     }
