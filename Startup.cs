@@ -71,7 +71,7 @@ namespace WebAppServer
                                                "http://192.168.1.136:3000",
                                                "http://107.22.1.181",
                                                "http://192.168.1.226:3000",
-                                               "http://13.77.179.14:88",
+                                               "http://4.154.235.172:88",
                                                "http://www.apppraia.com.br",
                                                "https://www.apppraia.com.br",
                                               ]
