@@ -323,7 +323,8 @@ namespace WebAppServer.Repositories
                 int_situacao = 0,
                 int_sitpag = 0,
                 dtm_ultpag = null,
-                id_app = 0
+                id_app = 0,
+                str_chave_pix = ""
             });
 
             using (NpgsqlConnection conn = new NpgsqlConnection(configDB.ConnectString))
@@ -416,7 +417,7 @@ namespace WebAppServer.Repositories
 
                                 if (dtt_retorno.Rows.Count > 0)
                                 {
-                                    sqlStr = "select * from f_sel_tbl_ntv_tbl_prim_acess(" + dtt_retorno.Rows[0]["id"].ToString().Replace(";","") + ",0,'',0)";
+                                    sqlStr = "select * from f_sel_tbl_ntv_tbl_prim_acess(" + dtt_retorno.Rows[0]["id"].ToString().Replace(";","") + ",0,'',0,-1)";
 
                                     str_ret = repData.ConsultaGenericaPostgres(sqlStr, conn, tran);
                                     dtt_retorno = JsonConvert.DeserializeObject<DataTable>(str_ret);
@@ -491,7 +492,7 @@ namespace WebAppServer.Repositories
                     conn.Open();
 
                     //Verifica se o é primeiro acesso
-                    string sqlStr = "select * from f_sel_tbl_ntv_tbl_prim_acess(0,0," + str_mail + ",0)";
+                    string sqlStr = "select * from f_sel_tbl_ntv_tbl_prim_acess(0,0," + str_mail + ",0,0)";
                     str_ret = repData.ConsultaGenericaPostgres(sqlStr, conn, null);
                     dtt_retorno = JsonConvert.DeserializeObject<DataTable>(str_ret);
 

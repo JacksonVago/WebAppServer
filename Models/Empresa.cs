@@ -20,5 +20,6 @@ namespace WebAppServer.Models
         public DateTime? dtm_ultpag{ get; set; }
         public Int64 id_app { get; set; }
         public Int64 id_user_man { get; set; }
+        public string str_chave_pix { get; set; }
     }
 }

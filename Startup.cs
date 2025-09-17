@@ -78,7 +78,7 @@ namespace WebAppServer
                                                "https://www.apppraia.com.br",
                                                "https://www.apppraia.com.br:88"
                                               ]
-                                                             );
+                                                             ).AllowAnyHeader().AllowAnyMethod().AllowCredentials();
                                           policy.AllowAnyHeader();
                                           policy.AllowAnyMethod();
                                           policy.AllowCredentials();
