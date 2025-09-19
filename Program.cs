@@ -20,12 +20,12 @@ namespace WebAppServer
             Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
-                    /*webBuilder.ConfigureKestrel(options =>
+                    webBuilder.ConfigureKestrel(options =>
                     {
                         options.ListenAnyIP(88, listenOptions => {
                             listenOptions.UseHttps("/certs/apppraia.pfx","321654");
                         });
-                    });*/
+                    });
                     webBuilder.UseStartup<Startup>();
                 });
     }
