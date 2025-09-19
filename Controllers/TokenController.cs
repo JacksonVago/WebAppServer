@@ -34,6 +34,8 @@ namespace WebAppServer.Controllers
         public async Task<IActionResult> CreateJwtTokenAsync([FromBody] Usuariotoken user)
         {
             UsuarioAcesso user_ret = new UsuarioAcesso();
+
+            return Ok(user_ret);
             user_ret = await _repository.ValidaUsuarioPostgres(user.username, user.password);
             //user_ret = await _repository.ValidaUsuario(user.username, user.password);
             if (user_ret != null)
