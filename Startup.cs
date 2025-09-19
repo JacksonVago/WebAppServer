@@ -61,13 +61,14 @@ namespace WebAppServer
                 };
 
             }
-            );            
-            services.AddCors(options => {
+            );
+            services.AddCors(options =>
+            {
                 options.AddDefaultPolicy(
                                       policy =>
                                       {
                                           policy.WithOrigins(
-                                              ["http://localhost:3000",                                               
+                                              ["http://localhost:3000",
                                                "http://192.168.1.136:3000",
                                                "http://107.22.1.181",
                                                "http://192.168.1.226:3000",
@@ -78,16 +79,17 @@ namespace WebAppServer
                                                "https://www.apppraia.com.br",
                                                "https://www.apppraia.com.br:88"
                                               ]
-                                                             );
-                                          policy.AllowAnyHeader();
+                                              ).AllowAnyHeader().AllowAnyMethod().AllowCredentials();
+                                          /*policy.AllowAnyHeader();
                                           policy.AllowAnyMethod();
-                                          policy.AllowCredentials();
+                                          policy.AllowCredentials();*/
                                       });
             });
             services.AddControllersWithViews();
             services.AddSignalR();
             services.AddScheduler();
-            services.AddHttpsRedirection(options => {
+            services.AddHttpsRedirection(options =>
+            {
                 options.HttpsPort = 88;
             });
         }
@@ -114,12 +116,12 @@ namespace WebAppServer
             }).OnError(exception => throw exception);
             app.UseCors();
             app.UseHttpsRedirection();
-            app.UseStaticFiles();            
-            app.UseRouting();            
+            app.UseStaticFiles();
+            app.UseRouting();
             app.UseAuthentication();
-            app.UseAuthorization();            
+            app.UseAuthorization();
             app.UseEndpoints(endpoints =>
-            {                
+            {
                 endpoints.MapControllerRoute(
                     name: "default",
                     pattern: "{controller=Home}/{action=Index}/{id?}");
